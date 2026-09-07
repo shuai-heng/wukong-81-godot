@@ -648,6 +648,7 @@ func _smoke_tick() -> void:
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
 		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
 		and player.q_count >= 3 and player.e_count >= 2 \
+		and player.g_count >= 1 \
 		and player.form_count >= 1 and player.ult_count >= 1 \
 		and boss_spawned and chapters_cleared >= 10 \
 		and unlocked.size() >= 7 and victory \
@@ -669,7 +670,7 @@ func _finish_smoke(passed: bool) -> void:
 		shot = "unavailable(headless)"
 	var result := {
 		"pass": passed, "kills": player.kills, "atk_count": player.atk_count,
-		"q_count": player.q_count, "e_count": player.e_count,
+		"q_count": player.q_count, "e_count": player.e_count, "g_count": player.g_count,
 		"form_count": player.form_count, "ult_count": player.ult_count,
 		"boss_spawned": boss_spawned, "boss_tamed": boss_tamed,
 		"chapter": chapter, "chapters_cleared": chapters_cleared, "victory": victory,

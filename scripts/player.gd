@@ -49,6 +49,9 @@ var atk_anim_left := 0.0
 var hurt_cd := 0.0
 var stance_step := 0
 var q_cd_left := 0.0
+
+var g_count := 0
+var g_cd_left := 0.0
 var e_cd_left := 0.0
 var ult_cd_left := 0.0
 var form_charge := 0.0             # 0-100 → 法相
@@ -172,6 +175,8 @@ func _physics_process(delta: float) -> void:
 			_cast_e()
 		if Input.is_action_just_pressed("ult"):
 			_cast_ult()
+		if Input.is_action_just_pressed("gong") and g_cd_left <= 0.0:
+			_cast_g()
 		if Input.is_action_just_pressed("swap"):
 			main.try_switch_hero()
 
@@ -203,6 +208,8 @@ func _ai_drive(delta: float) -> Vector2:
 			_do_dash(dir)
 		if q_cd_left <= 0.0 and global_position.distance_to(target.global_position) < 195.0 * 0.9:
 			_cast_q()
+		if hero == "tang" and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+			_cast_g()
 		if e_cd_left <= 0.0 and ai_skill_cd <= 0.0:
 			var near := 0
 			for e in get_tree().get_nodes_in_group("enemies"):
@@ -461,6 +468,18 @@ func apply_card(id: String) -> void:
 		hp = max_hp
 
 # ---- 唐僧：Q 净化梵环 / E 锦襕袈裟护体 ----
+
+func _cast_g() -> void:
+	if hero != "tang":
+		return
+	g_cd_left = 25.0
+	g_count += 1
+	var dmg := 30.0 + 6.0 * lvl("t_nova")
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not e.dying:
+			e.take_hit(dmg, (e.global_position - global_position).normalized() * 40.0)
+
+
 func _cast_q_tang() -> void:
 	q_cd_left = Q_CD_BASE * cd_mul()
 	q_count += 1

@@ -1,6 +1,6 @@
 {
   "allies": 12,
-  "atk_count": 384,
+  "atk_count": 431,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
@@ -12,57 +12,47 @@
     "t_nova": 3,
     "t_reflect": 3,
     "t_ring": 2,
-    "ultGain": 3
+    "ultGain": 4
   },
   "chapter": "tongtian",
   "chapter_now": "tongtian",
   "chapters_cleared": 12,
-  "deaths": 5,
+  "deaths": 6,
   "draft_log": [
     [
       "hero",
       "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
       "generic"
     ],
     [
-      "mutation",
       "hero",
-      "generic"
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
     ],
     [
       "mutation",
       "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
       "mobility"
     ],
     [
       "hero",
       "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
+      "element"
     ],
     [
       "hero",
@@ -72,32 +62,12 @@
     [
       "mutation",
       "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
       "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
     ],
     [
       "hero",
@@ -107,54 +77,90 @@
     [
       "mutation",
       "survival",
-      "mobility"
+      "generic"
     ],
     [
       "mutation",
       "element",
-      "mutation"
-    ],
-    [
-      "mutation",
-      "element",
-      "mutation"
-    ],
-    [
-      "mutation",
-      "generic",
-      "mobility"
+      "generic"
     ],
     [
       "mutation",
       "survival",
-      "mobility"
+      "survival"
     ],
     [
       "mutation",
-      "generic",
+      "mobility",
+      "survival"
+    ],
+    [
+      "mutation",
+      "element",
       "element"
     ],
     [
       "mutation",
       "generic",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "survival",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "survival",
+      "element"
+    ],
+    [
+      "mutation",
+      "element",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
       "survival"
+    ],
+    [
+      "mutation",
+      "element",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "generic",
+      "survival"
+    ],
+    [
+      "mutation",
+      "generic",
+      "mutation"
     ]
   ],
-  "e_count": 90,
-  "elapsed_s": 400.1,
-  "floaters_spawned": 0,
-  "form_count": 29,
+  "e_count": 110,
+  "elapsed_s": 400.0,
+  "floaters_spawned": 1,
+  "form_count": 28,
+  "g_count": 1,
   "hero": "tang",
-  "hitstop_total_s": 13.2,
-  "kills": 28804,
-  "level": 25,
+  "hitstop_total_s": 14.8,
+  "kills": 35134,
+  "level": 26,
   "pass": true,
-  "q_count": 169,
+  "q_count": 204,
   "save_check": {
     "mismatch": [],
     "ok": true
   },
-  "screenshot": "unavailable(headless)",
+  "screenshot": "saved",
   "structure_check": {
     "detail": "",
     "fails": 0,
@@ -175,5 +181,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 1010
+  "wave": 1174
 }
