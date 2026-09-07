@@ -1,24 +1,56 @@
 {
-  "allies": 4,
-  "atk_count": 19,
+  "allies": 12,
+  "atk_count": 18,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
     "cdr": 1,
     "dashDmg": 1,
     "formDuration": 1,
+    "killForm": 1,
     "t_nova": 3,
-    "t_reflect": 2,
-    "t_ring": 2
+    "t_reflect": 3,
+    "t_ring": 2,
+    "ultGain": 1
   },
-  "chapter": "liusha",
-  "chapter_now": "liusha",
-  "chapters_cleared": 4,
+  "chapter": "tongtian",
+  "chapter_now": "tongtian",
+  "chapters_cleared": 12,
   "deaths": 0,
   "draft_log": [
     [
       "hero",
       "mutation",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "survival"
     ],
     [
@@ -29,37 +61,22 @@
     [
       "mutation",
       "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
       "mobility"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
     ],
     [
       "hero",
@@ -68,15 +85,15 @@
     ]
   ],
   "e_count": 6,
-  "elapsed_s": 34.0,
-  "floaters_spawned": 0,
+  "elapsed_s": 40.0,
+  "floaters_spawned": 1,
   "form_count": 3,
   "hero": "tang",
-  "hitstop_total_s": 1.0,
-  "kills": 1840,
-  "level": 11,
+  "hitstop_total_s": 0.6,
+  "kills": 2656,
+  "level": 14,
   "pass": true,
-  "q_count": 9,
+  "q_count": 10,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -87,15 +104,17 @@
     "fails": 0,
     "trials": 200
   },
-  "switches": 4,
+  "switches": 12,
   "ult_count": 2,
   "unlocked": [
     "tang",
     "wukong",
     "whiteDragon",
     "bajie",
-    "shaWujing"
+    "shaWujing",
+    "nezha",
+    "erlang"
   ],
   "victory": true,
-  "wave": 81
+  "wave": 100
 }

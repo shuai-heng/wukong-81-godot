@@ -35,6 +35,7 @@ var form_count := 0
 var upgrades := {}                 # id -> level
 var hero := "tang"                 # 出战英雄
 var rage := 0.0                    # 八戒怒气 0-100
+var wheels_left := 0.0             # 哪吒风火轮持续
 var tone := Color.WHITE            # 英雄着色（受伤闪烁恢复基准）
 var switch_count := 0
 var shield_left := 0.0
@@ -74,7 +75,10 @@ func cd_mul() -> float:
 	return maxf(0.60, 1.0 - 0.12 * lvl("cdr")) * (0.8 if in_form() else 1.0)
 
 func atk_interval() -> float:
-	return ATK_INTERVAL_BASE * maxf(Cards.CAPS["atkCdMin"], 1.0 - 0.12 * lvl("atkSpeed"))
+	var m := ATK_INTERVAL_BASE * maxf(Cards.CAPS["atkCdMin"], 1.0 - 0.12 * lvl("atkSpeed"))
+	if wheels_left > 0.0:
+		m *= 0.55
+	return m
 
 func atk_range() -> float:
 	return Cards.hero_stat(hero, "auto_range") * (1.0 + 0.16 * lvl("range")) * (1.0 + 0.08 * lvl("w_arc"))
@@ -89,7 +93,10 @@ func dr() -> float:
 	return minf(Cards.CAPS["drMax"], 0.10 * lvl("dr"))
 
 func move_speed() -> float:
-	return Cards.hero_stat(hero, "speed") * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
+	var m := Cards.hero_stat(hero, "speed") * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
+	if wheels_left > 0.0:
+		m *= 1.3 + 0.08 * lvl("n_wheels")
+	return m
 
 func dash_cd() -> float:
 	return DASH_CD_BASE * maxf(Cards.CAPS["dashCdMin"], 1.0 - 0.22 * lvl("dashCd"))
@@ -115,8 +122,8 @@ func _ready() -> void:
 	sprite.play()
 	add_child(sprite)
 
-const HERO_FRAME := {"wukong": "wukong", "tang": "tang", "whiteDragon": "wolf", "bajie": "bone", "shaWujing": "tang"}
-const HERO_TONE := {"wukong": Color.WHITE, "tang": Color.WHITE, "whiteDragon": Color(0.75, 0.94, 1.0), "bajie": Color(1.0, 0.82, 0.62), "shaWujing": Color(1.0, 0.93, 0.72)}
+const HERO_FRAME := {"wukong": "wukong", "tang": "tang", "whiteDragon": "wolf", "bajie": "bone", "shaWujing": "tang", "nezha": "wolf", "erlang": "bone"}
+const HERO_TONE := {"wukong": Color.WHITE, "tang": Color.WHITE, "whiteDragon": Color(0.75, 0.94, 1.0), "bajie": Color(1.0, 0.82, 0.62), "shaWujing": Color(1.0, 0.93, 0.72), "nezha": Color(1.0, 0.62, 0.5), "erlang": Color(0.8, 0.85, 0.95)}
 
 func set_hero(h: String, silent := false) -> void:
 	if hero == h:
@@ -140,6 +147,7 @@ func _physics_process(delta: float) -> void:
 	ult_cd_left = maxf(0.0, ult_cd_left - delta)
 	ai_skill_cd = maxf(0.0, ai_skill_cd - delta)
 	shield_left = maxf(0.0, shield_left - delta)
+	wheels_left = maxf(0.0, wheels_left - delta)
 	if hero == "tang" and shield_left > 0.0 and lvl("t_reflect") > 0:
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if e.global_position.distance_to(global_position) < 90.0:
@@ -237,6 +245,12 @@ func _cast_q() -> void:
 	if hero == "shaWujing":
 		_cast_q_sha()
 		return
+	if hero == "nezha":
+		_cast_q_nezha()
+		return
+	if hero == "erlang":
+		_cast_q_erlang()
+		return
 	q_cd_left = Q_CD_BASE * cd_mul()
 	q_count += 1
 	atk_anim_left = 0.25
@@ -264,6 +278,12 @@ func _cast_e() -> void:
 		return
 	if hero == "shaWujing":
 		_cast_e_sha()
+		return
+	if hero == "nezha":
+		_cast_e_nezha()
+		return
+	if hero == "erlang":
+		_cast_e_erlang()
 		return
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
@@ -593,3 +613,79 @@ func _cast_e_sha() -> void:
 
 func shake_request(s: float) -> void:
 	main.request_shake(s)
+
+# ---- 哪吒：Q 火尖枪突刺（直线穿刺+灼烧） / E 风火轮（加速+攻速+周身火环） ----
+func _cast_q_nezha() -> void:
+	q_cd_left = Q_CD_BASE * 0.8 * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.22
+	attacked.emit()
+	var dir := Vector2(facing_x(), 0)
+	var tgt := _nearest_enemy_any()
+	if tgt:
+		dir = (tgt.global_position - global_position).normalized()
+		sprite.flip_h = dir.x < 0.0
+	var to := (global_position + dir * 360.0).clamp(WORLD.position, WORLD.end)
+	var dmg := base_dmg() * (2.0 + 0.2 * lvl("n_spear"))
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if _seg_dist(e.global_position, global_position, to) < 34.0 + e.hit_r:
+			_hit_enemy(e, dmg, dir * 140.0)
+			e.apply_burn(1 + lvl("n_spear"), 3.0)
+	main.spawn_fx(to, 56.0, Color("ff8a5c"))
+	global_position = to
+
+func _cast_e_nezha() -> void:
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	wheels_left = 4.0 + 1.2 * lvl("n_wheels")
+	var r := 130.0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.global_position.distance_to(global_position) <= r:
+			_hit_enemy(e, base_dmg() * 0.9, (e.global_position - global_position).normalized() * 130.0)
+	main.spawn_fx(global_position, r, Color("ffb84d"))
+	main.toast("风火轮起：移速/攻速大增 %.1fs" % wheels_left)
+
+# ---- 杨戬：Q 三尖两刃（宽弧重劈） / E 天眼射线（穿透直线） ----
+func _cast_q_erlang() -> void:
+	q_cd_left = Q_CD_BASE * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.28
+	attacked.emit()
+	var to_t := Vector2(facing_x(), 0)
+	var tgt := _nearest_enemy()
+	if tgt == null:
+		tgt = _nearest_enemy_any()
+	if tgt:
+		to_t = (tgt.global_position - global_position).normalized()
+		sprite.flip_h = to_t.x < 0.0
+	var heavy_bonus := 1.0 + 0.18 * lvl("e_meishan")
+	var dmg := base_dmg() * 2.3 * heavy_bonus
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if off.length() <= atk_range() * 2.0 + e.hit_r and absf(off.angle_to(to_t)) <= 0.85:
+			_hit_enemy(e, dmg, off.normalized() * 200.0)
+	main.spawn_fx(global_position + to_t * 100.0, 120.0, Color("a8f2ff"))
+
+func _cast_e_erlang() -> void:
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	var tgt := _nearest_enemy_any()
+	var dir := Vector2(facing_x(), 0)
+	if tgt:
+		dir = (tgt.global_position - global_position).normalized()
+		sprite.flip_h = dir.x < 0.0
+	var dmg := base_dmg() * (2.6 * (1.0 + 0.25 * lvl("e_eye")))
+	var hits := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if _seg_dist(e.global_position, global_position, global_position + dir * 700.0) < 26.0 + e.hit_r:
+			_hit_enemy(e, dmg, Vector2.ZERO)
+			hits += 1
+	main.spawn_fx(global_position + dir * 350.0, 46.0, Color("c9a8ff"))
+	# 哮天犬：射线命中后咬残余
+	if lvl("e_dog") > 0 and hits > 0:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(global_position) < 200.0:
+				e.take_hit(30.0 * lvl("e_dog"), (e.global_position - global_position).normalized() * 120.0)

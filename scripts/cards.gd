@@ -55,6 +55,12 @@ const HERO_POOL := [
 	{"id": "s_speed", "name": "去如风", "desc": "宝杖飞行速度 +30%、伤害 +10%", "icon": "疾", "tone": "dbc58f", "maxLevel": 3, "hero": "沙悟净", "hid": "shaWujing"},
 	{"id": "s_erosion", "name": "沙蚀", "desc": "流沙域减速更强、伤害更高", "icon": "蚀", "tone": "c8a06b", "maxLevel": 3, "hero": "沙悟净", "hid": "shaWujing"},
 	{"id": "s_guard", "name": "九骷护体", "desc": "施放 E 获得护体 1+0.5×层 秒", "icon": "骷", "tone": "e6d8ad", "maxLevel": 2, "hero": "沙悟净", "hid": "shaWujing"},
+	{"id": "n_spear", "name": "火尖枪淬火", "desc": "Q 突刺伤害 +20%、灼烧 +1 层", "icon": "枪", "tone": "ff8a5c", "maxLevel": 3, "hero": "哪吒", "hid": "nezha"},
+	{"id": "n_wheels", "name": "风火轮延展", "desc": "E 持续 +1.2 秒、移速加成 +8%", "icon": "轮", "tone": "ffb84d", "maxLevel": 3, "hero": "哪吒", "hid": "nezha"},
+	{"id": "n_ring", "name": "乾坤圈回旋", "desc": "普攻弹射第二目标 40% 伤害", "icon": "圈", "tone": "ffd46b", "maxLevel": 2, "hero": "哪吒", "hid": "nezha"},
+	{"id": "e_eye", "name": "天眼充能", "desc": "E 射线伤害 +25%/层", "icon": "眼", "tone": "c9a8ff", "maxLevel": 3, "hero": "杨戬", "hid": "erlang"},
+	{"id": "e_dog", "name": "哮天犬", "desc": "天眼命中召唤犬咬残余敌人", "icon": "犬", "tone": "d8b0ff", "maxLevel": 2, "hero": "杨戬", "hid": "erlang"},
+	{"id": "e_meishan", "name": "梅山凝劲", "desc": "重击与 Q 伤害 +18%", "icon": "梅", "tone": "a8f2ff", "maxLevel": 3, "hero": "杨戬", "hid": "erlang"},
 ]
 
 const CAPS := {
@@ -138,8 +144,10 @@ const HERO_STATS := {
 	"whiteDragon": {"name": "小白龙", "dmg": 30.0, "speed": 145.0, "auto_range": 90.0, "q": "龙牙穿浪", "e": "引雷龙痕"},
 	"bajie": {"name": "猪八戒", "dmg": 38.0, "speed": 108.0, "auto_range": 88.0, "q": "钉耙裂地", "e": "倒卷天河"},
 	"shaWujing": {"name": "沙悟净", "dmg": 32.0, "speed": 122.0, "auto_range": 105.0, "q": "宝杖去返", "e": "流沙定域"},
+	"nezha": {"name": "哪吒", "dmg": 33.0, "speed": 140.0, "auto_range": 92.0, "q": "火尖枪突刺", "e": "风火轮"},
+	"erlang": {"name": "杨戬", "dmg": 36.0, "speed": 124.0, "auto_range": 102.0, "q": "三尖两刃", "e": "天眼射线"},
 }
-const HERO_ORDER := ["tang", "wukong", "whiteDragon", "bajie", "shaWujing"]
+const HERO_ORDER := ["tang", "wukong", "whiteDragon", "bajie", "shaWujing", "nezha", "erlang"]
 
 static func hero_stat(hero: String, key: String) -> float:
 	return float(HERO_STATS.get(hero, HERO_STATS["wukong"]).get(key, 0.0))

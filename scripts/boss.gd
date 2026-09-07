@@ -80,11 +80,49 @@ func _physics_process(delta: float) -> void:
 	# 阶段推进
 	var frac := hp / max_hp
 	phase = 1 if frac > 0.66 else (2 if frac > 0.33 else 3)
-	if phase >= 2 and charge_cd <= 0.0 and charge_left <= 0.0:
-		charge_cd = 4.0
-		charge_left = 0.55
-		charge_dir = dir
-	if phase == 3 and slam_cd <= 0.0:
+	var behavior := str(cfg.get("behavior", "charge"))
+	# 行为分派：charge 冲锋 / slam 震地 / ranged 风弹 / pull 袖里乾坤 / summon 召唤 / mirror 高速压制
+	match behavior:
+		"ranged":
+			charge_cd = maxf(0.0, charge_cd - delta)
+			if charge_cd <= 0.0:
+				charge_cd = float(cfg.get("ranged_every", 2.2))
+				main.spawn_bullet(global_position, dir, 240.0, 10.0)
+		"pull":
+			slam_cd = maxf(0.0, slam_cd - delta)
+			if slam_cd <= 0.0 and to_p.length() < 340.0:
+				slam_cd = 4.5
+				player.global_position = player.global_position.move_toward(global_position, 170.0)
+				player.take_damage(12.0, Vector2.ZERO, self)
+				main.spawn_fx(global_position, 200.0, Color(0.55, 0.75, 0.55))
+		"summon":
+			charge_cd = maxf(0.0, charge_cd - delta)
+			if charge_cd <= 0.0:
+				charge_cd = 5.0
+				main.summon_minions(global_position, 2 + (3 if phase == 3 else 0))
+		"mirror":
+			attack_cd = maxf(0.0, attack_cd - delta)
+			if attack_cd <= 0.0 and to_p.length() < hit_r + 30.0:
+				attack_cd = 0.45
+				player.take_damage(9.0, dir * 70.0, self)
+			if phase >= 2 and charge_cd <= 0.0:
+				charge_cd = 2.2
+				charge_left = 0.4
+				charge_dir = dir
+	# 通用：charge 型（默认）与 phase>=2 冲锋
+	if behavior == "charge" or (behavior in ["mirror", "summon"] and phase >= 2):
+		if charge_cd <= 0.0 and charge_left <= 0.0:
+			charge_cd = float(cfg.get("charge_every", 4.0))
+			charge_left = 0.55
+			charge_dir = dir
+	if behavior == "slam" or behavior == "slam_only":
+		slam_cd = maxf(0.0, slam_cd - delta)
+		if slam_cd <= 0.0:
+			slam_cd = float(cfg.get("slam_every", 5.0))
+			main.spawn_fx(global_position, 150.0, Color("c46bff"))
+			if to_p.length() < 170.0:
+				player.take_damage(14.0, dir * 90.0, self)
+	elif phase == 3 and behavior != "ranged" and behavior != "pull" and slam_cd <= 0.0:
 		slam_cd = 5.0
 		main.spawn_fx(global_position, 150.0, Color("c46bff"))
 		if to_p.length() < 170.0:

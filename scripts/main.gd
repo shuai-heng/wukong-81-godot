@@ -7,7 +7,15 @@ const CHAPTER_CFG := {
 	"wuxing": {"name": "五行山", "boss": "石猿王", "hp": 900.0, "speed": 46.0, "tint": Color(0.72, 0.38, 0.85), "scale": 2.1, "unlock": "wukong", "next": "eagle"},
 	"eagle": {"name": "鹰愁涧", "boss": "小白龙·敖烈", "hp": 1100.0, "speed": 72.0, "tint": Color(0.55, 0.85, 1.0), "scale": 2.2, "unlock": "whiteDragon", "next": "gao", "charge_every": 2.6},
 	"gao": {"name": "高老庄", "boss": "猪刚鬣", "hp": 1400.0, "speed": 40.0, "tint": Color(1.0, 0.62, 0.35), "scale": 2.5, "unlock": "bajie", "next": "liusha", "contact": 20.0},
-	"liusha": {"name": "流沙河", "boss": "卷帘大将·沙悟净", "hp": 1700.0, "speed": 52.0, "tint": Color(0.85, 0.75, 0.45), "scale": 2.3, "unlock": "shaWujing", "next": "done"},
+	"liusha": {"name": "流沙河", "boss": "卷帘大将·沙悟净", "hp": 1700.0, "speed": 52.0, "tint": Color(0.85, 0.75, 0.45), "scale": 2.3, "unlock": "shaWujing", "next": "huangfeng"},
+	"huangfeng": {"name": "黄风岭", "boss": "黄风大圣", "hp": 1900.0, "speed": 58.0, "tint": Color(0.85, 0.8, 0.35), "scale": 2.2, "unlock": "", "next": "wuzhuang", "behavior": "ranged"},
+	"wuzhuang": {"name": "五庄观", "boss": "镇元子", "hp": 2100.0, "speed": 42.0, "tint": Color(0.55, 0.75, 0.55), "scale": 2.4, "unlock": "", "next": "pingding", "behavior": "pull"},
+	"pingding": {"name": "平顶山", "boss": "金角大王", "hp": 2300.0, "speed": 48.0, "tint": Color(0.9, 0.7, 0.3), "scale": 2.4, "unlock": "", "next": "wuji", "behavior": "summon"},
+	"wuji": {"name": "乌鸡国", "boss": "青毛狮子精", "hp": 2500.0, "speed": 64.0, "tint": Color(0.45, 0.55, 0.65), "scale": 2.5, "unlock": "", "next": "huoyun", "behavior": "charge", "charge_every": 2.4},
+	"huoyun": {"name": "火云洞", "boss": "红孩儿", "hp": 2700.0, "speed": 56.0, "tint": Color(1.0, 0.45, 0.3), "scale": 2.0, "unlock": "", "next": "chesi", "behavior": "ranged", "ranged_every": 1.6},
+	"chesi": {"name": "车迟国", "boss": "虎力大仙", "hp": 3000.0, "speed": 50.0, "tint": Color(0.9, 0.85, 0.6), "scale": 2.4, "unlock": "", "next": "heaven", "behavior": "slam", "slam_every": 3.5},
+	"heaven": {"name": "天宫试炼", "boss": "二郎显圣真君", "hp": 3400.0, "speed": 66.0, "tint": Color(0.8, 0.85, 0.95), "scale": 2.4, "unlock": "nezha,erlang", "next": "tongtian", "behavior": "mirror"},
+	"tongtian": {"name": "通天·凌云渡", "boss": "六耳猕猴", "hp": 4000.0, "speed": 74.0, "tint": Color(0.6, 0.5, 0.7), "scale": 2.2, "unlock": "", "next": "done", "behavior": "mirror"},
 }
 var chapter := "wuxing"
 const WORLD := Rect2(0, 0, 1600, 1200)
@@ -29,6 +37,7 @@ var elapsed := 0.0
 var orbs: Array = []          # {pos: Vector2}
 var phantoms: Array = []      # {node: Sprite2D, life: float, next: float}
 var fx_rings: Array = []
+var bullets: Array = []       # Boss 弹：{pos, v, dmg, life}
 var floaters: Array = []      # 伤害数字
 var burst: Array = []         # 击杀爆点粒子
 var hitstop := 0.0            # 命中顿帧
@@ -172,6 +181,7 @@ func _process(delta: float) -> void:
 	if camera:
 		camera.offset = _shake_offset()
 	_boss_tick(delta)
+	_bullet_tick(delta)
 	_update_boss_hud()
 	if smoke:
 		_smoke_tick()
@@ -273,6 +283,27 @@ func on_kill_burst(pos: Vector2) -> void:
 		burst.append({"pos": pos, "v": Vector2(cos(TAU * i / 6.0), sin(TAU * i / 6.0)) * randf_range(60, 140), "life": 0.35, "max": 0.35})
 	shake = maxf(shake, 5.0)
 
+func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, dmg: float) -> void:
+	bullets.append({"pos": pos, "v": dir * speed, "dmg": dmg, "life": 3.0})
+
+func _bullet_tick(delta: float) -> void:
+	for b in bullets.duplicate():
+		b["pos"] += b["v"] * delta
+		b["life"] -= delta
+		if b["life"] <= 0.0 or not WORLD.has_point(b["pos"]):
+			bullets.erase(b)
+			continue
+		if player.global_position.distance_to(b["pos"]) < 18.0:
+			player.take_damage(b["dmg"], b["v"].normalized() * 70.0)
+			bullets.erase(b)
+	queue_redraw()
+
+func summon_minions(center: Vector2, n: int) -> void:
+	for i in n:
+		var ang := TAU * i / float(n)
+		_spawn_one(center + Vector2(cos(ang), sin(ang)) * 90.0)
+	toast("妖风四起——Boss 召唤援军！")
+
 func request_shake(s: float) -> void:
 	shake = maxf(shake, s)
 
@@ -308,6 +339,8 @@ func _draw() -> void:
 	for b in burst:
 		var a: float = clampf(b["life"] / float(b["max"]), 0.0, 1.0)
 		draw_rect(Rect2(b["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.85, 0.5, a))
+	for bl in bullets:
+		draw_rect(Rect2(bl["pos"] - Vector2(3, 3), Vector2(6, 6)), Color(0.95, 0.5, 0.4))
 	var fnt := ThemeDB.fallback_font
 	for f in floaters:
 		var a2: float = clampf(f["life"] / 0.6, 0.0, 1.0)
@@ -329,7 +362,7 @@ func on_enemy_died(pos: Vector2) -> void:
 # ---------------- Boss / 收服 ----------------
 func _boss_tick(delta: float) -> void:
 	if smoke:
-		if boss_spawned and boss != null and not boss.is_ally and elapsed - _boss_seen_at > 2.5:
+		if boss_spawned and boss != null and not boss.is_ally and elapsed - _boss_seen_at > 1.2:
 			boss.take_hit(9999.0, Vector2.ZERO)
 		if boss_tamed and player.switch_count < chapters_cleared:
 			try_switch_hero()
@@ -364,9 +397,16 @@ func on_boss_tame_ready() -> void:
 func on_boss_tamed(unlocked_hero: String = "wukong") -> void:
 	boss_tamed = true
 	chapters_cleared += 1
-	if not unlocked.has(unlocked_hero):
-		unlocked.append(unlocked_hero)
-	toast("收服 %s！%s 归位，队伍 +1" % [CHAPTER_CFG[chapter]["boss"], Cards.HERO_STATS[unlocked_hero]["name"]])
+	var gained := []
+	for uh in str(unlocked_hero).split(","):
+		uh = uh.strip_edges()
+		if uh != "" and Cards.HERO_STATS.has(uh) and not unlocked.has(uh):
+			unlocked.append(uh)
+			gained.append(Cards.HERO_STATS[uh]["name"])
+	var join_msg := "收服 %s！" % CHAPTER_CFG[chapter]["boss"]
+	if gained.size() > 0:
+		join_msg += "%s 归位，队伍 +1" % "、".join(gained)
+	toast(join_msg)
 	get_tree().call_group("enemies", "queue_free")
 	var next: String = CHAPTER_CFG[chapter]["next"]
 	_write_save()
@@ -465,14 +505,15 @@ func _on_player_died() -> void:
 
 # ---------------- 冒烟自检 ----------------
 func _smoke_tick() -> void:
-	if smoke_done or elapsed < 34.0:
+	if smoke_done or elapsed < 40.0:
 		return
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
 		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
 		and player.q_count >= 3 and player.e_count >= 2 \
 		and player.form_count >= 1 and player.ult_count >= 1 \
-		and boss_spawned and chapters_cleared >= 3 \
+		and boss_spawned and chapters_cleared >= 10 \
+		and unlocked.size() >= 7 and victory \
 		and get_tree().get_nodes_in_group("allies").size() >= 1 \
 		and bool(save_check["ok"]) \
 		and unlocked.size() >= 2 and player.switch_count >= 1 \
