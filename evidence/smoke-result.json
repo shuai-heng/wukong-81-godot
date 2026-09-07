@@ -1,21 +1,30 @@
 {
-  "atk_count": 31,
+  "atk_count": 21,
   "cards_owned": {
-    "dashDmg": 3,
+    "formDuration": 3,
+    "ultGain": 2,
+    "w_72": 2,
     "w_arc": 2,
-    "w_pose": 2
+    "w_clone": 1,
+    "w_giant": 1,
+    "w_pose": 1
   },
-  "deaths": 2,
+  "deaths": 0,
   "draft_log": [
     [
-      "mutation",
       "hero",
+      "mutation",
       "survival"
     ],
     [
-      "mutation",
       "hero",
-      "generic"
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
     ],
     [
       "mutation",
@@ -23,36 +32,60 @@
       "element"
     ],
     [
+      "mutation",
       "hero",
-      "survival",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "mobility"
     ],
     [
       "hero",
-      "element",
+      "mutation",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "mobility"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
       "survival"
     ],
     [
       "hero",
-      "generic",
-      "generic"
-    ],
-    [
-      "hero",
-      "survival",
-      "survival"
+      "mutation",
+      "mobility"
     ]
   ],
-  "drafts_opened": 7,
-  "elapsed_s": 22.0,
-  "kills": 166,
-  "level": 8,
+  "drafts_opened": 12,
+  "e_count": 6,
+  "elapsed_s": 30.0,
+  "form_count": 3,
+  "kills": 965,
+  "level": 13,
   "pass": true,
+  "q_count": 10,
   "screenshot": "saved",
   "structure_check": {
     "detail": "",
     "fails": 0,
     "trials": 200
   },
-  "wave": 43
+  "ult_count": 2,
+  "wave": 73
 }

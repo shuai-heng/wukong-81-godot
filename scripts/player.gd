@@ -1,9 +1,11 @@
 extends CharacterBody2D
-## 玩家：WASD 移动 / 自动攻击 / Space 冲刺 / 卡牌成长（G01）
+## 玩家：WASD 移动 / 自动攻击 / 冲刺 / Q 乾坤一棒 / E 定地重击 / 法相·终结技（G02）
 
 signal attacked
 signal died
 signal leveled
+signal form_entered
+signal ult_fired(pos: Vector2)
 
 const SPEED_BASE := 130.0
 const DASH_SPEED := 460.0
@@ -11,6 +13,12 @@ const DASH_TIME := 0.18
 const DASH_CD_BASE := 1.2
 const ATK_INTERVAL_BASE := 0.5
 const ATK_RANGE_BASE := 95.0
+const Q_CD_BASE := 2.9
+const E_CD_BASE := 5.6
+const Q_RADIUS := 195.0
+const E_RADIUS := 175.0
+const FORM_TIME_BASE := 9.0
+const ULT_CD := 15.0
 const WORLD := Rect2(24, 24, 1552, 1152)
 
 var hp := 100.0
@@ -20,6 +28,10 @@ var exp_pts := 0
 var exp_next := 5
 var kills := 0
 var atk_count := 0
+var q_count := 0
+var e_count := 0
+var ult_count := 0
+var form_count := 0
 var upgrades := {}                 # id -> level
 var auto_pilot := false
 var dash_cd_left := 0.0
@@ -29,7 +41,14 @@ var dash_from := Vector2.ZERO
 var atk_cd_left := 0.0
 var atk_anim_left := 0.0
 var hurt_cd := 0.0
-var stance_step := 0               # 三棒重击计数
+var stance_step := 0
+var q_cd_left := 0.0
+var e_cd_left := 0.0
+var ult_cd_left := 0.0
+var form_charge := 0.0             # 0-100 → 法相
+var form_left := 0.0               # >0 即法相中
+var ult := 0.0                     # 0-100（法相内可放终结）
+var ai_skill_cd := 0.0
 var sprite: AnimatedSprite2D
 var main: Node2D
 
@@ -38,10 +57,16 @@ func lvl(id: String) -> int:
 	return upgrades.get(id, 0)
 
 func dmg_mul() -> float:
-	return 1.0 + Cards.CAPS["dmgPerLevel"] * lvl("dmg")
+	var m := 1.0 + Cards.CAPS["dmgPerLevel"] * lvl("dmg")
+	if in_form():
+		m *= 1.35 + 0.12 * lvl("w_giant")
+	return m
 
 func base_dmg() -> float:
 	return 34.0 * dmg_mul()
+
+func cd_mul() -> float:
+	return maxf(0.60, 1.0 - 0.12 * lvl("cdr")) * (0.8 if in_form() else 1.0)
 
 func atk_interval() -> float:
 	return ATK_INTERVAL_BASE * maxf(Cards.CAPS["atkCdMin"], 1.0 - 0.12 * lvl("atkSpeed"))
@@ -59,7 +84,7 @@ func dr() -> float:
 	return minf(Cards.CAPS["drMax"], 0.10 * lvl("dr"))
 
 func move_speed() -> float:
-	return SPEED_BASE * (1.0 + 0.07 * lvl("moveSpeed"))
+	return SPEED_BASE * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
 
 func dash_cd() -> float:
 	return DASH_CD_BASE * maxf(Cards.CAPS["dashCdMin"], 1.0 - 0.22 * lvl("dashCd"))
@@ -70,6 +95,13 @@ func dash_dmg() -> float:
 func magnet_r() -> float:
 	return 70.0 + 45.0 * lvl("magnet")
 
+func in_form() -> bool:
+	return form_left > 0.0
+
+func ult_gain_mul() -> float:
+	return 1.0 + 0.4 * lvl("ultGain")
+
+# ---- 生命周期 ----
 func _ready() -> void:
 	sprite = AnimatedSprite2D.new()
 	sprite.sprite_frames = SpriteLib.build_frames("wukong")
@@ -82,22 +114,30 @@ func _physics_process(delta: float) -> void:
 	atk_cd_left = maxf(0.0, atk_cd_left - delta)
 	atk_anim_left = maxf(0.0, atk_anim_left - delta)
 	hurt_cd = maxf(0.0, hurt_cd - delta)
+	q_cd_left = maxf(0.0, q_cd_left - delta)
+	e_cd_left = maxf(0.0, e_cd_left - delta)
+	ult_cd_left = maxf(0.0, ult_cd_left - delta)
+	ai_skill_cd = maxf(0.0, ai_skill_cd - delta)
 	if lvl("regen") > 0 and hp < max_hp:
 		hp = minf(max_hp, hp + 0.6 * lvl("regen") * delta)
+	if in_form():
+		form_left -= delta
+		if form_left <= 0.0:
+			_exit_form()
 
 	var dir := Vector2.ZERO
 	if auto_pilot:
-		var target := _nearest_enemy()
-		if target:
-			dir = (target.global_position - global_position).normalized()
+		dir = _ai_drive(delta)
 	else:
 		dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	if Input.is_action_just_pressed("dash") and dash_cd_left <= 0.0:
-		dash_left = DASH_TIME
-		dash_cd_left = dash_cd()
-		dash_dir = dir if dir != Vector2.ZERO else Vector2.RIGHT
-		dash_from = global_position
-		main.spawn_phantom(global_position, sprite.flip_h)
+		if Input.is_action_just_pressed("dash") and dash_cd_left <= 0.0:
+			_do_dash(dir)
+		if Input.is_action_just_pressed("skill_q"):
+			_cast_q()
+		if Input.is_action_just_pressed("skill_e"):
+			_cast_e()
+		if Input.is_action_just_pressed("ult"):
+			_cast_ult()
 
 	if dash_left > 0.0:
 		dash_left -= delta
@@ -117,6 +157,123 @@ func _physics_process(delta: float) -> void:
 	_update_anim(dir)
 	_auto_attack()
 
+# ---- 冒烟自动驾驶（含技能循环） ----
+func _ai_drive(delta: float) -> Vector2:
+	var target := _nearest_enemy()
+	var dir := Vector2.ZERO
+	if target:
+		dir = (target.global_position - global_position).normalized()
+		if dash_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+			_do_dash(dir)
+		if q_cd_left <= 0.0 and global_position.distance_to(target.global_position) < 195.0 * 0.9:
+			_cast_q()
+		if e_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+			var near := 0
+			for e in get_tree().get_nodes_in_group("enemies"):
+				if e.global_position.distance_to(global_position) < 210.0:
+					near += 1
+			if near >= 3:
+				_cast_e()
+	if in_form() and ult >= 100.0 and ult_cd_left <= 0.0:
+		_cast_ult()
+	return dir
+
+# ---- 冲刺 ----
+func _do_dash(dir: Vector2) -> void:
+	dash_left = DASH_TIME
+	dash_cd_left = dash_cd()
+	dash_dir = dir if dir != Vector2.ZERO else Vector2.RIGHT
+	dash_from = global_position
+	main.spawn_phantom(global_position, sprite.flip_h)
+
+# ---- Q 乾坤一棒：周身环形横扫 ----
+func _cast_q() -> void:
+	if q_cd_left > 0.0:
+		return
+	q_cd_left = Q_CD_BASE * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.25
+	attacked.emit()
+	var r := 195.0 * (1.0 + 0.16 * lvl("range"))
+	var dmg := base_dmg() * 1.9
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if off.length() <= r + e.hit_r:
+			_hit_enemy(e, dmg, off.normalized() * 220.0)
+	main.spawn_fx(global_position, r, Color("ffd46b"))
+
+# ---- E 定地重击：落点 slamming ----
+func _cast_e() -> void:
+	if e_cd_left > 0.0:
+		return
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	atk_anim_left = 0.3
+	attacked.emit()
+	var target := _nearest_enemy_any()
+	var center := global_position + Vector2(facing_x(), 0) * 190.0
+	if target:
+		center = target.global_position
+	var r := E_RADIUS * (1.0 + 0.16 * lvl("range"))
+	var dmg := base_dmg() * 2.4
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.global_position.distance_to(center) <= r + e.hit_r:
+			_hit_enemy(e, dmg, (e.global_position - center).normalized() * 160.0)
+	main.spawn_fx(center, r, Color("ffb84d"))
+
+func facing_x() -> float:
+	return -1.0 if sprite.flip_h else 1.0
+
+func _nearest_enemy_any() -> Node2D:
+	var best: Node2D = null
+	var best_d := 460.0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var d := global_position.distance_to(e.global_position)
+		if d < best_d:
+			best_d = d
+			best = e
+	return best
+
+# ---- 法相 / 终结技 ----
+func add_form_charge(n: float) -> void:
+	if in_form():
+		return
+	form_charge = minf(100.0, form_charge + n)
+	if form_charge >= 100.0:
+		form_charge = 0.0
+		_enter_form()
+
+func _enter_form() -> void:
+	form_left = FORM_TIME_BASE + 1.6 * lvl("formDuration")
+	form_count += 1
+	sprite.scale = Vector2(1.16, 1.16)
+	modulate = Color(1.0, 0.9, 0.68)
+	form_entered.emit()
+
+func _exit_form() -> void:
+	form_left = 0.0
+	sprite.scale = Vector2.ONE
+	modulate = Color.WHITE
+
+func _cast_ult() -> void:
+	if not in_form() or ult < 100.0 or ult_cd_left > 0.0:
+		return
+	ult = 0.0
+	ult_cd_left = ULT_CD
+	ult_count += 1
+	var target := _nearest_enemy_any()
+	var center := target.global_position if target else global_position
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var d: float = e.global_position.distance_to(center)
+		if d <= 260.0:
+			e.take_hit(200.0, (e.global_position - center).normalized() * 260.0)
+		elif d <= 520.0:
+			e.take_hit(60.0, Vector2.ZERO)
+	main.spawn_fx(center, 260.0, Color("fff0a6"))
+	main.spawn_fx(center, 520.0, Color("ffe27a"))
+	ult_fired.emit(center)
+
+# ---- 自动攻击 ----
 func _seg_dist(p: Vector2, a: Vector2, b: Vector2) -> float:
 	var ab := b - a
 	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
@@ -154,23 +311,31 @@ func _auto_attack() -> void:
 	attacked.emit()
 	var to_t: Vector2 = target.global_position - global_position
 	sprite.flip_h = to_t.x < 0.0
-	# 三棒重击（w_pose）：每第三棒伤害 ×1.9、范围 ×1.35
 	stance_step = (stance_step + 1) % 3
 	var heavy := lvl("w_pose") > 0 and stance_step == 0
 	var dmg := base_dmg() * (1.9 if heavy else 1.0)
 	var rng := atk_range() * (1.35 if heavy else 1.0)
 	var arc := atk_arc() * (1.2 if heavy else 1.0)
+	var hit_any := false
 	for e in get_tree().get_nodes_in_group("enemies"):
 		var off: Vector2 = e.global_position - global_position
 		if off.length() <= rng + e.hit_r and absf(off.angle_to(to_t)) <= arc:
-			var final_dmg := dmg
-			if main.rng.randf() < crit_chance():
-				final_dmg *= 2.0
-			e.take_hit(final_dmg, off.normalized() * 120.0)
-			if lvl("burn") > 0:
-				e.apply_burn(lvl("burn"), 3.0)
-			if lvl("frost") > 0:
-				e.apply_frost(1.5, 0.3 * lvl("frost"))
+			hit_any = true
+			_hit_enemy(e, dmg, off.normalized() * 120.0)
+	if hit_any:
+		add_form_charge(2.0 * (1.0 + 0.45 * lvl("comboForm")))
+		if in_form():
+			ult = minf(100.0, ult + 1.6 * ult_gain_mul())
+
+func _hit_enemy(e: Node2D, dmg: float, k: Vector2) -> void:
+	var final_dmg := dmg
+	if main.rng.randf() < crit_chance():
+		final_dmg *= 2.0
+	e.take_hit(final_dmg, k)
+	if lvl("burn") > 0:
+		e.apply_burn(lvl("burn"), 3.0)
+	if lvl("frost") > 0:
+		e.apply_frost(1.5, 0.3 * lvl("frost"))
 
 func take_damage(amount: float, knock: Vector2 = Vector2.ZERO, source: Node2D = null) -> void:
 	if hurt_cd > 0.0 or dash_left > 0.0:
@@ -178,8 +343,7 @@ func take_damage(amount: float, knock: Vector2 = Vector2.ZERO, source: Node2D = 
 	hurt_cd = 0.55
 	hp = maxf(0.0, hp - amount * (1.0 - dr()))
 	modulate = Color(1.0, 0.5, 0.5)
-	get_tree().create_timer(0.12).timeout.connect(func(): modulate = Color.WHITE)
-	# 刺沙反甲：攻击者反受 9+5×层
+	get_tree().create_timer(0.12).timeout.connect(func(): modulate = Color(1.0, 0.9, 0.68) if in_form() else Color.WHITE)
 	if source != null and source.has_method("take_hit") and lvl("thorns") > 0:
 		source.take_hit(9.0 + 5.0 * lvl("thorns"), Vector2.ZERO)
 	if knock != Vector2.ZERO:
@@ -197,12 +361,17 @@ func gain_exp(n: int) -> void:
 		hp = minf(max_hp, hp + 8.0)
 		leveled.emit()
 
+func on_kill_charge() -> void:
+	kills += 1
+	if lvl("lifesteal") > 0:
+		hp = minf(max_hp, hp + 4.0 * lvl("lifesteal"))
+	if in_form():
+		ult = minf(100.0, ult + 5.0 * ult_gain_mul())
+	else:
+		add_form_charge(3.5 * (1.0 + 0.7 * lvl("killForm")))
+
 func apply_card(id: String) -> void:
 	upgrades[id] = lvl(id) + 1
 	if id == "hp":
 		max_hp += 28.0
 		hp = max_hp
-
-func on_kill_heal() -> void:
-	if lvl("lifesteal") > 0:
-		hp = minf(max_hp, hp + 4.0 * lvl("lifesteal"))

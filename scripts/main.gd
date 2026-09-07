@@ -13,11 +13,13 @@ var draft_ui: CanvasLayer
 var lbl_hp: Label
 var lbl_exp: Label
 var lbl_stats: Label
+var lbl_form: Label
 var spawn_cd := 1.0
 var wave := 0
 var elapsed := 0.0
 var orbs: Array = []          # {pos: Vector2}
 var phantoms: Array = []      # {node: Sprite2D, life: float, next: float}
+var fx_rings: Array = []      # {pos: Vector2, r: float, max: float, life: float, color: Color}
 var drafts_opened := 0
 var pending_drafts := 0
 var draft_log: Array = []     # 每次三选一的分类记录（审计用）
@@ -88,8 +90,9 @@ func _build_hud() -> void:
 	lbl_hp = _mk_label(Vector2(10, 8))
 	lbl_exp = _mk_label(Vector2(10, 24))
 	lbl_stats = _mk_label(Vector2(10, 40))
+	lbl_form = _mk_label(Vector2(10, 56))
 	var hint := _mk_label(Vector2(10, 332))
-	hint.text = "WASD 移动 · Space 冲刺 · 自动攻击 · 升级三选一（1/2/3 或点击）"
+	hint.text = "WASD 移动 · Space 冲刺 · Q 乾坤一棒 · E 定地重击 · 法相满自动爆发 · R 终结技"
 	hint.modulate = Color(1, 1, 1, 0.55)
 
 func _mk_label(pos: Vector2) -> Label:
@@ -115,6 +118,13 @@ func _process(delta: float) -> void:
 	lbl_exp.text = "Lv%d  EXP %d/%d" % [player.level, player.exp_pts, player.exp_next]
 	var cards_txt := " · 卡牌 %d" % player.upgrades.size() if player.upgrades.size() > 0 else ""
 	lbl_stats.text = "击杀 %d · 存活 %d · 波次 %d · %.0fs%s" % [player.kills, get_tree().get_nodes_in_group("enemies").size(), wave, elapsed, cards_txt]
+	if player.in_form():
+		lbl_form.text = "法相天象 · %.1fs · 终结 %d%%" % [player.form_left, int(player.ult)]
+		lbl_form.add_theme_color_override("font_color", Color("ffd46b"))
+	else:
+		lbl_form.text = "法相 %d%% · 终结 %d%%" % [int(player.form_charge), int(player.ult)]
+		lbl_form.add_theme_color_override("font_color", Color(0.8, 0.78, 0.72))
+	_fx_tick(delta)
 	if smoke:
 		_smoke_tick()
 
@@ -185,11 +195,30 @@ func spawn_phantom(pos: Vector2, flip: bool) -> void:
 	g.modulate = Color(1.0, 0.94, 0.63, 0.75)
 	g.z_index = -1
 	add_child(g)
-	phantoms.append({"node": g, "life": 3.6 + 0.9 * player.lvl("w_72"), "next": 0.0})
+	phantoms.append({"node": g, "life": 3.6 + 0.9 * player.lvl("w_72") + 0.9 * player.lvl("w_clone"), "next": 0.0})
+
+func spawn_fx(pos: Vector2, r: float, color: Color) -> void:
+	fx_rings.append({"pos": pos, "r": 12.0, "max": r, "life": 0.38, "color": color})
+	queue_redraw()
+
+func _fx_tick(delta: float) -> void:
+	for f in fx_rings.duplicate():
+		f["life"] -= delta
+		f["r"] = lerpf(f["max"], 12.0, f["life"] / 0.38)
+		if f["life"] <= 0.0:
+			fx_rings.erase(f)
+	queue_redraw()
+
+func _draw() -> void:
+	for orb in orbs:
+		draw_rect(Rect2(orb["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(0.45, 0.9, 1.0))
+	for f in fx_rings:
+		var c: Color = f["color"]
+		c.a = clampf(f["life"] / 0.38, 0.0, 1.0) * 0.8
+		draw_arc(f["pos"], f["r"], 0, TAU, 40, c, 3.0)
 
 func on_enemy_died(pos: Vector2) -> void:
-	player.kills += 1
-	player.on_kill_heal()
+	player.on_kill_charge()
 	orbs.append({"pos": pos})
 	# 雷霆天罚：击杀雷击 80px 内敌人
 	if player.lvl("thunder") > 0:
@@ -231,11 +260,13 @@ func _on_player_died() -> void:
 
 # ---------------- 冒烟自检 ----------------
 func _smoke_tick() -> void:
-	if smoke_done or elapsed < 22.0:
+	if smoke_done or elapsed < 30.0:
 		return
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
-		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0
+		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
+		and player.q_count >= 3 and player.e_count >= 2 \
+		and player.form_count >= 1 and player.ult_count >= 1
 	_finish_smoke(ok)
 
 func _finish_smoke(passed: bool) -> void:
@@ -248,6 +279,8 @@ func _finish_smoke(passed: bool) -> void:
 		shot = "unavailable(headless)"
 	var result := {
 		"pass": passed, "kills": player.kills, "atk_count": player.atk_count,
+		"q_count": player.q_count, "e_count": player.e_count,
+		"form_count": player.form_count, "ult_count": player.ult_count,
 		"level": player.level, "deaths": deaths, "wave": wave,
 		"drafts_opened": drafts_opened, "cards_owned": player.upgrades,
 		"draft_log": draft_log, "structure_check": structure_result,

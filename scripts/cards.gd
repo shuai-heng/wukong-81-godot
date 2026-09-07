@@ -1,6 +1,6 @@
 class_name Cards
 ## 三选一卡池（自 web 版 U-001/U-002 忠实移植：分类/结构保底/上限削峰）
-## 法相系卡片（comboForm/killForm/ultGain/formDuration/cdr/pierce/w_giant/w_clone）待 G02 法相系统迁移后入库
+## G02 法相系统落地：法相系 8 卡入库；pierce 仍延后（弹道系统未迁移）
 
 const CAT := {
 	"dmg": "generic", "atkSpeed": "generic", "range": "generic", "crit": "generic",
@@ -8,7 +8,8 @@ const CAT := {
 	"orbHeal": "survival", "thorns": "survival",
 	"dashCd": "mobility", "moveSpeed": "mobility", "magnet": "mobility",
 	"burn": "element", "frost": "element", "thunder": "element",
-	"dashDmg": "mutation",
+	"dashDmg": "mutation", "cdr": "mutation", "comboForm": "mutation",
+	"killForm": "mutation", "ultGain": "mutation", "formDuration": "mutation",
 }
 
 const POOL := [
@@ -29,12 +30,19 @@ const POOL := [
 	{"id": "frost", "name": "寒冰禁锢", "desc": "命中使敌人减速", "icon": "冰", "tone": "a8e8ff", "maxLevel": 3},
 	{"id": "thunder", "name": "雷霆天罚", "desc": "击杀雷击附近敌人", "icon": "雷", "tone": "d8b0ff", "maxLevel": 3},
 	{"id": "dashDmg", "name": "踏浪冲撞", "desc": "冲刺路径直接撞伤妖怪", "icon": "撞", "tone": "9ae6ff", "maxLevel": 3},
+	{"id": "cdr", "name": "神通回风", "desc": "Q / E 冷却 -12%", "icon": "回", "tone": "ffd8a8", "maxLevel": 3},
+	{"id": "comboForm", "name": "连击大师", "desc": "命中积攒法相 +45%", "icon": "连", "tone": "ffd479", "maxLevel": 4},
+	{"id": "killForm", "name": "猎杀本能", "desc": "击杀积攒法相 +70%", "icon": "猎", "tone": "ff9e7a", "maxLevel": 4},
+	{"id": "ultGain", "name": "终结共鸣", "desc": "法相内终结积攒 +40%", "icon": "终", "tone": "c9a8ff", "maxLevel": 4},
+	{"id": "formDuration", "name": "法相长明", "desc": "法相持续 +1.6 秒", "icon": "明", "tone": "c9a8ff", "maxLevel": 3},
 ]
 
 const HERO_POOL := [
 	{"id": "w_arc", "name": "棍影重重", "desc": "自动挥扫范围 +8%、弧度 +0.3", "icon": "影", "tone": "ffca57", "maxLevel": 3, "hero": "孙悟空"},
 	{"id": "w_pose", "name": "三棒重击", "desc": "每第三棒为重击：伤害 ×1.9、范围 ×1.35", "icon": "棒", "tone": "ffd45e", "maxLevel": 3, "hero": "孙悟空"},
 	{"id": "w_72", "name": "毫毛分身", "desc": "冲刺留下毫毛幻相，自动攻击附近妖怪", "icon": "变", "tone": "fff0a0", "maxLevel": 2, "hero": "孙悟空"},
+	{"id": "w_giant", "name": "法天象地", "desc": "法相伤害 +12%/层、身形更威", "icon": "天", "tone": "ffb84d", "maxLevel": 3, "hero": "孙悟空"},
+	{"id": "w_clone", "name": "毫毛感应", "desc": "幻相持续更久、攻击更强", "icon": "毫", "tone": "ffe08a", "maxLevel": 2, "hero": "孙悟空"},
 ]
 
 const CAPS := {
