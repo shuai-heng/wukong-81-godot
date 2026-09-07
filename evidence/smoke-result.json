@@ -1,44 +1,40 @@
 {
+  "allies": 1,
   "atk_count": 21,
+  "boss_spawned": true,
+  "boss_tamed": true,
   "cards_owned": {
-    "formDuration": 3,
-    "ultGain": 2,
+    "cdr": 2,
+    "comboForm": 2,
+    "dashDmg": 1,
+    "killForm": 2,
+    "ultGain": 1,
     "w_72": 2,
-    "w_arc": 2,
-    "w_clone": 1,
-    "w_giant": 1,
-    "w_pose": 1
+    "w_arc": 3,
+    "w_clone": 2,
+    "w_giant": 3,
+    "w_pose": 3
   },
   "deaths": 0,
   "draft_log": [
     [
       "hero",
       "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
+      "mobility"
     ],
     [
       "mutation",
       "hero",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
       "element"
     ],
     [
-      "mutation",
       "hero",
-      "survival"
-    ],
-    [
       "mutation",
-      "hero",
       "mobility"
     ],
     [
@@ -49,17 +45,7 @@
     [
       "hero",
       "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "mobility"
-    ],
-    [
-      "hero",
-      "mutation",
-      "mobility"
+      "survival"
     ],
     [
       "mutation",
@@ -67,19 +53,38 @@
       "survival"
     ],
     [
+      "mutation",
+      "hero",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
       "hero",
       "mutation",
-      "mobility"
+      "survival"
+    ],
+    [
+      "mutation",
+      "survival",
+      "mutation"
     ]
   ],
-  "drafts_opened": 12,
-  "e_count": 6,
+  "drafts_opened": 11,
+  "e_count": 7,
   "elapsed_s": 30.0,
   "form_count": 3,
-  "kills": 965,
-  "level": 13,
+  "kills": 822,
+  "level": 12,
   "pass": true,
-  "q_count": 10,
+  "q_count": 11,
+  "save_check": {
+    "mismatch": [],
+    "ok": true
+  },
   "screenshot": "saved",
   "structure_check": {
     "detail": "",

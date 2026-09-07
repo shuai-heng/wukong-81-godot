@@ -2,6 +2,8 @@ extends Node2D
 ## 大圣火线 Godot 版 · 主场景：世界/刷怪/三选一/经验珠/HUD/冒烟自检
 
 const EnemyScript := preload("res://scripts/enemy.gd")
+const BossScript := preload("res://scripts/boss.gd")
+const CHAPTERS := ["wuxing", "eagle", "gao", "liusha"]
 const WORLD := Rect2(0, 0, 1600, 1200)
 const RING_MIN := 240.0
 const RING_MAX := 320.0
@@ -14,12 +16,18 @@ var lbl_hp: Label
 var lbl_exp: Label
 var lbl_stats: Label
 var lbl_form: Label
+var lbl_boss: Label
 var spawn_cd := 1.0
 var wave := 0
 var elapsed := 0.0
 var orbs: Array = []          # {pos: Vector2}
 var phantoms: Array = []      # {node: Sprite2D, life: float, next: float}
 var fx_rings: Array = []      # {pos: Vector2, r: float, max: float, life: float, color: Color}
+var boss: Node2D = null
+var boss_spawned := false
+var boss_tamed := false
+var chapter := "wuxing"
+var save_check := {}
 var drafts_opened := 0
 var pending_drafts := 0
 var draft_log: Array = []     # 每次三选一的分类记录（审计用）
@@ -38,8 +46,10 @@ func _ready() -> void:
 	_build_player()
 	_build_hud()
 	_build_draft()
+	_load_game()
 	if smoke:
 		structure_result = Cards.structure_check(rng)
+		save_check = Save.roundtrip_check()
 		player.auto_pilot = true
 		Engine.time_scale = 6.0
 		for i in 6:
@@ -91,6 +101,11 @@ func _build_hud() -> void:
 	lbl_exp = _mk_label(Vector2(10, 24))
 	lbl_stats = _mk_label(Vector2(10, 40))
 	lbl_form = _mk_label(Vector2(10, 56))
+	lbl_boss = _mk_label(Vector2(196, 100))
+	lbl_boss.add_theme_font_size_override("font_size", 11)
+	lbl_boss.add_theme_color_override("font_color", Color("c46bff"))
+	lbl_boss.size = Vector2(250, 16)
+	lbl_boss.visible = false
 	var hint := _mk_label(Vector2(10, 332))
 	hint.text = "WASD 移动 · Space 冲刺 · Q 乾坤一棒 · E 定地重击 · 法相满自动爆发 · R 终结技"
 	hint.modulate = Color(1, 1, 1, 0.55)
@@ -125,6 +140,8 @@ func _process(delta: float) -> void:
 		lbl_form.text = "法相 %d%% · 终结 %d%%" % [int(player.form_charge), int(player.ult)]
 		lbl_form.add_theme_color_override("font_color", Color(0.8, 0.78, 0.72))
 	_fx_tick(delta)
+	_boss_tick(delta)
+	_update_boss_hud()
 	if smoke:
 		_smoke_tick()
 
@@ -227,6 +244,84 @@ func on_enemy_died(pos: Vector2) -> void:
 				e.take_hit(20.0 + 10.0 * player.lvl("thunder"), Vector2.ZERO)
 	queue_redraw()
 
+# ---------------- Boss / 收服 ----------------
+func _boss_tick(delta: float) -> void:
+	if not boss_spawned and elapsed >= 10.0:
+		_spawn_boss()
+	if boss == null:
+		return
+	if boss.tame_ready and not boss.is_ally:
+		if smoke:
+			boss.take_hit(9999.0, Vector2.ZERO)   # 冒烟：自动完成收服判定
+		elif Input.is_action_just_pressed("tame"):
+			if player.global_position.distance_to(boss.global_position) < 140.0:
+				boss.take_hit(9999.0, Vector2.ZERO)
+			else:
+				toast("再靠近些（<140px）才能收服")
+
+func _spawn_boss() -> void:
+	boss_spawned = true
+	boss = Node2D.new()
+	boss.set_script(BossScript)
+	boss.position = player.global_position + Vector2(220, -120)
+	add_child(boss)
+	boss.setup(self)
+	toast("五行山·石猿王现身！打至残血后按 F 收服（不是击杀）")
+
+func on_boss_tame_ready() -> void:
+	toast("石猿王力竭：靠近按 F 收服！")
+
+func on_boss_tamed() -> void:
+	boss_tamed = true
+	toast("收服石猿王！悟空归位，队伍 +1")
+	get_tree().call_group("enemies", "queue_free")
+	chapter = "eagle"
+	_write_save()
+
+func _update_boss_hud() -> void:
+	if boss == null or boss.is_ally:
+		lbl_boss.visible = false
+		return
+	lbl_boss.visible = true
+	var frac: float = boss.hp / 900.0
+	var bar := ""
+	var filled := int(24.0 * frac)
+	for i in 24:
+		bar += "█" if i < filled else "░"
+	lbl_boss.text = "石猿王 P%d  %s  %d%%%s" % [boss.phase, bar, int(frac * 100), "  · 可收服！" if boss.tame_ready else ""]
+
+func toast(msg: String) -> void:
+	var l := Label.new()
+	l.text = msg
+	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", Color("ffe9a8"))
+	l.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	l.position = Vector2(200, 78)
+	l.process_mode = Node.PROCESS_MODE_ALWAYS
+	hud.add_child(l)
+	var tw := create_tween().set_process_mode(Tween.TWEEN_PROCESS_IDLE)
+	tw.tween_property(l, "position:y", 60.0, 2.6)
+	tw.tween_property(l, "modulate:a", 0.0, 0.6)
+	tw.finished.connect(func(): l.queue_free())
+
+# ---------------- 存档 ----------------
+func _write_save() -> void:
+	var unlocked := []
+	if boss_tamed:
+		unlocked.append("wukong")
+	var data := Save.make(chapter, unlocked, player.upgrades, {"kills": player.kills, "level": player.level, "survived": snappedf(elapsed, 0.1)}, ["wuxing_stone_ape"] if boss_tamed else [])
+	Save.write(data)
+
+func _load_game() -> void:
+	var d := Save.load_save()
+	if d.is_empty():
+		return
+	chapter = d.get("chapter", "wuxing")
+	var cards: Dictionary = d.get("cards", {})
+	for k in cards.keys():
+		player.upgrades[str(k)] = int(cards[k])
+	toast("读取存档：章节 %s · 卡牌 %d 张" % [chapter, cards.size()])
+
 # ---------------- 三选一 ----------------
 func _on_leveled() -> void:
 	if draft_ui.visible:
@@ -266,7 +361,10 @@ func _smoke_tick() -> void:
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
 		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
 		and player.q_count >= 3 and player.e_count >= 2 \
-		and player.form_count >= 1 and player.ult_count >= 1
+		and player.form_count >= 1 and player.ult_count >= 1 \
+		and boss_spawned and boss_tamed \
+		and get_tree().get_nodes_in_group("allies").size() >= 1 \
+		and bool(save_check["ok"])
 	_finish_smoke(ok)
 
 func _finish_smoke(passed: bool) -> void:
@@ -281,6 +379,8 @@ func _finish_smoke(passed: bool) -> void:
 		"pass": passed, "kills": player.kills, "atk_count": player.atk_count,
 		"q_count": player.q_count, "e_count": player.e_count,
 		"form_count": player.form_count, "ult_count": player.ult_count,
+		"boss_spawned": boss_spawned, "boss_tamed": boss_tamed,
+		"allies": get_tree().get_nodes_in_group("allies").size(), "save_check": save_check,
 		"level": player.level, "deaths": deaths, "wave": wave,
 		"drafts_opened": drafts_opened, "cards_owned": player.upgrades,
 		"draft_log": draft_log, "structure_check": structure_result,
