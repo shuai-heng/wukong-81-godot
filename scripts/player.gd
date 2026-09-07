@@ -72,7 +72,7 @@ func dmg_mul() -> float:
 	return m
 
 func base_dmg() -> float:
-	return Cards.hero_stat(hero, "dmg") * dmg_mul()
+	return Cards.hero_stat(hero, "dmg") * dmg_mul() * (1.25 if dragon_left > 0.0 else 1.0)
 
 func cd_mul() -> float:
 	return maxf(0.60, 1.0 - 0.12 * lvl("cdr")) * (0.8 if in_form() else 1.0)
@@ -96,7 +96,7 @@ func dr() -> float:
 	return minf(Cards.CAPS["drMax"], 0.10 * lvl("dr"))
 
 func move_speed() -> float:
-	var m := Cards.hero_stat(hero, "speed") * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
+	var m := Cards.hero_stat(hero, "speed") * (1.0 + 0.07 * lvl("moveSpeed")) * (1.38 if dragon_left > 0.0 else 1.0)
 	if wheels_left > 0.0:
 		m *= 1.3 + 0.08 * lvl("n_wheels")
 	return m
@@ -180,6 +180,11 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_just_pressed("swap"):
 			main.try_switch_hero()
 
+	dragon_left = maxf(0.0, dragon_left - delta)
+	dragon_cd_left = maxf(0.0, dragon_cd_left - delta)
+	if dragon_left > 0.0:
+		sprite.modulate = Color(0.62, 0.88, 1.0)
+		sprite.scale = Vector2(1.22, 1.22)
 	if dash_left > 0.0:
 		dash_left -= delta
 		velocity = dash_dir * DASH_SPEED
@@ -209,6 +214,8 @@ func _ai_drive(delta: float) -> Vector2:
 		if q_cd_left <= 0.0 and global_position.distance_to(target.global_position) < 195.0 * 0.9:
 			_cast_q()
 		if hero == "tang" and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+		if hero == "whiteDragon" and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+			_cast_g()
 			_cast_g()
 		if e_cd_left <= 0.0 and ai_skill_cd <= 0.0:
 			var near := 0
