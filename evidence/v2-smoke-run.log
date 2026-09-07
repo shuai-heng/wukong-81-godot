@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] smoke ready: time_scale=6
+[V1] t=10 ch=eagle trial=[] enemies=7 kills=24 maxframe=0.017
+[V1] t=20 ch=chesi trial=[] enemies=25 kills=24 maxframe=0.010
+[V1] sfx: tame
+[V1] t=30 ch=tongtian trial=["id"] enemies=103 kills=355 maxframe=0.049
+[V1] t=40 ch=tongtian trial=["id"] enemies=96 kills=1148 maxframe=0.022
+[V1] t=50 ch=tongtian trial=["id"] enemies=96 kills=1834 maxframe=0.015
+[V1] t=60 ch=tongtian trial=["id"] enemies=93 kills=2588 maxframe=0.041
+[V1] t=70 ch=tongtian trial=["id"] enemies=48 kills=3637 maxframe=0.020
+[V1] t=80 ch=tongtian trial=["id"] enemies=2 kills=4582 maxframe=0.019
+[V1] trial complete: baguaFurnace
+[V1] sfx: tame
+[V1] trial save written: baguaFurnace
+[V1] smoke tick enter: elapsed=87 trial_done=["baguaFurnace"]
+[V1] finish_smoke enter, passed=true
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _finish_smoke (res://scripts/main.gd:650)
+       [1] _smoke_tick (res://scripts/main.gd:644)
+       [2] _process (res://scripts/main.gd:230)
+[V1] finish_smoke writing json
+SMOKE_RESULT {"allies":12,"atk_count":67,"boss_spawned":true,"boss_tamed":true,"cards_owned":{"cdr":3,"comboForm":4,"dashDmg":3,"formDuration":3,"killForm":4,"orbHeal":1,"t_nova":3,"t_reflect":3,"t_ring":2,"ultGain":4},"chapter":"tongtian","chapter_now":"tongtian","chapters_cleared":12,"deaths":0,"draft_log":[["hero","mutation","survival"],["hero","mutation","mobility"],["hero","mutation","survival"],["mutation","hero","generic"],["hero","mutation","element"],["mutation","hero","survival"],["hero","mutation","mobility"],["mutation","hero","survival"],["mutation","hero","survival"],["mutation","hero","survival"],["hero","mutation","survival"],["mutation","hero","mobility"],["hero","mutation","mobility"],["mutation","hero","generic"],["mutation","hero","survival"],["hero","mutation","element"],["mutation","element","generic"],["mutation","element","element"],["mutation","survival","generic"],["mutation","element","survival"],["mutation","generic","survival"],["mutation","survival","mutation"],["mutation","mobility","mobility"],["mutation","generic","element"],["mutation","survival","survival"],["mutation","mobility","survival"],["mutation","mobility","survival"],["mutation","generic","mutation"],["mutation","survival","survival"],["survival","element","survival"]],"e_count":17,"elapsed_s":86.7,"floaters_spawned":2,"form_count":7,"hero":"tang","hitstop_total_s":2.4,"kills":5117,"level":31,"pass":true,"q_count":32,"save_check":{"mismatch":[],"ok":true},"screenshot":"unavailable(headless)","structure_check":{"detail":"","fails":0,"trials":200},"switches":12,"trial_done":{"baguaFurnace":true},"ult_count":5,"unlocked":["tang","wukong","whiteDragon","bajie","shaWujing","nezha","erlang"],"victory":true,"wave":209}
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

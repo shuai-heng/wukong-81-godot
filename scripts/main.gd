@@ -72,6 +72,8 @@ var draft_log: Array = []     # 每次三选一的分类记录（审计用）
 var structure_result := {}
 var smoke := false
 var smoke_spawn_mul := 1.0
+var enemy_cap_hits := 0        # G10：敌人上限触发次数（诊断）
+var smoke_max_frame := 0.0       # G10 诊断：最大实际帧间隔（秒，未含 time_scale）
 var smoke_done := false
 var deaths := 0
 var rng := RandomNumberGenerator.new()
@@ -220,13 +222,21 @@ func _process(delta: float) -> void:
 	_bullet_tick(delta)
 	_update_boss_hud()
 	if smoke:
+		var real_delta := delta / maxf(Engine.time_scale, 0.1)
+		smoke_max_frame = maxf(smoke_max_frame, real_delta)
 		if int(elapsed) / 10 != int(elapsed - delta) / 10:
-			print("[V1] t=%.0f ch=%s trial=%s enemies=%d kills=%d" % [elapsed, chapter, str(trial.keys()), get_tree().get_nodes_in_group("enemies").size(), player.kills])
+			print("[V1] t=%.0f ch=%s trial=%s enemies=%d kills=%d maxframe=%.3f" % [elapsed, chapter, str(trial.keys()), get_tree().get_nodes_in_group("enemies").size(), player.kills, smoke_max_frame])
+			smoke_max_frame = 0.0
 		_smoke_tick()
 
+var sfx_last_ms := {}
 func _sfx(name: String, force := false) -> void:
 	if name in ["burn", "tame"]:
 		print("[V1] sfx: " + name)
+	var now_ms := Time.get_ticks_msec()
+	if name in ["hit", "pickup"] and now_ms - int(sfx_last_ms.get(name, -999)) < 80:
+		return
+	sfx_last_ms[name] = now_ms
 	if trial.is_empty() and not force and name in ["hit", "pickup"]:
 		return
 	for ap in sfx_pool:
@@ -280,10 +290,14 @@ func _spawn_tick(delta: float) -> void:
 	spawn_cd -= delta
 	if spawn_cd > 0.0:
 		return
+	enemy_cap_hits += 1
+	# G10 修复：场上敌人上限 90（冒烟 2.5x 密度下防止 200+ 敌人性能死亡螺旋）
+	if get_tree().get_nodes_in_group("enemies").size() >= 90:
+		return
 	wave += 1
 	var mul := smoke_spawn_mul * (1.6 if trial.has("elite_waves") else 1.0)
 	spawn_cd = maxf(0.55, 1.4 - wave * 0.02) / mul
-	var n := int((1 + wave / 6) * mul)
+	var n := mini(int((1 + wave / 6) * mul), 16)
 	for i in n:
 		_spawn_one()
 

@@ -1,21 +1,14 @@
 {
   "allies": 12,
-  "atk_count": 66,
+  "atk_count": 44,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
-    "atkSpeed": 1,
-    "burn": 1,
     "cdr": 3,
     "comboForm": 4,
-    "crit": 1,
     "dashDmg": 3,
-    "dmg": 1,
-    "dr": 3,
     "formDuration": 3,
-    "hp": 1,
-    "killForm": 4,
-    "regen": 1,
+    "killForm": 1,
     "t_nova": 3,
     "t_reflect": 3,
     "t_ring": 2,
@@ -32,84 +25,9 @@
       "survival"
     ],
     [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
-      "mobility"
-    ],
-    [
       "mutation",
       "hero",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "mobility"
+      "generic"
     ],
     [
       "hero",
@@ -117,19 +35,89 @@
       "generic"
     ],
     [
+      "hero",
       "mutation",
-      "survival",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
       "survival"
     ],
     [
       "mutation",
       "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "generic",
       "generic"
     ],
     [
       "mutation",
       "mobility",
-      "mutation"
+      "generic"
+    ],
+    [
+      "mutation",
+      "generic",
+      "element"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "generic"
     ],
     [
       "mutation",
@@ -138,107 +126,54 @@
     ],
     [
       "mutation",
-      "generic",
+      "survival",
       "mobility"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "survival"
+    ],
+    [
+      "mutation",
+      "generic",
+      "element"
     ],
     [
       "mutation",
       "element",
-      "survival"
-    ],
-    [
-      "mutation",
-      "generic",
-      "generic"
-    ],
-    [
-      "mutation",
-      "generic",
       "generic"
     ],
     [
       "mutation",
       "mobility",
       "element"
-    ],
-    [
-      "mutation",
-      "generic",
-      "generic"
-    ],
-    [
-      "mutation",
-      "survival",
-      "mobility"
-    ],
-    [
-      "element",
-      "generic",
-      "generic"
-    ],
-    [
-      "survival",
-      "survival",
-      "generic"
-    ],
-    [
-      "generic",
-      "element",
-      "mobility"
-    ],
-    [
-      "generic",
-      "mobility",
-      "survival"
-    ],
-    [
-      "survival",
-      "mobility",
-      "generic"
-    ],
-    [
-      "survival",
-      "generic",
-      "generic"
-    ],
-    [
-      "survival",
-      "generic",
-      "generic"
-    ],
-    [
-      "generic",
-      "survival",
-      "generic"
-    ],
-    [
-      "survival",
-      "generic",
-      "generic"
     ]
   ],
-  "e_count": 13,
-  "elapsed_s": 72.3,
-  "floaters_spawned": 0,
+  "e_count": 15,
+  "elapsed_s": 84.0,
+  "floaters_spawned": 1,
   "form_count": 5,
   "hero": "tang",
-  "hitstop_total_s": 39.8,
-  "kills": 8797,
-  "level": 39,
-  "pass": false,
-  "q_count": 26,
+  "hitstop_total_s": 1.6,
+  "kills": 4784,
+  "level": 27,
+  "pass": true,
+  "q_count": 28,
   "save_check": {
     "mismatch": [],
     "ok": true
   },
-  "screenshot": "unavailable(headless)",
+  "screenshot": "saved",
   "structure_check": {
     "detail": "",
     "fails": 0,
     "trials": 200
   },
   "switches": 12,
-  "trial_done": {},
+  "trial_done": {
+    "baguaFurnace": true
+  },
   "ult_count": 4,
   "unlocked": [
     "tang",
@@ -250,5 +185,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 164
+  "wave": 199
 }
