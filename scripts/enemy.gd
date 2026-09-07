@@ -1,5 +1,5 @@
 extends Node2D
-## 敌人：追击玩家 + 接触伤害，受击白闪/击退，死亡掉经验珠
+## 敌人：追击玩家 + 接触伤害，受击白闪/击退，燃烧/减速，死亡掉经验珠
 
 const DEFS := {
 	"wolf": {"hp": 60.0, "speed": 55.0, "touch": 9.0, "row": 2, "walk": [0, 1]},
@@ -11,9 +11,15 @@ var kind := "wolf"
 var hp := 60.0
 var speed := 55.0
 var touch_dmg := 9.0
+var hit_r := 14.0
 var flash_left := 0.0
 var knock := Vector2.ZERO
 var anim_t := 0.0
+var burn_lvl := 0
+var burn_left := 0.0
+var burn_tick := 0.0
+var slow_left := 0.0
+var slow_amt := 0.0
 var sprite: Sprite2D
 var main: Node2D
 
@@ -24,6 +30,7 @@ func setup(k: String, m: Node2D) -> void:
 	hp = d["hp"]
 	speed = d["speed"]
 	touch_dmg = d["touch"]
+	hit_r = 18.0 if k == "wolf" else 15.0
 
 func _ready() -> void:
 	sprite = Sprite2D.new()
@@ -40,31 +47,50 @@ func _physics_process(delta: float) -> void:
 	var to_p: Vector2 = player.global_position - global_position
 	var dir := to_p.normalized()
 	var moving := to_p.length() > 12.0
+	var spd := speed * (1.0 - slow_amt if slow_left > 0.0 else 1.0)
 	if moving:
-		global_position += dir * speed * delta
+		global_position += dir * spd * delta
 	global_position += knock * delta
 	knock = knock.move_toward(Vector2.ZERO, 600.0 * delta)
 	global_position = global_position.clamp(Vector2(24, 24), Vector2(1576, 1176))
 	sprite.flip_h = dir.x < 0.0
-	# 两帧步进动画
 	anim_t += delta
 	if moving:
 		var f := int(anim_t * 6.0) % 2
 		sprite.texture = SpriteLib.frame_tex(_cell(f))
-	# 接触伤害
 	if to_p.length() < 17.0:
-		player.take_damage(touch_dmg, dir * 60.0)
+		player.take_damage(touch_dmg, dir * 60.0, self)
 		knock = -dir * 180.0
+	if slow_left > 0.0:
+		slow_left -= delta
+		modulate = Color(0.7, 0.85, 1.0)
+	elif flash_left <= 0.0:
+		modulate = Color.WHITE
 	if flash_left > 0.0:
 		flash_left -= delta
 		if flash_left <= 0.0:
 			modulate = Color.WHITE
+	if burn_left > 0.0:
+		burn_left -= delta
+		burn_tick -= delta
+		if burn_tick <= 0.0:
+			burn_tick = 0.5
+			take_hit(6.0 * burn_lvl, Vector2.ZERO, true)
 
-func take_hit(dmg: float, k: Vector2) -> void:
+func apply_burn(lvl: int, dur: float) -> void:
+	burn_lvl = maxi(burn_lvl, lvl)
+	burn_left = dur
+
+func apply_frost(dur: float, amt: float) -> void:
+	slow_left = dur
+	slow_amt = maxf(slow_amt if slow_left > 0.0 else 0.0, amt)
+
+func take_hit(dmg: float, k: Vector2, silent := false) -> void:
 	hp -= dmg
-	flash_left = 0.1
-	knock = k
-	modulate = Color(3.0, 3.0, 3.0)
+	if not silent:
+		flash_left = 0.1
+		knock = k
+		modulate = Color(3.0, 3.0, 3.0)
 	if hp <= 0.0:
 		main.on_enemy_died(global_position)
 		queue_free()
