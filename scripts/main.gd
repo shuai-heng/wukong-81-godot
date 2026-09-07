@@ -105,6 +105,7 @@ func _ready() -> void:
 			var a := TAU * i / 6.0
 			_spawn_one(Vector2(800, 640) + Vector2(cos(a), sin(a)) * 70.0)
 		smoke_spawn_mul = 2.0
+		print("[V1] smoke ready: time_scale=6")
 
 func _build_world() -> void:
 	var m := SpriteLib.manifest()
@@ -219,9 +220,13 @@ func _process(delta: float) -> void:
 	_bullet_tick(delta)
 	_update_boss_hud()
 	if smoke:
+		if int(elapsed) / 10 != int(elapsed - delta) / 10:
+			print("[V1] t=%.0f ch=%s trial=%s enemies=%d kills=%d" % [elapsed, chapter, str(trial.keys()), get_tree().get_nodes_in_group("enemies").size(), player.kills])
 		_smoke_tick()
 
 func _sfx(name: String, force := false) -> void:
+	if name in ["burn", "tame"]:
+		print("[V1] sfx: " + name)
 	if trial.is_empty() and not force and name in ["hit", "pickup"]:
 		return
 	for ap in sfx_pool:
@@ -250,12 +255,14 @@ func _trial_tick(delta: float) -> void:
 			player.hp = maxf(0.0, player.hp - 6.0 * delta)
 	if trial_time_left <= 0.0:
 		var id: String = trial["id"]
+		print("[V1] trial complete: " + id)
 		trial_done[id] = true
 		trial = {}
 		trial_env.clear()
 		toast("外传完成：%s！记录已存" % TRIAL_CFG[id]["name"])
 		_sfx("tame", true)
 		_write_save()
+		print("[V1] trial save written: " + id)
 	queue_redraw()
 
 func start_trial(id: String) -> void:
@@ -604,6 +611,10 @@ func _on_player_died() -> void:
 func _smoke_tick() -> void:
 	if smoke_done or elapsed < 72.0:
 		return
+	# G10 修复：victory 后自动驾驶开启八卦炉外传（60s 时长）——断言需等副本完成再评估
+	if victory and trial_done.is_empty() and elapsed < 150.0:
+		return
+	print("[V1] smoke tick enter: elapsed=%.0f trial_done=%s" % [elapsed, str(trial_done.keys())])
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
 		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
@@ -619,6 +630,7 @@ func _smoke_tick() -> void:
 	_finish_smoke(ok)
 
 func _finish_smoke(passed: bool) -> void:
+	print("[V1] finish_smoke enter, passed=" + str(passed))
 	Engine.time_scale = 1.0
 	var shot := "saved"
 	var img := get_viewport().get_texture().get_image()
@@ -641,6 +653,7 @@ func _finish_smoke(passed: bool) -> void:
 		"draft_log": draft_log, "structure_check": structure_result,
 		"elapsed_s": snappedf(elapsed, 0.1), "screenshot": shot,
 	}
+	print("[V1] finish_smoke writing json")
 	var f := FileAccess.open("res://evidence/smoke-result.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(result, "  "))
 	f.close()

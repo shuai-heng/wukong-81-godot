@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] smoke ready: time_scale=6
+[V1] t=10 ch=eagle trial=[] enemies=7 kills=23
+[V1] t=20 ch=chesi trial=[] enemies=25 kills=23
+[V1] sfx: tame
+[V1] t=30 ch=tongtian trial=["id"] enemies=39 kills=557
+[V1] t=40 ch=tongtian trial=["id"] enemies=201 kills=1359
+[V1] t=50 ch=tongtian trial=["id"] enemies=79 kills=3507

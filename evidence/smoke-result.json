@@ -1,14 +1,21 @@
 {
   "allies": 12,
-  "atk_count": 24,
+  "atk_count": 66,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
+    "atkSpeed": 1,
+    "burn": 1,
     "cdr": 3,
     "comboForm": 4,
+    "crit": 1,
     "dashDmg": 3,
+    "dmg": 1,
+    "dr": 3,
     "formDuration": 3,
+    "hp": 1,
     "killForm": 4,
+    "regen": 1,
     "t_nova": 3,
     "t_reflect": 3,
     "t_ring": 2,
@@ -25,6 +32,26 @@
       "survival"
     ],
     [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
       "mutation",
       "hero",
       "survival"
@@ -32,12 +59,52 @@
     [
       "hero",
       "mutation",
-      "element"
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
     ],
     [
       "mutation",
       "hero",
       "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
     ],
     [
       "mutation",
@@ -47,134 +114,119 @@
     [
       "hero",
       "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
       "generic"
     ],
     [
       "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
+      "survival",
       "survival"
     ],
     [
       "mutation",
       "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
       "mutation"
     ],
     [
       "mutation",
       "survival",
-      "survival"
-    ],
-    [
-      "mutation",
-      "survival",
-      "mobility"
+      "element"
     ],
     [
       "mutation",
       "generic",
-      "mutation"
+      "mobility"
     ],
     [
       "mutation",
-      "survival",
+      "element",
+      "survival"
+    ],
+    [
+      "mutation",
+      "generic",
+      "generic"
+    ],
+    [
+      "mutation",
+      "generic",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
       "element"
     ],
     [
       "mutation",
-      "survival",
-      "mutation"
-    ],
-    [
-      "mutation",
-      "element",
-      "survival"
-    ],
-    [
-      "mutation",
-      "mobility",
-      "survival"
-    ],
-    [
-      "mutation",
-      "mobility",
+      "generic",
       "generic"
     ],
     [
       "mutation",
+      "survival",
+      "mobility"
+    ],
+    [
       "element",
+      "generic",
       "generic"
     ],
     [
-      "mutation",
+      "survival",
+      "survival",
+      "generic"
+    ],
+    [
+      "generic",
       "element",
+      "mobility"
+    ],
+    [
+      "generic",
+      "mobility",
       "survival"
     ],
     [
-      "mutation",
       "survival",
-      "survival"
+      "mobility",
+      "generic"
     ],
     [
-      "mutation",
       "survival",
-      "survival"
+      "generic",
+      "generic"
+    ],
+    [
+      "survival",
+      "generic",
+      "generic"
+    ],
+    [
+      "generic",
+      "survival",
+      "generic"
+    ],
+    [
+      "survival",
+      "generic",
+      "generic"
     ]
   ],
-  "e_count": 9,
-  "elapsed_s": 62.1,
+  "e_count": 13,
+  "elapsed_s": 72.3,
   "floaters_spawned": 0,
-  "form_count": 4,
+  "form_count": 5,
   "hero": "tang",
-  "hitstop_total_s": 0.8,
-  "kills": 8842,
-  "level": 30,
+  "hitstop_total_s": 39.8,
+  "kills": 8797,
+  "level": 39,
   "pass": false,
-  "q_count": 17,
+  "q_count": 26,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -187,7 +239,7 @@
   },
   "switches": 12,
   "trial_done": {},
-  "ult_count": 3,
+  "ult_count": 4,
   "unlocked": [
     "tang",
     "wukong",
@@ -198,5 +250,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 172
+  "wave": 164
 }

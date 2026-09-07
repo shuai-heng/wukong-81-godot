@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] smoke ready: time_scale=6
+[V1] t=10 ch=eagle trial=[] enemies=7 kills=23
+[V1] t=20 ch=chesi trial=[] enemies=25 kills=23
+[V1] sfx: tame
+[V1] t=30 ch=tongtian trial=["id"] enemies=158 kills=462
+[V1] t=40 ch=tongtian trial=["id"] enemies=246 kills=1853
+[V1] t=50 ch=tongtian trial=["id"] enemies=40 kills=3924
+[V1] t=60 ch=tongtian trial=["id"] enemies=55 kills=5855
+[V1] t=70 ch=tongtian trial=["id"] enemies=91 kills=8151
+[V1] smoke tick 72 enter
+[V1] finish_smoke enter, passed=false
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _finish_smoke (res://scripts/main.gd:633)
+       [1] _smoke_tick (res://scripts/main.gd:627)
+       [2] _process (res://scripts/main.gd:225)
+[V1] finish_smoke writing json
+SMOKE_RESULT {"allies":12,"atk_count":66,"boss_spawned":true,"boss_tamed":true,"cards_owned":{"atkSpeed":1,"burn":1,"cdr":3,"comboForm":4,"crit":1,"dashDmg":3,"dmg":1,"dr":3,"formDuration":3,"hp":1,"killForm":4,"regen":1,"t_nova":3,"t_reflect":3,"t_ring":2,"ultGain":4},"chapter":"tongtian","chapter_now":"tongtian","chapters_cleared":12,"deaths":0,"draft_log":[["hero","mutation","survival"],["hero","mutation","element"],["hero","mutation","mobility"],["mutation","hero","element"],["mutation","hero","element"],["mutation","hero","survival"],["hero","mutation","survival"],["mutation","hero","survival"],["hero","mutation","survival"],["mutation","hero","element"],["hero","mutation","survival"],["hero","mutation","mobility"],["mutation","hero","element"],["mutation","hero","survival"],["mutation","hero","survival"],["mutation","hero","survival"],["mutation","hero","mobility"],["hero","mutation","generic"],["mutation","survival","survival"],["mutation","survival","generic"],["mutation","mobility","mutation"],["mutation","survival","element"],["mutation","generic","mobility"],["mutation","element","survival"],["mutation","generic","generic"],["mutation","generic","generic"],["mutation","mobility","element"],["mutation","generic","generic"],["mutation","survival","mobility"],["element","generic","generic"],["survival","survival","generic"],["generic","element","mobility"],["generic","mobility","survival"],["survival","mobility","generic"],["survival","generic","generic"],["survival","generic","generic"],["generic","survival","generic"],["survival","generic","generic"]],"e_count":13,"elapsed_s":72.3,"floaters_spawned":0,"form_count":5,"hero":"tang","hitstop_total_s":39.8,"kills":8797,"level":39,"pass":false,"q_count":26,"save_check":{"mismatch":[],"ok":true},"screenshot":"unavailable(headless)","structure_check":{"detail":"","fails":0,"trials":200},"switches":12,"trial_done":{},"ult_count":4,"unlocked":["tang","wukong","whiteDragon","bajie","shaWujing","nezha","erlang"],"victory":true,"wave":164}
