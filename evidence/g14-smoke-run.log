@@ -1,0 +1,60 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] smoke ready: time_scale=6
+SCRIPT ERROR: Invalid access to property or key 'dying' on a base object of type 'Node2D (enemy.gd)'.
+   at: _cast_g (res://scripts/player.gd:479)
+   GDScript backtrace (most recent call first):
+       [0] _cast_g (res://scripts/player.gd:479)
+       [1] _ai_drive (res://scripts/player.gd:212)
+       [2] _physics_process (res://scripts/player.gd:167)
+[V1] t=10 ch=eagle trial=[] enemies=5 kills=17 maxframe=0.061
+[V1] t=20 ch=chesi trial=[] enemies=21 kills=17 maxframe=0.039
+[V1] sfx: tame
+[V1] t=30 ch=tongtian trial=["id"] enemies=84 kills=354 maxframe=0.092
+[V1] t=40 ch=tongtian trial=["id"] enemies=48 kills=1126 maxframe=0.040
+[V1] t=50 ch=tongtian trial=["id"] enemies=81 kills=1729 maxframe=0.032
+[V1] t=60 ch=tongtian trial=["id"] enemies=39 kills=2550 maxframe=0.031
+[V1] t=70 ch=tongtian trial=["id"] enemies=65 kills=3270 maxframe=0.031
+[V1] t=80 ch=tongtian trial=["id"] enemies=48 kills=3994 maxframe=0.057
+[V1] trial complete: baguaFurnace
+[V1] sfx: tame
+[V1] trial save written: baguaFurnace
+[V1] t=90 ch=tongtian trial=[] enemies=48 kills=4680 maxframe=0.047
+[V1] t=110 ch=tongtian trial=[] enemies=71 kills=6296 maxframe=0.037
+[V1] t=120 ch=tongtian trial=[] enemies=39 kills=7109 maxframe=0.035
+[V1] t=130 ch=tongtian trial=[] enemies=28 kills=7863 maxframe=0.028
+[V1] t=140 ch=tongtian trial=[] enemies=91 kills=8352 maxframe=0.042
+[V1] t=150 ch=tongtian trial=[] enemies=32 kills=9250 maxframe=0.033
+[V1] t=160 ch=tongtian trial=[] enemies=91 kills=9872 maxframe=0.031
+[V1] t=170 ch=tongtian trial=[] enemies=32 kills=10749 maxframe=0.043
+[V1] t=180 ch=tongtian trial=[] enemies=48 kills=11431 maxframe=0.058
+[V1] t=190 ch=tongtian trial=[] enemies=90 kills=12031 maxframe=0.066
+[V1] t=200 ch=tongtian trial=[] enemies=63 kills=12698 maxframe=0.043
+[V1] t=210 ch=tongtian trial=[] enemies=74 kills=13284 maxframe=0.040
+[V1] t=220 ch=tongtian trial=[] enemies=28 kills=13992 maxframe=0.043
+[V1] t=230 ch=tongtian trial=[] enemies=100 kills=14460 maxframe=0.032
+[V1] t=240 ch=tongtian trial=[] enemies=92 kills=15346 maxframe=0.026
+[V1] t=250 ch=tongtian trial=[] enemies=94 kills=16184 maxframe=0.031
+[V1] t=260 ch=tongtian trial=[] enemies=40 kills=17072 maxframe=0.033
+[V1] t=270 ch=tongtian trial=[] enemies=16 kills=17855 maxframe=0.032
+[V1] t=280 ch=tongtian trial=[] enemies=50 kills=18448 maxframe=0.036
+[V1] t=290 ch=tongtian trial=[] enemies=96 kills=19079 maxframe=0.027
+[V1] t=300 ch=tongtian trial=[] enemies=79 kills=19977 maxframe=0.032
+[V1] t=320 ch=tongtian trial=[] enemies=34 kills=21629 maxframe=0.035
+[V1] t=330 ch=tongtian trial=[] enemies=15 kills=22362 maxframe=0.024
+[V1] t=340 ch=tongtian trial=[] enemies=64 kills=23004 maxframe=0.033
+[V1] t=350 ch=tongtian trial=[] enemies=32 kills=23722 maxframe=0.025
+[V1] t=360 ch=tongtian trial=[] enemies=96 kills=24390 maxframe=0.033
+[V1] t=370 ch=tongtian trial=[] enemies=34 kills=25263 maxframe=0.034
+[V1] t=400 ch=tongtian trial=[] enemies=48 kills=27265 maxframe=0.034
+[V1] trial verification incomplete at cap: ["baguaFurnace"]
+[V1] smoke tick enter: elapsed=400 trial_done=["baguaFurnace"]
+[V1] finish_smoke enter, passed=true
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _finish_smoke (res://scripts/main.gd:666)
+       [1] _smoke_tick (res://scripts/main.gd:660)
+       [2] _process (res://scripts/main.gd:236)
+[V1] finish_smoke writing json
+SMOKE_RESULT {"allies":12,"atk_count":393,"boss_spawned":true,"boss_tamed":true,"cards_owned":{"cdr":2,"comboForm":3,"dashDmg":3,"formDuration":3,"killForm":3,"t_nova":3,"t_reflect":3,"t_ring":2,"ultGain":2},"chapter":"tongtian","chapter_now":"tongtian","chapters_cleared":12,"deaths":5,"draft_log":[["hero","mutation","generic"],["hero","mutation","generic"],["mutation","hero","element"],["mutation","hero","generic"],["hero","mutation","mobility"],["mutation","hero","element"],["mutation","hero","generic"],["mutation","hero","survival"],["hero","mutation","element"],["mutation","hero","survival"],["hero","mutation","survival"],["hero","mutation","element"],["hero","mutation","mobility"],["mutation","hero","survival"],["hero","mutation","generic"],["mutation","survival","generic"],["mutation","generic","survival"],["mutation","mobility","survival"],["mutation","survival","generic"],["mutation","survival","mutation"],["mutation","survival","generic"],["mutation","survival","mutation"],["mutation","mobility","survival"],["mutation","element","element"]],"e_count":84,"elapsed_s":400.1,"floaters_spawned":0,"form_count":28,"g_count":1,"hero":"tang","hitstop_total_s":13.4,"kills":27265,"level":25,"pass":true,"q_count":158,"save_check":{"mismatch":[],"ok":true},"screenshot":"unavailable(headless)","structure_check":{"detail":"","fails":0,"trials":200},"switches":12,"trial_done":{"baguaFurnace":true},"ult_count":25,"unlocked":["tang","wukong","whiteDragon","bajie","shaWujing","nezha","erlang"],"victory":true,"wave":970}
