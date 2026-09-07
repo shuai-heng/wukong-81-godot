@@ -33,7 +33,9 @@ var e_count := 0
 var ult_count := 0
 var form_count := 0
 var upgrades := {}                 # id -> level
-var hero := "tang"                 # 出战英雄（tang / wukong）
+var hero := "tang"                 # 出战英雄
+var rage := 0.0                    # 八戒怒气 0-100
+var tone := Color.WHITE            # 英雄着色（受伤闪烁恢复基准）
 var switch_count := 0
 var shield_left := 0.0
 var auto_pilot := false
@@ -107,18 +109,25 @@ func ult_gain_mul() -> float:
 # ---- 生命周期 ----
 func _ready() -> void:
 	sprite = AnimatedSprite2D.new()
-	sprite.sprite_frames = SpriteLib.build_frames(hero)
+	tone = HERO_TONE[hero]
+	sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[hero])
 	sprite.animation = "idle"
 	sprite.play()
 	add_child(sprite)
 
-func set_hero(h: String) -> void:
+const HERO_FRAME := {"wukong": "wukong", "tang": "tang", "whiteDragon": "wolf", "bajie": "bone", "shaWujing": "tang"}
+const HERO_TONE := {"wukong": Color.WHITE, "tang": Color.WHITE, "whiteDragon": Color(0.75, 0.94, 1.0), "bajie": Color(1.0, 0.82, 0.62), "shaWujing": Color(1.0, 0.93, 0.72)}
+
+func set_hero(h: String, silent := false) -> void:
 	if hero == h:
 		return
 	hero = h
 	switch_count += 1
-	sprite.sprite_frames = SpriteLib.build_frames(h)
+	rage = 0.0
+	tone = HERO_TONE[h]
+	sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[h])
 	sprite.play("idle")
+	modulate = tone
 	main.toast("切换出战：" + Cards.HERO_STATS[h]["name"])
 
 func _physics_process(delta: float) -> void:
@@ -193,6 +202,12 @@ func _ai_drive(delta: float) -> Vector2:
 					near += 1
 			if near >= 3:
 				_cast_e()
+	if hero == "whiteDragon" and e_cd_left <= 0.0 and ai_skill_cd <= 0.0:
+		_cast_e()
+	if hero == "bajie" and e_cd_left <= 0.0 and rage >= 50.0 and ai_skill_cd <= 0.0:
+		_cast_e()
+	if hero == "shaWujing" and q_cd_left <= 0.0 and target and ai_skill_cd <= 0.0:
+		_cast_q()
 	if in_form() and ult >= 100.0 and ult_cd_left <= 0.0:
 		_cast_ult()
 	return dir
@@ -213,6 +228,15 @@ func _cast_q() -> void:
 	if hero == "tang":
 		_cast_q_tang()
 		return
+	if hero == "whiteDragon":
+		_cast_q_dragon()
+		return
+	if hero == "bajie":
+		_cast_q_bajie()
+		return
+	if hero == "shaWujing":
+		_cast_q_sha()
+		return
 	q_cd_left = Q_CD_BASE * cd_mul()
 	q_count += 1
 	atk_anim_left = 0.25
@@ -231,6 +255,15 @@ func _cast_e() -> void:
 		return
 	if hero == "tang":
 		_cast_e_tang()
+		return
+	if hero == "whiteDragon":
+		_cast_e_dragon()
+		return
+	if hero == "bajie":
+		_cast_e_bajie()
+		return
+	if hero == "shaWujing":
+		_cast_e_sha()
 		return
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
@@ -371,7 +404,9 @@ func take_damage(amount: float, knock: Vector2 = Vector2.ZERO, source: Node2D = 
 	var red := dr() + (0.35 if shield_left > 0.0 else 0.0)
 	hp = maxf(0.0, hp - amount * (1.0 - minf(0.9, red)))
 	modulate = Color(1.0, 0.5, 0.5)
-	get_tree().create_timer(0.12).timeout.connect(func(): modulate = Color(1.0, 0.9, 0.68) if in_form() else Color.WHITE)
+	if hero == "bajie":
+		rage = minf(100.0, rage + amount * 0.5 * (1.0 + 0.4 * lvl("b_fury")))
+	get_tree().create_timer(0.12).timeout.connect(func(): modulate = tone * (Color(1.0, 0.9, 0.68) if in_form() else Color.WHITE))
 	if source != null and source.has_method("take_hit") and lvl("thorns") > 0:
 		source.take_hit(9.0 + 5.0 * lvl("thorns"), Vector2.ZERO)
 	if knock != Vector2.ZERO:
@@ -434,3 +469,127 @@ func _cast_e_tang() -> void:
 	shield_left = 2.8
 	main.spawn_fx(global_position, 120.0, Color("ffe9a8"))
 	main.toast("锦襕袈裟：2.8 秒护体（减伤 35%，反噬需卡牌）")
+
+# ---- 小白龙：Q 龙牙穿浪（突进+路径伤害+刻龙痕） / E 引雷龙痕（按层数引爆） ----
+func _cast_q_dragon() -> void:
+	q_cd_left = Q_CD_BASE * 0.86 * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.24
+	attacked.emit()
+	var dir := Vector2(facing_x(), 0)
+	var tgt := _nearest_enemy_any()
+	if tgt:
+		dir = (tgt.global_position - global_position).normalized()
+		sprite.flip_h = dir.x < 0.0
+	var len := 340.0 + 70.0 * lvl("d_glide")
+	var to := (global_position + dir * len).clamp(WORLD.position, WORLD.end)
+	var mark_ms := 4.0 + 2.0 * lvl("d_glide")
+	var dmg := base_dmg() * 1.8
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if _seg_dist(e.global_position, global_position, to) < 40.0 + e.hit_r:
+			_hit_enemy(e, dmg, dir * 160.0)
+			e.apply_dragon(mark_ms)
+	main.spawn_fx(to, 70.0, Color("8deaff"))
+	global_position = to
+	main.spawn_phantom(global_position, sprite.flip_h)
+
+func _cast_e_dragon() -> void:
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	var r := 340.0 + 60.0 * lvl("d_call")
+	var boom := 0
+	var tier3 := 0
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not e.has_dragon() or e.global_position.distance_to(global_position) > r:
+			continue
+		boom += 1
+		var stk: int = e.dragon_stack
+		e.dragon_stack = 0
+		var dm := 62.0 + 18.0 * lvl("d_thunder")
+		if stk >= 3:
+			dm *= 2.2
+			tier3 += 1
+		elif stk == 2:
+			dm *= 1.6
+		_hit_enemy(e, dm * dmg_mul(), (e.global_position - global_position).normalized() * 120.0)
+		main.spawn_fx(e.global_position, 60.0, Color("bdf4f1"))
+	main.spawn_fx(global_position, r, Color("8deaff"))
+	main.toast("引雷龙痕引爆 ×%d（三层天雷 ×%d）" % [boom, tier3])
+
+# ---- 八戒：Q 钉耙裂地（怒气满 50 强化） / E 倒卷天河（聚怪） ----
+func _cast_q_bajie() -> void:
+	var empowered := rage >= 50.0
+	if empowered:
+		rage -= 50.0
+	q_cd_left = Q_CD_BASE * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.28
+	attacked.emit()
+	var r := 195.0 * (1.0 + 0.18 * lvl("b_quake"))
+	var dmg := base_dmg() * (1.7 * 1.15 * lvl("b_quake") if lvl("b_quake") > 0 else 1.7) * (1.6 if empowered else 1.0)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if off.length() <= r + e.hit_r:
+			_hit_enemy(e, dmg, off.normalized() * (260.0 if empowered else 150.0))
+	main.spawn_fx(global_position, r, Color("e58a4b"))
+	if empowered:
+		shake_request(10.0)
+
+func _cast_e_bajie() -> void:
+	if rage < 50.0:
+		main.toast("怒气不足 50：承伤积怒后再卷")
+		return
+	rage -= 50.0
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	var r := 300.0 + 60.0 * lvl("b_admiral")
+	var pull := 190.0 + 40.0 * lvl("b_admiral")
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if off.length() <= r:
+			var dir := -off.normalized()
+			e.global_position += dir * pull
+			_hit_enemy(e, base_dmg() * 0.8, Vector2.ZERO)
+	main.spawn_fx(global_position, r, Color("ffad69"))
+
+# ---- 沙悟净：Q 宝杖去返（去+回两段） / E 流沙定域 ----
+func _cast_q_sha() -> void:
+	q_cd_left = Q_CD_BASE * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.26
+	attacked.emit()
+	var tgt := _nearest_enemy_any()
+	var to := global_position + Vector2(facing_x(), 0) * 300.0
+	if tgt:
+		to = tgt.global_position
+	var spd_mul := 1.0 + 0.3 * lvl("s_speed")
+	var dmg := base_dmg() * 1.7 * (1.0 + 0.1 * lvl("s_speed"))
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
+			_hit_enemy(e, dmg, Vector2.ZERO)
+	main.spawn_fx(to, 44.0, Color("d9ba80"))
+	get_tree().create_timer(0.3 / spd_mul).timeout.connect(func():
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if is_instance_valid(e) and _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
+				_hit_enemy(e, dmg * 1.3, Vector2.ZERO)
+		main.spawn_fx(to, 52.0, Color("e6d8ad")))
+
+func _cast_e_sha() -> void:
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	var r := 260.0
+	var slow_amt := 0.35 + 0.1 * lvl("s_erosion")
+	var dmg := 24.0 + 12.0 * lvl("s_erosion")
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e.global_position.distance_to(global_position) <= r:
+			e.apply_frost(2.0 + 0.5 * lvl("s_erosion"), slow_amt)
+			e.take_hit(dmg, Vector2.ZERO)
+	main.spawn_fx(global_position, r, Color("c8a06b"))
+	if lvl("s_guard") > 0:
+		shield_left = maxf(shield_left, 1.0 + 0.5 * lvl("s_guard"))
+
+func shake_request(s: float) -> void:
+	main.request_shake(s)

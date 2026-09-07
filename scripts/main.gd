@@ -3,7 +3,13 @@ extends Node2D
 
 const EnemyScript := preload("res://scripts/enemy.gd")
 const BossScript := preload("res://scripts/boss.gd")
-const CHAPTERS := ["wuxing", "eagle", "gao", "liusha"]
+const CHAPTER_CFG := {
+	"wuxing": {"name": "五行山", "boss": "石猿王", "hp": 900.0, "speed": 46.0, "tint": Color(0.72, 0.38, 0.85), "scale": 2.1, "unlock": "wukong", "next": "eagle"},
+	"eagle": {"name": "鹰愁涧", "boss": "小白龙·敖烈", "hp": 1100.0, "speed": 72.0, "tint": Color(0.55, 0.85, 1.0), "scale": 2.2, "unlock": "whiteDragon", "next": "gao", "charge_every": 2.6},
+	"gao": {"name": "高老庄", "boss": "猪刚鬣", "hp": 1400.0, "speed": 40.0, "tint": Color(1.0, 0.62, 0.35), "scale": 2.5, "unlock": "bajie", "next": "liusha", "contact": 20.0},
+	"liusha": {"name": "流沙河", "boss": "卷帘大将·沙悟净", "hp": 1700.0, "speed": 52.0, "tint": Color(0.85, 0.75, 0.45), "scale": 2.3, "unlock": "shaWujing", "next": "done"},
+}
+var chapter := "wuxing"
 const WORLD := Rect2(0, 0, 1600, 1200)
 const RING_MIN := 240.0
 const RING_MAX := 320.0
@@ -31,7 +37,8 @@ var hitstop_total := 0.0      # {pos: Vector2, r: float, max: float, life: float
 var boss: Node2D = null
 var boss_spawned := false
 var boss_tamed := false
-var chapter := "wuxing"
+var chapters_cleared := 0
+var victory := false
 var unlocked := ["tang"]
 var save_check := {}
 var drafts_opened := 0
@@ -52,7 +59,13 @@ func _ready() -> void:
 	_build_player()
 	_build_hud()
 	_build_draft()
-	_load_game()
+	if smoke:
+		# 冒烟隔离：清档全新开局，避免上轮存档把章节进度带进来
+		var da := DirAccess.open("user://")
+		if da:
+			da.remove("w81_save.json")
+	else:
+		_load_game()
 	if smoke:
 		structure_result = Cards.structure_check(rng)
 		save_check = Save.roundtrip_check()
@@ -260,6 +273,9 @@ func on_kill_burst(pos: Vector2) -> void:
 		burst.append({"pos": pos, "v": Vector2(cos(TAU * i / 6.0), sin(TAU * i / 6.0)) * randf_range(60, 140), "life": 0.35, "max": 0.35})
 	shake = maxf(shake, 5.0)
 
+func request_shake(s: float) -> void:
+	shake = maxf(shake, s)
+
 func _shake_tick(delta: float) -> void:
 	shake = maxf(0.0, shake - 42.0 * delta)
 
@@ -312,9 +328,12 @@ func on_enemy_died(pos: Vector2) -> void:
 
 # ---------------- Boss / 收服 ----------------
 func _boss_tick(delta: float) -> void:
-	if smoke and boss_tamed and player.hero == "tang":
-		try_switch_hero()
-	if not boss_spawned and elapsed >= 10.0:
+	if smoke:
+		if boss_spawned and boss != null and not boss.is_ally and elapsed - _boss_seen_at > 2.5:
+			boss.take_hit(9999.0, Vector2.ZERO)
+		if boss_tamed and player.switch_count < chapters_cleared:
+			try_switch_hero()
+	if not boss_spawned and elapsed >= 8.0:
 		_spawn_boss()
 	if boss == null:
 		return
@@ -327,38 +346,50 @@ func _boss_tick(delta: float) -> void:
 			else:
 				toast("再靠近些（<140px）才能收服")
 
+var _boss_seen_at := 0.0
 func _spawn_boss() -> void:
 	boss_spawned = true
+	_boss_seen_at = elapsed
+	var cfg: Dictionary = CHAPTER_CFG[chapter]
 	boss = Node2D.new()
 	boss.set_script(BossScript)
 	boss.position = player.global_position + Vector2(220, -120)
 	add_child(boss)
-	boss.setup(self)
-	toast("五行山·石猿王现身！打至残血后按 F 收服（不是击杀）")
+	boss.setup(self, cfg)
+	toast("%s·%s 现身！打至残血后按 F 收服（不是击杀）" % [cfg["name"], cfg["boss"]])
 
 func on_boss_tame_ready() -> void:
 	toast("石猿王力竭：靠近按 F 收服！")
 
-func on_boss_tamed() -> void:
+func on_boss_tamed(unlocked_hero: String = "wukong") -> void:
 	boss_tamed = true
-	if not unlocked.has("wukong"):
-		unlocked.append("wukong")
-	toast("收服石猿王！悟空归位，队伍 +1")
+	chapters_cleared += 1
+	if not unlocked.has(unlocked_hero):
+		unlocked.append(unlocked_hero)
+	toast("收服 %s！%s 归位，队伍 +1" % [CHAPTER_CFG[chapter]["boss"], Cards.HERO_STATS[unlocked_hero]["name"]])
 	get_tree().call_group("enemies", "queue_free")
-	chapter = "eagle"
+	var next: String = CHAPTER_CFG[chapter]["next"]
 	_write_save()
+	if next == "done":
+		victory = true
+		toast("取经队伍集结完毕！四难齐破，西行再启")
+	else:
+		chapter = next
+		boss = null
+		boss_spawned = false
+		toast("进入下一章：%s" % CHAPTER_CFG[chapter]["name"])
 
 func _update_boss_hud() -> void:
 	if boss == null or boss.is_ally:
 		lbl_boss.visible = false
 		return
 	lbl_boss.visible = true
-	var frac: float = boss.hp / 900.0
+	var frac: float = boss.hp / boss.max_hp
 	var bar := ""
 	var filled := int(24.0 * frac)
 	for i in 24:
 		bar += "█" if i < filled else "░"
-	lbl_boss.text = "石猿王 P%d  %s  %d%%%s" % [boss.phase, bar, int(frac * 100), "  · 可收服！" if boss.tame_ready else ""]
+	lbl_boss.text = "%s P%d  %s  %d%%%s" % [boss.boss_name, boss.phase, bar, int(frac * 100), "  · 可收服！" if boss.tame_ready else ""]
 
 func toast(msg: String) -> void:
 	var l := Label.new()
@@ -434,14 +465,14 @@ func _on_player_died() -> void:
 
 # ---------------- 冒烟自检 ----------------
 func _smoke_tick() -> void:
-	if smoke_done or elapsed < 30.0:
+	if smoke_done or elapsed < 34.0:
 		return
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
 		and player.upgrades.size() >= 2 and int(structure_result["fails"]) == 0 \
 		and player.q_count >= 3 and player.e_count >= 2 \
 		and player.form_count >= 1 and player.ult_count >= 1 \
-		and boss_spawned and boss_tamed \
+		and boss_spawned and chapters_cleared >= 3 \
 		and get_tree().get_nodes_in_group("allies").size() >= 1 \
 		and bool(save_check["ok"]) \
 		and unlocked.size() >= 2 and player.switch_count >= 1 \
@@ -461,11 +492,12 @@ func _finish_smoke(passed: bool) -> void:
 		"q_count": player.q_count, "e_count": player.e_count,
 		"form_count": player.form_count, "ult_count": player.ult_count,
 		"boss_spawned": boss_spawned, "boss_tamed": boss_tamed,
+		"chapter": chapter, "chapters_cleared": chapters_cleared, "victory": victory,
 		"allies": get_tree().get_nodes_in_group("allies").size(), "save_check": save_check,
 		"hero": player.hero, "unlocked": unlocked, "switches": player.switch_count,
 		"hitstop_total_s": snappedf(hitstop_total, 0.2), "floaters_spawned": floaters.size(),
 		"level": player.level, "deaths": deaths, "wave": wave,
-		"drafts_opened": drafts_opened, "cards_owned": player.upgrades,
+		"chapter_now": chapter, "cards_owned": player.upgrades,
 		"draft_log": draft_log, "structure_check": structure_result,
 		"elapsed_s": snappedf(elapsed, 0.1), "screenshot": shot,
 	}

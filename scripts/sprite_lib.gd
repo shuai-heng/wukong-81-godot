@@ -33,6 +33,11 @@ static func build_frames(kind: String) -> SpriteFrames:
 	var sf := SpriteFrames.new()
 	sf.remove_animation("default")
 	var fps := 6.0
+	# 归一化：只有 walk/hurt 的帧（小怪系）补出 idle/run/atk，保证英雄接口统一
+	if anims.has("walk") and not anims.has("idle"):
+		anims["idle"] = [anims["walk"][0]]
+		anims["run"] = anims["walk"]
+		anims["atk"] = anims.get("hurt", anims["walk"])
 	for anim_name in anims.keys():
 		var cells: Array = anims[anim_name]
 		var an := String(anim_name)

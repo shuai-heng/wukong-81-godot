@@ -20,6 +20,8 @@ var burn_left := 0.0
 var burn_tick := 0.0
 var slow_left := 0.0
 var slow_amt := 0.0
+var dragon_stack := 0
+var dragon_until := 0.0
 var sprite: Sprite2D
 var main: Node2D
 
@@ -80,6 +82,16 @@ func _physics_process(delta: float) -> void:
 func apply_burn(lvl: int, dur: float) -> void:
 	burn_lvl = maxi(burn_lvl, lvl)
 	burn_left = dur
+
+func apply_dragon(dur: float) -> void:
+	if global_position.distance_to(main.player.global_position) > 99999.0:
+		return
+	var t := Time.get_ticks_msec() / 1000.0
+	dragon_stack = dragon_stack + 1 if dragon_until > t else 1
+	dragon_until = t + dur
+
+func has_dragon() -> bool:
+	return dragon_until > Time.get_ticks_msec() / 1000.0
 
 func apply_frost(dur: float, amt: float) -> void:
 	slow_left = dur

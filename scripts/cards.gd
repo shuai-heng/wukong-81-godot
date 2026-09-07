@@ -46,6 +46,15 @@ const HERO_POOL := [
 	{"id": "t_nova", "name": "净化蔓延", "desc": "Q 净化环范围 +30、伤害 +8/层", "icon": "净", "tone": "fff3c0", "maxLevel": 3, "hero": "唐僧", "hid": "tang"},
 	{"id": "t_ring", "name": "九环余音", "desc": "Q 后追加一道外环冲击", "icon": "环", "tone": "ffd46b", "maxLevel": 2, "hero": "唐僧", "hid": "tang"},
 	{"id": "t_reflect", "name": "锦襕反噬", "desc": "护体期间反弹 14×层 伤害", "icon": "襕", "tone": "ffe9a8", "maxLevel": 3, "hero": "唐僧", "hid": "tang"},
+	{"id": "d_thunder", "name": "雷云低压", "desc": "龙痕引爆伤害 +18/层", "icon": "雷", "tone": "8deaff", "maxLevel": 3, "hero": "小白龙", "hid": "whiteDragon"},
+	{"id": "d_glide", "name": "游龙掠波", "desc": "龙牙穿浪距离 +70、龙痕时长 +2s", "icon": "浪", "tone": "7fdce6", "maxLevel": 3, "hero": "小白龙", "hid": "whiteDragon"},
+	{"id": "d_call", "name": "引雷扩域", "desc": "E 引爆范围 +60", "icon": "域", "tone": "bdf4f1", "maxLevel": 3, "hero": "小白龙", "hid": "whiteDragon"},
+	{"id": "b_fury", "name": "怒意难平", "desc": "受伤积怒 +40%", "icon": "怒", "tone": "ff8f4f", "maxLevel": 3, "hero": "猪八戒", "hid": "bajie"},
+	{"id": "b_quake", "name": "钉耙裂地", "desc": "Q 范围 +18%、伤害 +15%", "icon": "裂", "tone": "e58a4b", "maxLevel": 3, "hero": "猪八戒", "hid": "bajie"},
+	{"id": "b_admiral", "name": "水军都督", "desc": "E 聚怪范围 +60、拉力更强", "icon": "督", "tone": "ffad69", "maxLevel": 3, "hero": "猪八戒", "hid": "bajie"},
+	{"id": "s_speed", "name": "去如风", "desc": "宝杖飞行速度 +30%、伤害 +10%", "icon": "疾", "tone": "dbc58f", "maxLevel": 3, "hero": "沙悟净", "hid": "shaWujing"},
+	{"id": "s_erosion", "name": "沙蚀", "desc": "流沙域减速更强、伤害更高", "icon": "蚀", "tone": "c8a06b", "maxLevel": 3, "hero": "沙悟净", "hid": "shaWujing"},
+	{"id": "s_guard", "name": "九骷护体", "desc": "施放 E 获得护体 1+0.5×层 秒", "icon": "骷", "tone": "e6d8ad", "maxLevel": 2, "hero": "沙悟净", "hid": "shaWujing"},
 ]
 
 const CAPS := {
@@ -126,7 +135,11 @@ static func structure_check(rng: RandomNumberGenerator) -> Dictionary:
 const HERO_STATS := {
 	"wukong": {"name": "孙悟空", "dmg": 34.0, "speed": 130.0, "auto_range": 95.0, "q": "乾坤一棒", "e": "定地重击"},
 	"tang": {"name": "唐三藏", "dmg": 26.0, "speed": 118.0, "auto_range": 100.0, "q": "净化梵环", "e": "锦襕袈裟"},
+	"whiteDragon": {"name": "小白龙", "dmg": 30.0, "speed": 145.0, "auto_range": 90.0, "q": "龙牙穿浪", "e": "引雷龙痕"},
+	"bajie": {"name": "猪八戒", "dmg": 38.0, "speed": 108.0, "auto_range": 88.0, "q": "钉耙裂地", "e": "倒卷天河"},
+	"shaWujing": {"name": "沙悟净", "dmg": 32.0, "speed": 122.0, "auto_range": 105.0, "q": "宝杖去返", "e": "流沙定域"},
 }
+const HERO_ORDER := ["tang", "wukong", "whiteDragon", "bajie", "shaWujing"]
 
 static func hero_stat(hero: String, key: String) -> float:
 	return float(HERO_STATS.get(hero, HERO_STATS["wukong"]).get(key, 0.0))

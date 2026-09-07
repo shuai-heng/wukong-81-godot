@@ -5,13 +5,15 @@ extends Node2D
 signal tamed
 signal defeated
 
-const MAX_HP := 900.0
-const CONTACT := 16.0
-const SPEED_BASE := 46.0
 const TAME_THRESHOLD := 0.12      # 残血 12% 以下可收服
+const DEF := {"hp": 900.0, "contact": 16.0, "speed": 46.0, "scale": 2.1, "tint": Color(0.72, 0.38, 0.85), "kind": "wolf", "name": "石猿王"}
 
-var hp := MAX_HP
+var boss_name := "石猿王"
+var max_hp := 900.0
+var hp := 900.0
 var phase := 1
+var cfg: Dictionary = {}
+var unlocked_hero := "wukong"
 var tame_ready := false
 var is_ally := false
 var hit_r := 34.0
@@ -26,18 +28,27 @@ var attack_cd := 0.0
 var follow_t := 0.0
 var sprite: Sprite2D
 var main: Node2D
+var base_tint: Color = Color(0.72, 0.38, 0.85)
 
 func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.texture = SpriteLib.frame_tex(Vector2i(0, 2))
 	sprite.scale = Vector2(2.1, 2.1)
-	sprite.modulate = Color(0.72, 0.38, 0.85)
+	sprite.modulate = base_tint
 	add_child(sprite)
 	add_to_group("boss")
 	add_to_group("enemies")
 
-func setup(m: Node2D) -> void:
+func setup(m: Node2D, chapter_cfg: Dictionary = {}) -> void:
 	main = m
+	cfg = chapter_cfg
+	max_hp = float(cfg.get("hp", 900.0))
+	hp = max_hp
+	boss_name = str(cfg.get("name", DEF["name"]))
+	unlocked_hero = str(cfg.get("unlock", "wukong"))
+	sprite.scale = Vector2(float(cfg.get("scale", 2.1)), float(cfg.get("scale", 2.1)))
+	sprite.modulate = cfg.get("tint", DEF["tint"])
+	base_tint = sprite.modulate
 
 func _physics_process(delta: float) -> void:
 	if is_ally:
@@ -50,7 +61,7 @@ func _physics_process(delta: float) -> void:
 	charge_cd = maxf(0.0, charge_cd - delta)
 	slam_cd = maxf(0.0, slam_cd - delta)
 	anim_t += delta
-	var speed := SPEED_BASE
+	var speed := float(cfg.get("speed", 46.0))
 	if phase == 3:
 		speed *= 1.4
 	if charge_left > 0.0:
@@ -67,7 +78,7 @@ func _physics_process(delta: float) -> void:
 	sprite.flip_h = dir.x < 0.0
 	sprite.texture = SpriteLib.frame_tex(Vector2i(int(anim_t * 6.0) % 2, 2))
 	# 阶段推进
-	var frac := hp / MAX_HP
+	var frac := hp / max_hp
 	phase = 1 if frac > 0.66 else (2 if frac > 0.33 else 3)
 	if phase >= 2 and charge_cd <= 0.0 and charge_left <= 0.0:
 		charge_cd = 4.0
@@ -80,7 +91,7 @@ func _physics_process(delta: float) -> void:
 			player.take_damage(14.0, dir * 90.0, self)
 	if to_p.length() < hit_r + 12.0 and attack_cd <= 0.0:
 		attack_cd = 0.8
-		player.take_damage(CONTACT, dir * 90.0, self)
+		player.take_damage(float(cfg.get("contact", 16.0)), dir * 90.0, self)
 	if flash_left > 0.0:
 		flash_left -= delta
 		if flash_left <= 0.0:
@@ -123,9 +134,9 @@ func _tame(by_zero: bool) -> void:
 	remove_from_group("boss")
 	remove_from_group("enemies")
 	add_to_group("allies")
-	sprite.modulate = Color(0.72, 0.85, 1.0)
+	sprite.modulate = base_tint.lerp(Color.WHITE, 0.55)
 	scale = Vector2(0.85, 0.85)
 	if by_zero:
-		hp = MAX_HP * 0.35
-	main.on_boss_tamed()
+		hp = max_hp * 0.35
+	main.on_boss_tamed(unlocked_hero)
 	tamed.emit()
