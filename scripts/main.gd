@@ -3,6 +3,7 @@ extends Node2D
 
 const EnemyScript := preload("res://scripts/enemy.gd")
 const BossScript := preload("res://scripts/boss.gd")
+const SfxLib := preload("res://scripts/sfx.gd")
 const CHAPTER_CFG := {
 	"wuxing": {"name": "五行山", "boss": "石猿王", "hp": 900.0, "speed": 46.0, "tint": Color(0.72, 0.38, 0.85), "scale": 2.1, "unlock": "wukong", "next": "eagle"},
 	"eagle": {"name": "鹰愁涧", "boss": "小白龙·敖烈", "hp": 1100.0, "speed": 72.0, "tint": Color(0.55, 0.85, 1.0), "scale": 2.2, "unlock": "whiteDragon", "next": "gao", "charge_every": 2.6},
@@ -16,6 +17,13 @@ const CHAPTER_CFG := {
 	"chesi": {"name": "车迟国", "boss": "虎力大仙", "hp": 3000.0, "speed": 50.0, "tint": Color(0.9, 0.85, 0.6), "scale": 2.4, "unlock": "", "next": "heaven", "behavior": "slam", "slam_every": 3.5},
 	"heaven": {"name": "天宫试炼", "boss": "二郎显圣真君", "hp": 3400.0, "speed": 66.0, "tint": Color(0.8, 0.85, 0.95), "scale": 2.4, "unlock": "nezha,erlang", "next": "tongtian", "behavior": "mirror"},
 	"tongtian": {"name": "通天·凌云渡", "boss": "六耳猕猴", "hp": 4000.0, "speed": 74.0, "tint": Color(0.6, 0.5, 0.7), "scale": 2.2, "unlock": "", "next": "done", "behavior": "mirror"},
+}
+const TRIAL_CFG := {
+	"dragonStory": {"name": "外传·龙族旧事", "goal": "护送：60 秒队友协力生存", "mods": ["allies_boost"], "time": 60.0},
+	"baguaFurnace": {"name": "外传·八卦炉", "goal": "耐炼：60 秒全场火域灼烧", "mods": ["burn_env"], "time": 60.0},
+	"fangcun": {"name": "外传·方寸山学艺", "goal": "修行：60 秒双倍经验", "mods": ["double_exp"], "time": 60.0},
+	"underworld": {"name": "外传·幽冥地府", "goal": "镇魂：60 秒亡者复苏", "mods": ["revive_once"], "time": 60.0},
+	"heavenHavoc": {"name": "外传·大闹天宫", "goal": "齐天：60 秒天兵精锐", "mods": ["elite_waves", "allies_boost"], "time": 60.0},
 }
 var chapter := "wuxing"
 const WORLD := Rect2(0, 0, 1600, 1200)
@@ -48,6 +56,14 @@ var boss_spawned := false
 var boss_tamed := false
 var chapters_cleared := 0
 var victory := false
+var trial := {}                 # 当前副本（空=主线）
+var trial_done := {}            # 完成标记
+var trial_time_left := 0.0
+var trial_menu_open := false
+var trial_env := []             # 环境火域 {pos, r, until}
+var env_cd := 0.0
+var thunder_depth := 0
+var sfx_pool := []
 var unlocked := ["tang"]
 var save_check := {}
 var drafts_opened := 0
@@ -64,6 +80,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	rng.seed = 20260907
 	smoke = "--smoke" in OS.get_cmdline_user_args()
+	for i in 6:
+		var ap := AudioStreamPlayer.new()
+		add_child(ap)
+		sfx_pool.append(ap)
+	_sfx("level", true)
 	_build_world()
 	_build_player()
 	_build_hud()
@@ -153,6 +174,16 @@ func _build_draft() -> void:
 
 # ---------------- 主循环 ----------------
 func _process(delta: float) -> void:
+	if Input.is_action_just_pressed("trials") and victory:
+		trial_menu_open = not trial_menu_open
+		if trial_menu_open:
+			toast("外传试炼：1 龙族旧事 · 2 八卦炉 · 3 方寸山 · 4 地府 · 5 大闹天宫（数字键进入）")
+	if trial_menu_open:
+		for i in TRIAL_CFG.keys().size():
+			if Input.is_key_pressed(KEY_1 + i) and not get_tree().paused:
+				trial_menu_open = false
+				start_trial(TRIAL_CFG.keys()[i])
+				break
 	elapsed += delta
 	# 命中顿帧：冻结战斗推进（保留 HUD/特效），对齐 web 版 hitStop 手感
 	if hitstop > 0.0:
@@ -169,7 +200,10 @@ func _process(delta: float) -> void:
 	lbl_exp.text = "Lv%d  EXP %d/%d" % [player.level, player.exp_pts, player.exp_next]
 	var cards_txt := " · 卡牌 %d" % player.upgrades.size() if player.upgrades.size() > 0 else ""
 	lbl_stats.text = "击杀 %d · 存活 %d · 波次 %d · %.0fs%s" % [player.kills, get_tree().get_nodes_in_group("enemies").size(), wave, elapsed, cards_txt]
-	if player.in_form():
+	if not trial.is_empty():
+		lbl_form.text = "【%s】剩余 %.0fs" % [TRIAL_CFG[trial["id"]]["name"], maxf(0.0, trial_time_left)]
+		lbl_form.add_theme_color_override("font_color", Color("ffb84d"))
+	elif player.in_form():
 		lbl_form.text = "法相天象 · %.1fs · 终结 %d%%" % [player.form_left, int(player.ult)]
 		lbl_form.add_theme_color_override("font_color", Color("ffd46b"))
 	else:
@@ -180,19 +214,69 @@ func _process(delta: float) -> void:
 	_shake_tick(delta)
 	if camera:
 		camera.offset = _shake_offset()
+	_trial_tick(delta)
 	_boss_tick(delta)
 	_bullet_tick(delta)
 	_update_boss_hud()
 	if smoke:
 		_smoke_tick()
 
+func _sfx(name: String, force := false) -> void:
+	if trial.is_empty() and not force and name in ["hit", "pickup"]:
+		return
+	for ap in sfx_pool:
+		if not ap.playing:
+			ap.stream = SfxLib.get_sfx(name)
+			ap.volume_db = -14.0
+			ap.play()
+			return
+
+func _trial_tick(delta: float) -> void:
+	if trial.is_empty():
+		return
+	trial_time_left -= delta
+	if trial.has("burn_env"):
+		env_cd -= delta
+		if env_cd <= 0.0:
+			env_cd = 7.0
+			for i in 3:
+				var ang := rng.randf_range(0.0, TAU)
+				trial_env.append({"pos": player.global_position + Vector2(cos(ang), sin(ang)) * rng.randf_range(60.0, 180.0), "r": 90.0, "until": elapsed + 8.0})
+			_sfx("burn")
+	for env in trial_env.duplicate():
+		if elapsed > env["until"]:
+			trial_env.erase(env)
+		elif player.global_position.distance_to(env["pos"]) < env["r"]:
+			player.hp = maxf(0.0, player.hp - 6.0 * delta)
+	if trial_time_left <= 0.0:
+		var id: String = trial["id"]
+		trial_done[id] = true
+		trial = {}
+		trial_env.clear()
+		toast("外传完成：%s！记录已存" % TRIAL_CFG[id]["name"])
+		_sfx("tame", true)
+		_write_save()
+	queue_redraw()
+
+func start_trial(id: String) -> void:
+	if not victory:
+		toast("通关主线（通天）后解锁外传试炼")
+		return
+	trial = {"id": id}
+	trial_time_left = float(TRIAL_CFG[id]["time"])
+	get_tree().call_group("enemies", "queue_free")
+	orbs.clear()
+	toast("进入 %s：%s" % [TRIAL_CFG[id]["name"], TRIAL_CFG[id]["goal"]])
+	_sfx("tame", true)
+
 func _spawn_tick(delta: float) -> void:
 	spawn_cd -= delta
 	if spawn_cd > 0.0:
 		return
 	wave += 1
-	spawn_cd = maxf(0.55, 1.4 - wave * 0.02) / smoke_spawn_mul
-	var n := int((1 + wave / 6) * smoke_spawn_mul)
+	var mul := smoke_spawn_mul * (1.6 if trial.has("elite_waves") else 1.0)
+	spawn_cd = maxf(0.55, 1.4 - wave * 0.02) / mul
+	var n := int((1 + wave / 6) * mul)
 	for i in n:
 		_spawn_one()
 
@@ -220,7 +304,8 @@ func _pickup_tick() -> void:
 	for orb in orbs.duplicate():
 		var d := player.global_position.distance_to(orb["pos"])
 		if d < 15.0:
-			player.gain_exp(1)
+			player.gain_exp(2 if trial.has("double_exp") else 1)
+			_sfx("pickup")
 			if player.lvl("orbHeal") > 0:
 				player.hp = minf(player.max_hp, player.hp + 1.2 * player.lvl("orbHeal"))
 			orbs.erase(orb)
@@ -237,8 +322,9 @@ func _phantom_tick(delta: float) -> void:
 			phantoms.erase(g)
 			continue
 		g["next"] -= delta
-		if g["next"] <= 0.0 and player.lvl("w_72") > 0:
-			g["next"] = 0.7
+		var ally_fast: float = 0.4 if trial.has("allies_boost") else 0.8
+		if g["next"] <= 0.0 and (player.lvl("w_72") > 0 or trial.has("allies_boost")):
+			g["next"] = ally_fast
 			var pos: Vector2 = g["node"].position
 			for e in get_tree().get_nodes_in_group("enemies"):
 				if e.global_position.distance_to(pos) < 85.0:
@@ -341,6 +427,8 @@ func _draw() -> void:
 		draw_rect(Rect2(b["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.85, 0.5, a))
 	for bl in bullets:
 		draw_rect(Rect2(bl["pos"] - Vector2(3, 3), Vector2(6, 6)), Color(0.95, 0.5, 0.4))
+	for env in trial_env:
+		draw_arc(env["pos"], env["r"], 0, TAU, 32, Color(1.0, 0.45, 0.25, 0.5), 4.0)
 	var fnt := ThemeDB.fallback_font
 	for f in floaters:
 		var a2: float = clampf(f["life"] / 0.6, 0.0, 1.0)
@@ -350,13 +438,16 @@ func _draw() -> void:
 
 func on_enemy_died(pos: Vector2) -> void:
 	player.on_kill_charge()
+	_sfx("hit", true)
 	on_kill_burst(pos)
 	orbs.append({"pos": pos})
-	# 雷霆天罚：击杀雷击 80px 内敌人
-	if player.lvl("thunder") > 0:
+	# 雷霆天罚：击杀雷击 80px 内敌人（深度护栏：防连锁击杀无限递归栈溢出）
+	if player.lvl("thunder") > 0 and thunder_depth < 3:
+		thunder_depth += 1
 		for e in get_tree().get_nodes_in_group("enemies"):
 			if e.global_position.distance_to(pos) < 80.0:
 				e.take_hit(20.0 + 10.0 * player.lvl("thunder"), Vector2.ZERO)
+		thunder_depth -= 1
 	queue_redraw()
 
 # ---------------- Boss / 收服 ----------------
@@ -366,6 +457,8 @@ func _boss_tick(delta: float) -> void:
 			boss.take_hit(9999.0, Vector2.ZERO)
 		if boss_tamed and player.switch_count < chapters_cleared:
 			try_switch_hero()
+		if victory and trial.is_empty() and trial_done.size() == 0:
+			start_trial("baguaFurnace")
 	if not boss_spawned and elapsed >= 8.0:
 		_spawn_boss()
 	if boss == null:
@@ -412,7 +505,7 @@ func on_boss_tamed(unlocked_hero: String = "wukong") -> void:
 	_write_save()
 	if next == "done":
 		victory = true
-		toast("取经队伍集结完毕！四难齐破，西行再启")
+		toast("取经队伍集结完毕！按 B 开启外传试炼")
 	else:
 		chapter = next
 		boss = null
@@ -448,6 +541,7 @@ func toast(msg: String) -> void:
 # ---------------- 存档 ----------------
 func _write_save() -> void:
 	var data := Save.make(chapter, unlocked, player.upgrades, {"kills": player.kills, "level": player.level, "survived": snappedf(elapsed, 0.1)}, ["wuxing_stone_ape"] if boss_tamed else [])
+	data["trials_done"] = trial_done
 	Save.write(data)
 
 func try_switch_hero() -> void:
@@ -467,6 +561,9 @@ func _load_game() -> void:
 			if not unlocked.has(str(h)):
 				unlocked.append(str(h))
 	chapter = d.get("chapter", "wuxing")
+	var td = d.get("trials_done", {})
+	if td is Dictionary:
+		trial_done = td
 	var cards: Dictionary = d.get("cards", {})
 	for k in cards.keys():
 		player.upgrades[str(k)] = int(cards[k])
@@ -505,7 +602,7 @@ func _on_player_died() -> void:
 
 # ---------------- 冒烟自检 ----------------
 func _smoke_tick() -> void:
-	if smoke_done or elapsed < 40.0:
+	if smoke_done or elapsed < 72.0:
 		return
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
@@ -514,6 +611,7 @@ func _smoke_tick() -> void:
 		and player.form_count >= 1 and player.ult_count >= 1 \
 		and boss_spawned and chapters_cleared >= 10 \
 		and unlocked.size() >= 7 and victory \
+		and trial_done.has("baguaFurnace") \
 		and get_tree().get_nodes_in_group("allies").size() >= 1 \
 		and bool(save_check["ok"]) \
 		and unlocked.size() >= 2 and player.switch_count >= 1 \
@@ -536,6 +634,7 @@ func _finish_smoke(passed: bool) -> void:
 		"chapter": chapter, "chapters_cleared": chapters_cleared, "victory": victory,
 		"allies": get_tree().get_nodes_in_group("allies").size(), "save_check": save_check,
 		"hero": player.hero, "unlocked": unlocked, "switches": player.switch_count,
+		"trial_done": trial_done,
 		"hitstop_total_s": snappedf(hitstop_total, 0.2), "floaters_spawned": floaters.size(),
 		"level": player.level, "deaths": deaths, "wave": wave,
 		"chapter_now": chapter, "cards_owned": player.upgrades,

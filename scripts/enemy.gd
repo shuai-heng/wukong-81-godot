@@ -21,6 +21,7 @@ var burn_tick := 0.0
 var slow_left := 0.0
 var slow_amt := 0.0
 var dragon_stack := 0
+var revived_once := false
 var dragon_until := 0.0
 var sprite: Sprite2D
 var main: Node2D
@@ -104,5 +105,12 @@ func take_hit(dmg: float, k: Vector2, silent := false) -> void:
 		knock = k
 		modulate = Color(3.0, 3.0, 3.0)
 	if hp <= 0.0:
+		# 外传·幽冥地府：亡者复苏一次（半血重立）
+		if main.trial.has("revive_once") and not revived_once:
+			revived_once = true
+			hp = main.player.max_hp * 0.0 + 30.0
+			modulate = Color(0.6, 0.4, 0.9)
+			main.spawn_fx(global_position, 40.0, Color(0.6, 0.4, 0.9))
+			return
 		main.on_enemy_died(global_position)
 		queue_free()
