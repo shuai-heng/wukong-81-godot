@@ -1,14 +1,14 @@
 {
   "allies": 12,
-  "atk_count": 44,
+  "atk_count": 336,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
     "cdr": 3,
-    "comboForm": 4,
+    "comboForm": 1,
     "dashDmg": 3,
-    "formDuration": 3,
-    "killForm": 1,
+    "formDuration": 2,
+    "killForm": 3,
     "t_nova": 3,
     "t_reflect": 3,
     "t_ring": 2,
@@ -17,7 +17,7 @@
   "chapter": "tongtian",
   "chapter_now": "tongtian",
   "chapters_cleared": 12,
-  "deaths": 0,
+  "deaths": 4,
   "draft_log": [
     [
       "hero",
@@ -27,47 +27,7 @@
     [
       "mutation",
       "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
       "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "element"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
     ],
     [
       "hero",
@@ -75,8 +35,8 @@
       "survival"
     ],
     [
-      "hero",
       "mutation",
+      "hero",
       "mobility"
     ],
     [
@@ -85,9 +45,9 @@
       "survival"
     ],
     [
-      "mutation",
       "hero",
-      "generic"
+      "mutation",
+      "survival"
     ],
     [
       "hero",
@@ -96,70 +56,100 @@
     ],
     [
       "mutation",
-      "survival",
-      "generic"
+      "hero",
+      "mobility"
     ],
     [
+      "hero",
       "mutation",
-      "generic",
-      "generic"
-    ],
-    [
-      "mutation",
-      "mobility",
-      "generic"
-    ],
-    [
-      "mutation",
-      "generic",
       "element"
     ],
     [
+      "hero",
       "mutation",
-      "mobility",
-      "generic"
-    ],
-    [
-      "mutation",
-      "survival",
-      "element"
-    ],
-    [
-      "mutation",
-      "survival",
       "mobility"
     ],
     [
       "mutation",
-      "mobility",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "survival",
       "survival"
     ],
     [
       "mutation",
-      "generic",
-      "element"
+      "mobility",
+      "generic"
     ],
     [
       "mutation",
       "element",
-      "generic"
+      "survival"
     ],
     [
       "mutation",
       "mobility",
+      "survival"
+    ],
+    [
+      "mutation",
+      "element",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "generic",
       "element"
+    ],
+    [
+      "mutation",
+      "generic",
+      "generic"
+    ],
+    [
+      "mutation",
+      "generic",
+      "survival"
+    ],
+    [
+      "mutation",
+      "survival",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
     ]
   ],
-  "e_count": 15,
-  "elapsed_s": 84.0,
+  "e_count": 88,
+  "elapsed_s": 337.3,
   "floaters_spawned": 1,
-  "form_count": 5,
+  "form_count": 28,
   "hero": "tang",
-  "hitstop_total_s": 1.6,
-  "kills": 4784,
-  "level": 27,
+  "hitstop_total_s": 11.6,
+  "kills": 29106,
+  "level": 25,
   "pass": true,
-  "q_count": 28,
+  "q_count": 164,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -172,9 +162,13 @@
   },
   "switches": 12,
   "trial_done": {
-    "baguaFurnace": true
+    "baguaFurnace": true,
+    "dragonStory": true,
+    "fangcun": true,
+    "heavenHavoc": true,
+    "underworld": true
   },
-  "ult_count": 4,
+  "ult_count": 21,
   "unlocked": [
     "tang",
     "wukong",
@@ -185,5 +179,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 199
+  "wave": 978
 }

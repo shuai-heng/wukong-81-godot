@@ -439,7 +439,8 @@ func gain_exp(n: int) -> void:
 	while exp_pts >= exp_next:
 		exp_pts -= exp_next
 		level += 1
-		exp_next = 5 + level * 3
+		# G10 修复：几何增长对齐 web 版（原线性 +3/级 在大规模击杀+双倍经验下产生升级/草稿风暴）
+		exp_next = int(exp_next * 1.33)
 		max_hp += 6.0
 		hp = minf(max_hp, hp + 8.0)
 		leveled.emit()

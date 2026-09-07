@@ -1,0 +1,66 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] trial queue set: ["dragonStory", "fangcun", "underworld", "heavenHavoc", "baguaFurnace"]
+[V1] smoke ready: time_scale=6
+[V1] t=10 ch=eagle trial=[] enemies=7 kills=24 maxframe=0.020
+[V1] t=20 ch=chesi trial=[] enemies=37 kills=24 maxframe=0.011
+[V1] sfx: tame
+[V1] t=30 ch=tongtian trial=["id"] enemies=105 kills=324 maxframe=0.037
+[V1] t=40 ch=tongtian trial=["id"] enemies=16 kills=1159 maxframe=0.017
+[V1] t=50 ch=tongtian trial=["id"] enemies=16 kills=2005 maxframe=0.018
+[V1] t=60 ch=tongtian trial=["id"] enemies=51 kills=2826 maxframe=0.020
+[V1] t=70 ch=tongtian trial=["id"] enemies=89 kills=3541 maxframe=0.020
+[V1] t=80 ch=tongtian trial=["id"] enemies=16 kills=4413 maxframe=0.021
+[V1] trial complete: dragonStory
+[V1] sfx: tame
+[V1] trial save written: dragonStory
+[V1] sfx: tame
+[V1] t=90 ch=tongtian trial=["id"] enemies=95 kills=5062 maxframe=0.015
+[V1] t=100 ch=tongtian trial=["id"] enemies=80 kills=5880 maxframe=0.015
+[V1] t=110 ch=tongtian trial=["id"] enemies=96 kills=6559 maxframe=0.015
+[V1] t=120 ch=tongtian trial=["id"] enemies=94 kills=7365 maxframe=0.027
+[V1] t=130 ch=tongtian trial=["id"] enemies=48 kills=8339 maxframe=0.022
+[V1] t=140 ch=tongtian trial=["id"] enemies=25 kills=9198 maxframe=0.049
+[V1] trial complete: fangcun
+[V1] sfx: tame
+[V1] trial save written: fangcun
+[V1] sfx: tame
+[V1] t=160 ch=tongtian trial=["id"] enemies=16 kills=10793 maxframe=0.036
+[V1] t=170 ch=tongtian trial=["id"] enemies=96 kills=11444 maxframe=0.019
+[V1] t=180 ch=tongtian trial=["id"] enemies=96 kills=12282 maxframe=0.028
+[V1] t=200 ch=tongtian trial=["id"] enemies=42 kills=14089 maxframe=0.023
+[V1] trial complete: underworld
+[V1] sfx: tame
+[V1] trial save written: underworld
+[V1] sfx: tame
+[V1] t=220 ch=tongtian trial=["id"] enemies=64 kills=15646 maxframe=0.020
+[V1] t=230 ch=tongtian trial=["id"] enemies=95 kills=16526 maxframe=0.013
+[V1] t=240 ch=tongtian trial=["id"] enemies=48 kills=17354 maxframe=0.016
+[V1] t=250 ch=tongtian trial=["id"] enemies=48 kills=18143 maxframe=0.027
+[V1] t=260 ch=tongtian trial=["id"] enemies=64 kills=18848 maxframe=0.050
+[V1] t=270 ch=tongtian trial=["id"] enemies=38 kills=19763 maxframe=0.032
+[V1] trial complete: heavenHavoc
+[V1] sfx: tame
+[V1] trial save written: heavenHavoc
+[V1] sfx: tame
+[V1] t=290 ch=tongtian trial=["id"] enemies=76 kills=21382 maxframe=0.022
+[V1] t=300 ch=tongtian trial=["id"] enemies=90 kills=22298 maxframe=0.010
+[V1] t=310 ch=tongtian trial=["id"] enemies=64 kills=23305 maxframe=0.016
+[V1] t=320 ch=tongtian trial=["id"] enemies=64 kills=24156 maxframe=0.015
+[V1] t=330 ch=tongtian trial=["id"] enemies=94 kills=24846 maxframe=0.021
+[V1] t=340 ch=tongtian trial=["id"] enemies=16 kills=25831 maxframe=0.034
+[V1] trial complete: baguaFurnace
+[V1] sfx: tame
+[V1] trial save written: baguaFurnace
+[V1] smoke tick enter: elapsed=344 trial_done=["dragonStory", "fangcun", "underworld", "heavenHavoc", "baguaFurnace"]
+[V1] finish_smoke enter, passed=true
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _finish_smoke (res://scripts/main.gd:665)
+       [1] _smoke_tick (res://scripts/main.gd:659)
+       [2] _process (res://scripts/main.gd:236)
+[V1] finish_smoke writing json
+SMOKE_RESULT {"allies":12,"atk_count":286,"boss_spawned":true,"boss_tamed":true,"cards_owned":{"cdr":3,"comboForm":2,"dashDmg":3,"formDuration":3,"killForm":1,"t_nova":3,"t_reflect":3,"t_ring":2,"ultGain":4},"chapter":"tongtian","chapter_now":"tongtian","chapters_cleared":12,"deaths":4,"draft_log":[["hero","mutation","survival"],["mutation","hero","survival"],["mutation","hero","element"],["hero","mutation","generic"],["hero","mutation","survival"],["hero","mutation","generic"],["mutation","hero","survival"],["mutation","hero","generic"],["mutation","hero","element"],["hero","mutation","generic"],["hero","mutation","generic"],["hero","mutation","mobility"],["mutation","hero","generic"],["hero","mutation","survival"],["mutation","element","survival"],["mutation","generic","survival"],["mutation","generic","survival"],["mutation","generic","element"],["mutation","mobility","survival"],["mutation","survival","survival"],["mutation","survival","survival"],["mutation","survival","mutation"],["mutation","element","generic"],["mutation","survival","generic"]],"e_count":77,"elapsed_s":343.6,"floaters_spawned":0,"form_count":25,"hero":"tang","hitstop_total_s":9.6,"kills":25929,"level":25,"pass":true,"q_count":143,"save_check":{"mismatch":[],"ok":true},"screenshot":"unavailable(headless)","structure_check":{"detail":"","fails":0,"trials":200},"switches":12,"trial_done":{"baguaFurnace":true,"dragonStory":true,"fangcun":true,"heavenHavoc":true,"underworld":true},"ult_count":22,"unlocked":["tang","wukong","whiteDragon","bajie","shaWujing","nezha","erlang"],"victory":true,"wave":898}
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

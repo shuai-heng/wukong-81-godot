@@ -605,7 +605,8 @@ func _load_game() -> void:
 # ---------------- 三选一 ----------------
 func _on_leveled() -> void:
 	if draft_ui.visible:
-		pending_drafts += 1
+		if pending_drafts < 3:
+			pending_drafts += 1
 		return
 	_open_draft()
 
