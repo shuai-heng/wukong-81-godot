@@ -27,6 +27,7 @@ var boss: Node2D = null
 var boss_spawned := false
 var boss_tamed := false
 var chapter := "wuxing"
+var unlocked := ["tang"]
 var save_check := {}
 var drafts_opened := 0
 var pending_drafts := 0
@@ -246,6 +247,8 @@ func on_enemy_died(pos: Vector2) -> void:
 
 # ---------------- Boss / 收服 ----------------
 func _boss_tick(delta: float) -> void:
+	if smoke and boss_tamed and player.hero == "tang":
+		try_switch_hero()
 	if not boss_spawned and elapsed >= 10.0:
 		_spawn_boss()
 	if boss == null:
@@ -273,6 +276,8 @@ func on_boss_tame_ready() -> void:
 
 func on_boss_tamed() -> void:
 	boss_tamed = true
+	if not unlocked.has("wukong"):
+		unlocked.append("wukong")
 	toast("收服石猿王！悟空归位，队伍 +1")
 	get_tree().call_group("enemies", "queue_free")
 	chapter = "eagle"
@@ -306,16 +311,25 @@ func toast(msg: String) -> void:
 
 # ---------------- 存档 ----------------
 func _write_save() -> void:
-	var unlocked := []
-	if boss_tamed:
-		unlocked.append("wukong")
 	var data := Save.make(chapter, unlocked, player.upgrades, {"kills": player.kills, "level": player.level, "survived": snappedf(elapsed, 0.1)}, ["wuxing_stone_ape"] if boss_tamed else [])
 	Save.write(data)
+
+func try_switch_hero() -> void:
+	if unlocked.size() < 2:
+		toast("收服更多同伴后才能切换（当前仅唐僧）")
+		return
+	var next := "wukong" if player.hero == "tang" else "tang"
+	player.set_hero(next)
 
 func _load_game() -> void:
 	var d := Save.load_save()
 	if d.is_empty():
 		return
+	var u = d.get("unlocked", [])
+	if u is Array:
+		for h in u:
+			if not unlocked.has(str(h)):
+				unlocked.append(str(h))
 	chapter = d.get("chapter", "wuxing")
 	var cards: Dictionary = d.get("cards", {})
 	for k in cards.keys():
@@ -330,7 +344,7 @@ func _on_leveled() -> void:
 	_open_draft()
 
 func _open_draft() -> void:
-	var picks := Cards.roll(player.upgrades, 3, rng)
+	var picks := Cards.roll(player.upgrades, 3, rng, player.hero)
 	if picks.is_empty():
 		return
 	drafts_opened += 1
@@ -364,7 +378,8 @@ func _smoke_tick() -> void:
 		and player.form_count >= 1 and player.ult_count >= 1 \
 		and boss_spawned and boss_tamed \
 		and get_tree().get_nodes_in_group("allies").size() >= 1 \
-		and bool(save_check["ok"])
+		and bool(save_check["ok"]) \
+		and unlocked.size() >= 2 and player.switch_count >= 1
 	_finish_smoke(ok)
 
 func _finish_smoke(passed: bool) -> void:
@@ -381,6 +396,7 @@ func _finish_smoke(passed: bool) -> void:
 		"form_count": player.form_count, "ult_count": player.ult_count,
 		"boss_spawned": boss_spawned, "boss_tamed": boss_tamed,
 		"allies": get_tree().get_nodes_in_group("allies").size(), "save_check": save_check,
+		"hero": player.hero, "unlocked": unlocked, "switches": player.switch_count,
 		"level": player.level, "deaths": deaths, "wave": wave,
 		"drafts_opened": drafts_opened, "cards_owned": player.upgrades,
 		"draft_log": draft_log, "structure_check": structure_result,

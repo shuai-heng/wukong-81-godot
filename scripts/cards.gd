@@ -38,11 +38,14 @@ const POOL := [
 ]
 
 const HERO_POOL := [
-	{"id": "w_arc", "name": "棍影重重", "desc": "自动挥扫范围 +8%、弧度 +0.3", "icon": "影", "tone": "ffca57", "maxLevel": 3, "hero": "孙悟空"},
-	{"id": "w_pose", "name": "三棒重击", "desc": "每第三棒为重击：伤害 ×1.9、范围 ×1.35", "icon": "棒", "tone": "ffd45e", "maxLevel": 3, "hero": "孙悟空"},
-	{"id": "w_72", "name": "毫毛分身", "desc": "冲刺留下毫毛幻相，自动攻击附近妖怪", "icon": "变", "tone": "fff0a0", "maxLevel": 2, "hero": "孙悟空"},
-	{"id": "w_giant", "name": "法天象地", "desc": "法相伤害 +12%/层、身形更威", "icon": "天", "tone": "ffb84d", "maxLevel": 3, "hero": "孙悟空"},
-	{"id": "w_clone", "name": "毫毛感应", "desc": "幻相持续更久、攻击更强", "icon": "毫", "tone": "ffe08a", "maxLevel": 2, "hero": "孙悟空"},
+	{"id": "w_arc", "name": "棍影重重", "desc": "自动挥扫范围 +8%、弧度 +0.3", "icon": "影", "tone": "ffca57", "maxLevel": 3, "hero": "孙悟空", "hid": "wukong"},
+	{"id": "w_pose", "name": "三棒重击", "desc": "每第三棒为重击：伤害 ×1.9、范围 ×1.35", "icon": "棒", "tone": "ffd45e", "maxLevel": 3, "hero": "孙悟空", "hid": "wukong"},
+	{"id": "w_72", "name": "毫毛分身", "desc": "冲刺留下毫毛幻相，自动攻击附近妖怪", "icon": "变", "tone": "fff0a0", "maxLevel": 2, "hero": "孙悟空", "hid": "wukong"},
+	{"id": "w_giant", "name": "法天象地", "desc": "法相伤害 +12%/层、身形更威", "icon": "天", "tone": "ffb84d", "maxLevel": 3, "hero": "孙悟空", "hid": "wukong"},
+	{"id": "w_clone", "name": "毫毛感应", "desc": "幻相持续更久、攻击更强", "icon": "毫", "tone": "ffe08a", "maxLevel": 2, "hero": "孙悟空", "hid": "wukong"},
+	{"id": "t_nova", "name": "净化蔓延", "desc": "Q 净化环范围 +30、伤害 +8/层", "icon": "净", "tone": "fff3c0", "maxLevel": 3, "hero": "唐僧", "hid": "tang"},
+	{"id": "t_ring", "name": "九环余音", "desc": "Q 后追加一道外环冲击", "icon": "环", "tone": "ffd46b", "maxLevel": 2, "hero": "唐僧", "hid": "tang"},
+	{"id": "t_reflect", "name": "锦襕反噬", "desc": "护体期间反弹 14×层 伤害", "icon": "襕", "tone": "ffe9a8", "maxLevel": 3, "hero": "唐僧", "hid": "tang"},
 ]
 
 const CAPS := {
@@ -62,9 +65,9 @@ static func find(id: String) -> Dictionary:
 	return {}
 
 ## 结构保底抽取（web pickUpgrades 同构）：≥1 hero + ≥1 mutation，池尽按序降级
-static func roll(owned: Dictionary, n: int, rng: RandomNumberGenerator) -> Array:
+static func roll(owned: Dictionary, n: int, rng: RandomNumberGenerator, hero: String = "wukong") -> Array:
 	var generic := POOL.filter(func(u): return owned.get(u["id"], 0) < u["maxLevel"])
-	var hero_pool := HERO_POOL.filter(func(u): return owned.get(u["id"], 0) < u["maxLevel"])
+	var hero_pool := HERO_POOL.filter(func(u): return u["hid"] == hero and owned.get(u["id"], 0) < u["maxLevel"])
 	var buckets := {
 		"hero": _shuffled(hero_pool, rng),
 		"mutation": [], "other": [],
@@ -107,7 +110,7 @@ static func structure_check(rng: RandomNumberGenerator) -> Dictionary:
 	for trial in 200:
 		var owned := {}
 		for draw in 12:
-			var picks := roll(owned, 3, rng)
+			var picks := roll(owned, 3, rng, "wukong")
 			var cats := picks.map(cat_of)
 			var has_hero := cats.has("hero")
 			var has_mut := cats.has("mutation")
@@ -118,3 +121,12 @@ static func structure_check(rng: RandomNumberGenerator) -> Dictionary:
 			for u in picks:
 				owned[u["id"]] = owned.get(u["id"], 0) + 1
 	return {"trials": 200, "fails": fails.size(), "detail": "; ".join(fails.slice(0, 3))}
+
+## 英雄基础参数（移植自 web HERO 表）
+const HERO_STATS := {
+	"wukong": {"name": "孙悟空", "dmg": 34.0, "speed": 130.0, "auto_range": 95.0, "q": "乾坤一棒", "e": "定地重击"},
+	"tang": {"name": "唐三藏", "dmg": 26.0, "speed": 118.0, "auto_range": 100.0, "q": "净化梵环", "e": "锦襕袈裟"},
+}
+
+static func hero_stat(hero: String, key: String) -> float:
+	return float(HERO_STATS.get(hero, HERO_STATS["wukong"]).get(key, 0.0))

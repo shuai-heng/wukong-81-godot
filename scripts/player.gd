@@ -33,6 +33,9 @@ var e_count := 0
 var ult_count := 0
 var form_count := 0
 var upgrades := {}                 # id -> level
+var hero := "tang"                 # 出战英雄（tang / wukong）
+var switch_count := 0
+var shield_left := 0.0
 var auto_pilot := false
 var dash_cd_left := 0.0
 var dash_left := 0.0
@@ -63,7 +66,7 @@ func dmg_mul() -> float:
 	return m
 
 func base_dmg() -> float:
-	return 34.0 * dmg_mul()
+	return Cards.hero_stat(hero, "dmg") * dmg_mul()
 
 func cd_mul() -> float:
 	return maxf(0.60, 1.0 - 0.12 * lvl("cdr")) * (0.8 if in_form() else 1.0)
@@ -72,7 +75,7 @@ func atk_interval() -> float:
 	return ATK_INTERVAL_BASE * maxf(Cards.CAPS["atkCdMin"], 1.0 - 0.12 * lvl("atkSpeed"))
 
 func atk_range() -> float:
-	return ATK_RANGE_BASE * (1.0 + 0.16 * lvl("range")) * (1.0 + 0.08 * lvl("w_arc"))
+	return Cards.hero_stat(hero, "auto_range") * (1.0 + 0.16 * lvl("range")) * (1.0 + 0.08 * lvl("w_arc"))
 
 func atk_arc() -> float:
 	return deg_to_rad(65.0) + 0.3 * lvl("w_arc")
@@ -84,7 +87,7 @@ func dr() -> float:
 	return minf(Cards.CAPS["drMax"], 0.10 * lvl("dr"))
 
 func move_speed() -> float:
-	return SPEED_BASE * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
+	return Cards.hero_stat(hero, "speed") * (1.0 + 0.07 * lvl("moveSpeed")) * (1.06 if in_form() else 1.0)
 
 func dash_cd() -> float:
 	return DASH_CD_BASE * maxf(Cards.CAPS["dashCdMin"], 1.0 - 0.22 * lvl("dashCd"))
@@ -104,10 +107,19 @@ func ult_gain_mul() -> float:
 # ---- 生命周期 ----
 func _ready() -> void:
 	sprite = AnimatedSprite2D.new()
-	sprite.sprite_frames = SpriteLib.build_frames("wukong")
+	sprite.sprite_frames = SpriteLib.build_frames(hero)
 	sprite.animation = "idle"
 	sprite.play()
 	add_child(sprite)
+
+func set_hero(h: String) -> void:
+	if hero == h:
+		return
+	hero = h
+	switch_count += 1
+	sprite.sprite_frames = SpriteLib.build_frames(h)
+	sprite.play("idle")
+	main.toast("切换出战：" + Cards.HERO_STATS[h]["name"])
 
 func _physics_process(delta: float) -> void:
 	dash_cd_left = maxf(0.0, dash_cd_left - delta)
@@ -118,6 +130,11 @@ func _physics_process(delta: float) -> void:
 	e_cd_left = maxf(0.0, e_cd_left - delta)
 	ult_cd_left = maxf(0.0, ult_cd_left - delta)
 	ai_skill_cd = maxf(0.0, ai_skill_cd - delta)
+	shield_left = maxf(0.0, shield_left - delta)
+	if hero == "tang" and shield_left > 0.0 and lvl("t_reflect") > 0:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(global_position) < 90.0:
+				e.take_hit(14.0 * lvl("t_reflect") * get_physics_process_delta_time() * 3.0, Vector2.ZERO)
 	if lvl("regen") > 0 and hp < max_hp:
 		hp = minf(max_hp, hp + 0.6 * lvl("regen") * delta)
 	if in_form():
@@ -138,6 +155,8 @@ func _physics_process(delta: float) -> void:
 			_cast_e()
 		if Input.is_action_just_pressed("ult"):
 			_cast_ult()
+		if Input.is_action_just_pressed("swap"):
+			main.try_switch_hero()
 
 	if dash_left > 0.0:
 		dash_left -= delta
@@ -184,11 +203,15 @@ func _do_dash(dir: Vector2) -> void:
 	dash_cd_left = dash_cd()
 	dash_dir = dir if dir != Vector2.ZERO else Vector2.RIGHT
 	dash_from = global_position
-	main.spawn_phantom(global_position, sprite.flip_h)
+	if hero == "wukong":
+		main.spawn_phantom(global_position, sprite.flip_h)
 
 # ---- Q 乾坤一棒：周身环形横扫 ----
 func _cast_q() -> void:
 	if q_cd_left > 0.0:
+		return
+	if hero == "tang":
+		_cast_q_tang()
 		return
 	q_cd_left = Q_CD_BASE * cd_mul()
 	q_count += 1
@@ -205,6 +228,9 @@ func _cast_q() -> void:
 # ---- E 定地重击：落点 slamming ----
 func _cast_e() -> void:
 	if e_cd_left > 0.0:
+		return
+	if hero == "tang":
+		_cast_e_tang()
 		return
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
@@ -341,7 +367,8 @@ func take_damage(amount: float, knock: Vector2 = Vector2.ZERO, source: Node2D = 
 	if hurt_cd > 0.0 or dash_left > 0.0:
 		return
 	hurt_cd = 0.55
-	hp = maxf(0.0, hp - amount * (1.0 - dr()))
+	var red := dr() + (0.35 if shield_left > 0.0 else 0.0)
+	hp = maxf(0.0, hp - amount * (1.0 - minf(0.9, red)))
 	modulate = Color(1.0, 0.5, 0.5)
 	get_tree().create_timer(0.12).timeout.connect(func(): modulate = Color(1.0, 0.9, 0.68) if in_form() else Color.WHITE)
 	if source != null and source.has_method("take_hit") and lvl("thorns") > 0:
@@ -375,3 +402,34 @@ func apply_card(id: String) -> void:
 	if id == "hp":
 		max_hp += 28.0
 		hp = max_hp
+
+# ---- 唐僧：Q 净化梵环 / E 锦襕袈裟护体 ----
+func _cast_q_tang() -> void:
+	q_cd_left = Q_CD_BASE * cd_mul()
+	q_count += 1
+	atk_anim_left = 0.25
+	attacked.emit()
+	var r := 240.0 + 30.0 * lvl("t_nova")
+	var dmg := base_dmg() * (1.7 + 0.08 * lvl("t_nova") * 4.0)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var off: Vector2 = e.global_position - global_position
+		if off.length() <= r + e.hit_r:
+			_hit_enemy(e, dmg, off.normalized() * 140.0)
+	main.spawn_fx(global_position, r, Color("fff3c0"))
+	# 九环余音：Q 后追加一道外环
+	if lvl("t_ring") > 0:
+		var r2 := r * 1.45
+		var dmg2 := base_dmg() * 0.55
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var o2: Vector2 = e.global_position - global_position
+			if o2.length() <= r2 + e.hit_r:
+				_hit_enemy(e, dmg2, o2.normalized() * 90.0)
+		main.spawn_fx(global_position, r2, Color("ffd46b"))
+
+func _cast_e_tang() -> void:
+	e_cd_left = E_CD_BASE * cd_mul()
+	e_count += 1
+	attacked.emit()
+	shield_left = 2.8
+	main.spawn_fx(global_position, 120.0, Color("ffe9a8"))
+	main.toast("锦襕袈裟：2.8 秒护体（减伤 35%，反噬需卡牌）")

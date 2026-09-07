@@ -1,14 +1,17 @@
 {
   "allies": 1,
-  "atk_count": 21,
+  "atk_count": 28,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
-    "cdr": 2,
-    "comboForm": 2,
-    "dashDmg": 1,
-    "killForm": 2,
-    "ultGain": 1,
+    "cdr": 3,
+    "comboForm": 3,
+    "dashDmg": 3,
+    "formDuration": 2,
+    "killForm": 4,
+    "t_nova": 1,
+    "t_ring": 1,
+    "ultGain": 2,
     "w_72": 2,
     "w_arc": 3,
     "w_clone": 2,
@@ -18,8 +21,28 @@
   "deaths": 0,
   "draft_log": [
     [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
       "hero",
       "mutation",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "mobility"
     ],
     [
@@ -30,7 +53,22 @@
     [
       "hero",
       "mutation",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
     ],
     [
       "hero",
@@ -38,49 +76,30 @@
       "mobility"
     ],
     [
-      "hero",
       "mutation",
+      "element",
+      "survival"
+    ],
+    [
+      "mutation",
+      "element",
       "element"
     ],
     [
-      "hero",
       "mutation",
+      "generic",
       "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "survival",
-      "mutation"
     ]
   ],
-  "drafts_opened": 11,
+  "drafts_opened": 14,
   "e_count": 7,
   "elapsed_s": 30.0,
   "form_count": 3,
-  "kills": 822,
-  "level": 12,
+  "hero": "wukong",
+  "kills": 1195,
+  "level": 15,
   "pass": true,
-  "q_count": 11,
+  "q_count": 14,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -91,6 +110,11 @@
     "fails": 0,
     "trials": 200
   },
+  "switches": 1,
   "ult_count": 2,
+  "unlocked": [
+    "tang",
+    "wukong"
+  ],
   "wave": 73
 }
