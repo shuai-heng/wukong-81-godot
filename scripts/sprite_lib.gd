@@ -27,7 +27,37 @@ static func frame_tex(cell: Vector2i) -> AtlasTexture:
 	return at
 
 ## 构建 SpriteFrames：anims[name] = {"idle":[[..]..], ...}，fps 随帧数自适应
+## G11 正式 sprite 覆盖链：heroes/<kind>.png → enemies/<kind>.png → 图集回退
+const ART_HERO_DIR := "res://assets/art/heroes/"
+const ART_ENEMY_DIR := "res://assets/art/enemies/"
+static var _art_cache := {}
+
+static func _art_tex(path: String) -> Texture2D:
+	if _art_cache.has(path):
+		return _art_cache[path]
+	var t: Texture2D = null
+	if ResourceLoader.exists(path):
+		t = load(path)
+	_art_cache[path] = t
+	return t
+
+static func _frames_single(tex: Texture2D) -> SpriteFrames:
+	var sf := SpriteFrames.new()
+	sf.remove_animation("default")
+	for an in ["idle", "run", "atk", "hurt"]:
+		sf.add_animation(an)
+		sf.set_animation_speed(an, 6.0)
+		sf.set_animation_loop(an, an != "atk" and an != "hurt")
+		sf.add_frame(an, tex)
+	return sf
+
 static func build_frames(kind: String) -> SpriteFrames:
+	var art: Texture2D = _art_tex(ART_HERO_DIR + kind + ".png")
+	if art == null:
+		art = _art_tex(ART_ENEMY_DIR + kind + ".png")
+	if art != null:
+		print("[ART] override sprite: " + kind)
+		return _frames_single(art)
 	var m := manifest()
 	var anims: Dictionary = m.get("anims", {}).get(kind, {})
 	var sf := SpriteFrames.new()
