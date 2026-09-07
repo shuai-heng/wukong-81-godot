@@ -60,6 +60,7 @@ var trial := {}                 # 当前副本（空=主线）
 var trial_done := {}            # 完成标记
 var trial_time_left := 0.0
 var trial_menu_open := false
+var trial_queue: Array = []       # G10 收尾：五外传副本逐个验证队列（测试钩子注入）
 var trial_env := []             # 环境火域 {pos, r, until}
 var env_cd := 0.0
 var thunder_depth := 0
@@ -79,9 +80,14 @@ var deaths := 0
 var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
+	add_to_group("main_ctl")
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	rng.seed = 20260907
 	smoke = "--smoke" in OS.get_cmdline_user_args()
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--trial-queue="):
+			trial_queue = arg.trim_prefix("--trial-queue=").split(",")
+			print("[V1] trial queue set: " + str(trial_queue))
 	for i in 6:
 		var ap := AudioStreamPlayer.new()
 		add_child(ap)
@@ -274,6 +280,9 @@ func _trial_tick(delta: float) -> void:
 		_write_save()
 		print("[V1] trial save written: " + id)
 	queue_redraw()
+
+func set_trial_queue(ids: Array) -> void:
+	trial_queue = ids.duplicate()
 
 func start_trial(id: String) -> void:
 	if not victory:
@@ -478,8 +487,11 @@ func _boss_tick(delta: float) -> void:
 			boss.take_hit(9999.0, Vector2.ZERO)
 		if boss_tamed and player.switch_count < chapters_cleared:
 			try_switch_hero()
-		if victory and trial.is_empty() and trial_done.size() == 0:
-			start_trial("baguaFurnace")
+		if victory and trial.is_empty():
+			if trial_queue.size() > 0:
+				start_trial(trial_queue.pop_front())
+			elif trial_done.size() == 0:
+				start_trial("baguaFurnace")
 	if not boss_spawned and elapsed >= 8.0:
 		_spawn_boss()
 	if boss == null:
@@ -625,9 +637,11 @@ func _on_player_died() -> void:
 func _smoke_tick() -> void:
 	if smoke_done or elapsed < 72.0:
 		return
-	# G10 修复：victory 后自动驾驶开启八卦炉外传（60s 时长）——断言需等副本完成再评估
-	if victory and trial_done.is_empty() and elapsed < 150.0:
+	# G10 收尾：victory 后自动驾驶按队列逐个开启外传（各 60s）——等全部副本完成再评估
+	if victory and trial_done.size() < 5 and elapsed < 400.0:
 		return
+	if victory and trial_done.size() < 5:
+		print("[V1] trial verification incomplete at cap: " + str(trial_done.keys()))
 	print("[V1] smoke tick enter: elapsed=%.0f trial_done=%s" % [elapsed, str(trial_done.keys())])
 	smoke_done = true
 	var ok: bool = player.kills >= 5 and player.atk_count >= 10 and drafts_opened >= 2 \
