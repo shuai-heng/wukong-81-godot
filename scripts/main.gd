@@ -22,7 +22,12 @@ var wave := 0
 var elapsed := 0.0
 var orbs: Array = []          # {pos: Vector2}
 var phantoms: Array = []      # {node: Sprite2D, life: float, next: float}
-var fx_rings: Array = []      # {pos: Vector2, r: float, max: float, life: float, color: Color}
+var fx_rings: Array = []
+var floaters: Array = []      # 伤害数字
+var burst: Array = []         # 击杀爆点粒子
+var hitstop := 0.0            # 命中顿帧
+var shake := 0.0              # 震屏强度
+var hitstop_total := 0.0      # {pos: Vector2, r: float, max: float, life: float, color: Color}
 var boss: Node2D = null
 var boss_spawned := false
 var boss_tamed := false
@@ -127,6 +132,14 @@ func _build_draft() -> void:
 # ---------------- 主循环 ----------------
 func _process(delta: float) -> void:
 	elapsed += delta
+	# 命中顿帧：冻结战斗推进（保留 HUD/特效），对齐 web 版 hitStop 手感
+	if hitstop > 0.0:
+		hitstop -= delta
+		_shake_tick(delta)
+		_visual_tick(delta)
+		if camera:
+			camera.offset = _shake_offset()
+		return
 	_spawn_tick(delta)
 	_pickup_tick()
 	_phantom_tick(delta)
@@ -141,6 +154,10 @@ func _process(delta: float) -> void:
 		lbl_form.text = "法相 %d%% · 终结 %d%%" % [int(player.form_charge), int(player.ult)]
 		lbl_form.add_theme_color_override("font_color", Color(0.8, 0.78, 0.72))
 	_fx_tick(delta)
+	_visual_tick(delta)
+	_shake_tick(delta)
+	if camera:
+		camera.offset = _shake_offset()
 	_boss_tick(delta)
 	_update_boss_hud()
 	if smoke:
@@ -227,6 +244,44 @@ func _fx_tick(delta: float) -> void:
 			fx_rings.erase(f)
 	queue_redraw()
 
+
+# ---------------- 打击感（顿帧/震屏/飘字/爆点） ----------------
+func on_hit_feedback(pos: Vector2, dmg: float, heavy: bool) -> void:
+	if hitstop > 0.0 and not heavy:
+		return
+	hitstop = 0.052 if heavy else 0.028
+	hitstop_total += hitstop
+	shake = maxf(shake, 9.0 if heavy else 4.0)
+	if heavy or dmg >= 60.0 or true:
+		floaters.append({"pos": pos + Vector2(randf_range(-6, 6), -10), "text": str(int(dmg)), "life": 0.6, "crit": dmg >= 100.0})
+
+func on_kill_burst(pos: Vector2) -> void:
+	for i in 6:
+		burst.append({"pos": pos, "v": Vector2(cos(TAU * i / 6.0), sin(TAU * i / 6.0)) * randf_range(60, 140), "life": 0.35, "max": 0.35})
+	shake = maxf(shake, 5.0)
+
+func _shake_tick(delta: float) -> void:
+	shake = maxf(0.0, shake - 42.0 * delta)
+
+func _shake_offset() -> Vector2:
+	if shake <= 0.0:
+		return Vector2.ZERO
+	return Vector2(randf_range(-shake, shake), randf_range(-shake, shake))
+
+func _visual_tick(delta: float) -> void:
+	for f in floaters.duplicate():
+		f["life"] -= delta
+		f["pos"].y -= 26.0 * delta
+		if f["life"] <= 0.0:
+			floaters.erase(f)
+	for b in burst.duplicate():
+		b["life"] -= delta
+		b["pos"] += b["v"] * delta
+		b["v"] *= 0.90
+		if b["life"] <= 0.0:
+			burst.erase(b)
+	queue_redraw()
+
 func _draw() -> void:
 	for orb in orbs:
 		draw_rect(Rect2(orb["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(0.45, 0.9, 1.0))
@@ -234,9 +289,19 @@ func _draw() -> void:
 		var c: Color = f["color"]
 		c.a = clampf(f["life"] / 0.38, 0.0, 1.0) * 0.8
 		draw_arc(f["pos"], f["r"], 0, TAU, 40, c, 3.0)
+	for b in burst:
+		var a: float = clampf(b["life"] / float(b["max"]), 0.0, 1.0)
+		draw_rect(Rect2(b["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 0.85, 0.5, a))
+	var fnt := ThemeDB.fallback_font
+	for f in floaters:
+		var a2: float = clampf(f["life"] / 0.6, 0.0, 1.0)
+		var col := Color("ffe27a") if not f["crit"] else Color("ff9e7a")
+		col.a = a2
+		draw_string(fnt, f["pos"] - Vector2(-2, 0), f["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, col)
 
 func on_enemy_died(pos: Vector2) -> void:
 	player.on_kill_charge()
+	on_kill_burst(pos)
 	orbs.append({"pos": pos})
 	# 雷霆天罚：击杀雷击 80px 内敌人
 	if player.lvl("thunder") > 0:
@@ -379,7 +444,8 @@ func _smoke_tick() -> void:
 		and boss_spawned and boss_tamed \
 		and get_tree().get_nodes_in_group("allies").size() >= 1 \
 		and bool(save_check["ok"]) \
-		and unlocked.size() >= 2 and player.switch_count >= 1
+		and unlocked.size() >= 2 and player.switch_count >= 1 \
+		and hitstop_total > 0.3
 	_finish_smoke(ok)
 
 func _finish_smoke(passed: bool) -> void:
@@ -397,6 +463,7 @@ func _finish_smoke(passed: bool) -> void:
 		"boss_spawned": boss_spawned, "boss_tamed": boss_tamed,
 		"allies": get_tree().get_nodes_in_group("allies").size(), "save_check": save_check,
 		"hero": player.hero, "unlocked": unlocked, "switches": player.switch_count,
+		"hitstop_total_s": snappedf(hitstop_total, 0.2), "floaters_spawned": floaters.size(),
 		"level": player.level, "deaths": deaths, "wave": wave,
 		"drafts_opened": drafts_opened, "cards_owned": player.upgrades,
 		"draft_log": draft_log, "structure_check": structure_result,

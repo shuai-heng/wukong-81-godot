@@ -358,6 +358,7 @@ func _hit_enemy(e: Node2D, dmg: float, k: Vector2) -> void:
 	if main.rng.randf() < crit_chance():
 		final_dmg *= 2.0
 	e.take_hit(final_dmg, k)
+	main.on_hit_feedback(e.global_position, final_dmg, final_dmg >= 100.0)
 	if lvl("burn") > 0:
 		e.apply_burn(lvl("burn"), 3.0)
 	if lvl("frost") > 0:

@@ -1,21 +1,22 @@
 {
   "allies": 1,
-  "atk_count": 28,
+  "atk_count": 17,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
-    "cdr": 3,
-    "comboForm": 3,
+    "cdr": 1,
+    "comboForm": 4,
     "dashDmg": 3,
     "formDuration": 2,
     "killForm": 4,
-    "t_nova": 1,
-    "t_ring": 1,
-    "ultGain": 2,
+    "t_nova": 3,
+    "t_reflect": 2,
+    "t_ring": 2,
+    "ultGain": 3,
     "w_72": 2,
     "w_arc": 3,
     "w_clone": 2,
-    "w_giant": 3,
+    "w_giant": 1,
     "w_pose": 3
   },
   "deaths": 0,
@@ -26,39 +27,24 @@
       "generic"
     ],
     [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
       "hero",
       "mutation",
       "generic"
     ],
     [
-      "mutation",
       "hero",
-      "survival"
-    ],
-    [
       "mutation",
-      "hero",
       "mobility"
     ],
     [
       "mutation",
       "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
+      "element"
     ],
     [
       "mutation",
       "hero",
-      "survival"
+      "generic"
     ],
     [
       "mutation",
@@ -68,38 +54,30 @@
     [
       "hero",
       "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
       "mobility"
     ],
     [
       "mutation",
-      "element",
-      "survival"
-    ],
-    [
-      "mutation",
-      "element",
+      "hero",
       "element"
     ],
     [
       "mutation",
-      "generic",
+      "hero",
       "survival"
     ]
   ],
-  "drafts_opened": 14,
-  "e_count": 7,
+  "drafts_opened": 9,
+  "e_count": 6,
   "elapsed_s": 30.0,
+  "floaters_spawned": 0,
   "form_count": 3,
   "hero": "wukong",
-  "kills": 1195,
-  "level": 15,
+  "hitstop_total_s": 9.2,
+  "kills": 744,
+  "level": 10,
   "pass": true,
-  "q_count": 14,
+  "q_count": 11,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -116,5 +94,5 @@
     "tang",
     "wukong"
   ],
-  "wave": 73
+  "wave": 67
 }
