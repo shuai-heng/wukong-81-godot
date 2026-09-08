@@ -1,0 +1,185 @@
+{
+  "allies": 12,
+  "atk_count": 428,
+  "boss_spawned": true,
+  "boss_tamed": true,
+  "cards_owned": {
+    "cdr": 2,
+    "comboForm": 4,
+    "dashDmg": 3,
+    "formDuration": 3,
+    "killForm": 2,
+    "t_nova": 3,
+    "t_reflect": 3,
+    "t_ring": 2,
+    "ultGain": 3
+  },
+  "chapter": "tongtian",
+  "chapter_now": "tongtian",
+  "chapters_cleared": 12,
+  "deaths": 7,
+  "draft_log": [
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "element"
+    ],
+    [
+      "mutation",
+      "generic",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "survival"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "generic"
+    ],
+    [
+      "mutation",
+      "survival",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "mobility",
+      "survival"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
+    ],
+    [
+      "mutation",
+      "element",
+      "generic"
+    ],
+    [
+      "mutation",
+      "survival",
+      "survival"
+    ],
+    [
+      "mutation",
+      "generic",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "survival",
+      "generic"
+    ]
+  ],
+  "e_count": 91,
+  "elapsed_s": 400.0,
+  "floaters_spawned": 1,
+  "form_count": 27,
+  "g_count": 16,
+  "hero": "tang",
+  "hitstop_total_s": 14.0,
+  "kills": 31540,
+  "level": 26,
+  "pass": true,
+  "q_count": 170,
+  "save_check": {
+    "mismatch": [],
+    "ok": true
+  },
+  "screenshot": "unavailable(headless)",
+  "structure_check": {
+    "detail": "",
+    "fails": 0,
+    "trials": 200
+  },
+  "switches": 12,
+  "trial_done": {
+    "baguaFurnace": true
+  },
+  "ult_count": 25,
+  "unlocked": [
+    "tang",
+    "wukong",
+    "whiteDragon",
+    "bajie",
+    "shaWujing",
+    "nezha",
+    "erlang"
+  ],
+  "victory": true,
+  "wave": 1106
+}

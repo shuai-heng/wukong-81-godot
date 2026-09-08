@@ -1,6 +1,7 @@
 extends Node2D
 ## 大圣火线 Godot 版 · 主场景：世界/刷怪/三选一/经验珠/HUD/冒烟自检
 
+const PlayerScript := preload("res://scripts/player.gd")
 const EnemyScript := preload("res://scripts/enemy.gd")
 const BossScript := preload("res://scripts/boss.gd")
 const SfxLib := preload("res://scripts/sfx.gd")
@@ -138,8 +139,7 @@ func _build_world() -> void:
 	add_child(mount)
 
 func _build_player() -> void:
-	player = CharacterBody2D.new()
-	player.set_script(load("res://scripts/player.gd"))
+	player = PlayerScript.new()
 	player.position = Vector2(800, 640)
 	add_child(player)
 	player.main = self
@@ -662,12 +662,12 @@ func _smoke_tick() -> void:
 func _finish_smoke(passed: bool) -> void:
 	print("[V1] finish_smoke enter, passed=" + str(passed))
 	Engine.time_scale = 1.0
-	var shot := "saved"
-	var img := get_viewport().get_texture().get_image()
-	if img:
-		img.save_png("res://evidence/smoke.png")
-	else:
-		shot = "unavailable(headless)"
+	var shot := "unavailable(headless)"
+	if DisplayServer.get_name() != "headless":
+		var img := get_viewport().get_texture().get_image()
+		if img:
+			img.save_png("res://evidence/smoke.png")
+			shot = "saved"
 	var result := {
 		"pass": passed, "kills": player.kills, "atk_count": player.atk_count,
 		"q_count": player.q_count, "e_count": player.e_count, "g_count": player.g_count,
@@ -685,7 +685,11 @@ func _finish_smoke(passed: bool) -> void:
 	}
 	print("[V1] finish_smoke writing json")
 	var f := FileAccess.open("res://evidence/smoke-result.json", FileAccess.WRITE)
-	f.store_string(JSON.stringify(result, "  "))
-	f.close()
+	if f:
+		f.store_string(JSON.stringify(result, "  "))
+		f.close()
+	else:
+		# evidence/ 目录缺失时不得阻断退出——否则冒烟进程会以 6 倍速无限运行
+		print("[V1] WARN: cannot write smoke-result.json (res://evidence/ missing)")
 	print("SMOKE_RESULT ", JSON.stringify(result))
 	get_tree().quit(0 if passed else 1)

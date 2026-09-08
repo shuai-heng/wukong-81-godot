@@ -52,6 +52,7 @@ var q_cd_left := 0.0
 
 var g_count := 0
 var g_cd_left := 0.0
+var dragon_left := 0.0
 var e_cd_left := 0.0
 var ult_cd_left := 0.0
 var form_charge := 0.0             # 0-100 → 法相
@@ -132,6 +133,9 @@ func set_hero(h: String, silent := false) -> void:
 	if hero == h:
 		return
 	hero = h
+	dragon_left = 0.0
+	sprite.modulate = Color.WHITE
+	sprite.scale = Vector2(1.16, 1.16) if in_form() else Vector2.ONE
 	switch_count += 1
 	rage = 0.0
 	tone = HERO_TONE[h]
@@ -181,10 +185,13 @@ func _physics_process(delta: float) -> void:
 			main.try_switch_hero()
 
 	dragon_left = maxf(0.0, dragon_left - delta)
-	dragon_cd_left = maxf(0.0, dragon_cd_left - delta)
+	g_cd_left = maxf(0.0, g_cd_left - delta)
 	if dragon_left > 0.0:
 		sprite.modulate = Color(0.62, 0.88, 1.0)
 		sprite.scale = Vector2(1.22, 1.22)
+	else:
+		sprite.modulate = Color.WHITE
+		sprite.scale = Vector2(1.16, 1.16) if in_form() else Vector2.ONE
 	if dash_left > 0.0:
 		dash_left -= delta
 		velocity = dash_dir * DASH_SPEED
@@ -213,9 +220,7 @@ func _ai_drive(delta: float) -> Vector2:
 			_do_dash(dir)
 		if q_cd_left <= 0.0 and global_position.distance_to(target.global_position) < 195.0 * 0.9:
 			_cast_q()
-		if hero == "tang" and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
-		if hero == "whiteDragon" and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
-			_cast_g()
+		if hero in ["tang", "whiteDragon"] and g_cd_left <= 0.0 and ai_skill_cd <= 0.0:
 			_cast_g()
 		if e_cd_left <= 0.0 and ai_skill_cd <= 0.0:
 			var near := 0
@@ -477,13 +482,22 @@ func apply_card(id: String) -> void:
 # ---- 唐僧：Q 净化梵环 / E 锦襕袈裟护体 ----
 
 func _cast_g() -> void:
+	if g_cd_left > 0.0:
+		return
+	if hero == "whiteDragon":
+		if dragon_left > 0.0:
+			return
+		g_cd_left = 30.0
+		g_count += 1
+		dragon_left = 10.0
+		return
 	if hero != "tang":
 		return
 	g_cd_left = 25.0
 	g_count += 1
 	var dmg := 30.0 + 6.0 * lvl("t_nova")
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not e.dying:
+		if not e.is_queued_for_deletion() and e.hp > 0.0:
 			e.take_hit(dmg, (e.global_position - global_position).normalized() * 40.0)
 
 
