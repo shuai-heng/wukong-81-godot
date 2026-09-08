@@ -1,1 +1,7 @@
 .godot/
+userdata/
+evidence/*-save/
+evidence/verification-data/
+evidence/pixel-*.log
+evidence/leak-diagnostic.log
+tools/__pycache__/

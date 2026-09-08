@@ -1,0 +1,9 @@
+{
+  "frame_ms_p50": 12.176,
+  "frame_ms_p95": 14.582,
+  "frames": 1066,
+  "max_enemies": 70,
+  "process_ms_p95": 31.66,
+  "renderer": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "scope": "14 seconds real GPU rendering, 70-enemy replenished load, seven heroes, real sound and skill effects; synthetic invulnerability used only for stable load"
+}

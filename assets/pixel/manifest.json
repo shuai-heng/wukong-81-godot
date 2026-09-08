@@ -1,0 +1,50 @@
+{
+  "cell": 64,
+  "frames": 8,
+  "animations": [
+    "idle",
+    "run",
+    "atk",
+    "hurt",
+    "cast"
+  ],
+  "heroes": [
+    "tang",
+    "wukong",
+    "whiteDragon",
+    "bajie",
+    "shaWujing",
+    "nezha",
+    "erlang"
+  ],
+  "enemies": [
+    "wolf",
+    "bone",
+    "bat",
+    "snake",
+    "boar",
+    "mushroom",
+    "water",
+    "soldier",
+    "spider",
+    "fire",
+    "lion",
+    "ox",
+    "tiger",
+    "raven",
+    "monk",
+    "fox",
+    "rhino",
+    "deer",
+    "scorpion",
+    "rabbit",
+    "dragon",
+    "gold",
+    "silver",
+    "yellow",
+    "roc",
+    "centipede",
+    "rat",
+    "ape"
+  ]
+}

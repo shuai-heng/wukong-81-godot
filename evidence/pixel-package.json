@@ -1,0 +1,9 @@
+{
+  "audio_stream": true,
+  "keyboard_movement": true,
+  "keyboard_skill": true,
+  "new_game_button": true,
+  "pixel_frames": true,
+  "save_on_F": true,
+  "title": true
+}

@@ -1,0 +1,676 @@
+{
+  "checks": [
+    {
+      "detail": "",
+      "name": "fresh_tang_only",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_wuxing",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_eagle",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_gao",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_liusha",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_huangfeng",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_wuzhuang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_baigu",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_baoxiang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_pingding",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_wuji",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_huoyun",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_heishui",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_chesi",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_tongtian",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_jindou",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_nver",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_sixear",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_flaming",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_bibo",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_jingji",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_xiaoleiyin",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_qijue",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_zhuzi",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_pansi",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_shituo",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_biqiu",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_wudi",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_miefa",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_yinwu",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_fengxian",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_yuhua",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_jinping",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_tianzhu",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_tongtai",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_leiyin",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_content_return",
+      "pass": true
+    },
+    {
+      "detail": 81,
+      "name": "81_authored_event_sections",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_fangcun",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_dragonPalace",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_underworld",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_heaven",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_bagua",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_dragonStory",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_tianpeng",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_juanlian",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_nezhaStory",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_content_erlangStory",
+      "pass": true
+    },
+    {
+      "detail": [
+        "wukong",
+        "whiteDragon",
+        "bajie",
+        "shaWujing",
+        "nezha",
+        "erlang",
+        "tang"
+      ],
+      "name": "seven_heroes_reachable",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_tang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_wukong",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_whiteDragon",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_bajie",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_shaWujing",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_nezha",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "sprite_animations_erlang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "nonlethal_hit_requests_audio",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "hitstop_freezes_combat",
+      "pass": true
+    },
+    {
+      "detail": 1,
+      "name": "death_settles_once",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "form_exit_clears_ultimate",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "ultimate_casts",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "ultimate_ends_form",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_tang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_wukong",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_whiteDragon",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_bajie",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_shaWujing",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_nezha",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "locked_g_erlang",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_tang_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_tang_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_tang_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_tang_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_tang_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_tang_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_wukong_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_wukong_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_wukong_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_wukong_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_wukong_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_wukong_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_whiteDragon_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_whiteDragon_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_whiteDragon_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_whiteDragon_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_whiteDragon_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_whiteDragon_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_bajie_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_bajie_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_bajie_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_bajie_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_bajie_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_bajie_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_shaWujing_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_shaWujing_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_shaWujing_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_shaWujing_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_shaWujing_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_shaWujing_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_nezha_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_nezha_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_nezha_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_nezha_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_nezha_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_nezha_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_erlang_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_erlang_q",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_erlang_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_erlang_e",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cast_erlang_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "skill_cooldown_erlang_g",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "missing_ability_blocks_route",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "owned_ability_opens_route",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "correct_g_solves_world_rule",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "wind_reversal_rejects_wukong",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "wind_reversal_requires_bajie",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "ultimate_boss_damage_capped",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "boss_three_phases_before_tame",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "boss_does_not_auto_finish",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "chapter_completion_persists",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "story_grants_ownership",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "save_roundtrip",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "snapshot_v2_validation",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "return_has_escort",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "checkpoint_escort_distance",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "checkpoint_escort_health",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "checkpoint_escort_position",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "checkpoint_player_hp",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "checkpoint_replay_keeps_chapter",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "transformation_without_fire_eye",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "difficulty_applied_once",
+      "pass": true
+    },
+    {
+      "detail": "",
+      "name": "all_menus_construct",
+      "pass": true
+    }
+  ],
+  "count": 132,
+  "engine": "4.7.2-stable (official)",
+  "failed": 0,
+  "scope": "targeted state, combat and content regression; not a full playthrough"
+}
