@@ -578,11 +578,12 @@ func _write_save() -> void:
 	Save.write(data)
 
 func try_switch_hero() -> void:
-	if unlocked.size() < 2:
+	var order: Array = Cards.HERO_ORDER.filter(func(h): return unlocked.has(h))
+	if order.size() < 2:
 		toast("收服更多同伴后才能切换（当前仅唐僧）")
 		return
-	var next := "wukong" if player.hero == "tang" else "tang"
-	player.set_hero(next)
+	var i := order.find(player.hero)
+	player.set_hero(order[(i + 1) % order.size()])
 
 func _load_game() -> void:
 	var d := Save.load_save()

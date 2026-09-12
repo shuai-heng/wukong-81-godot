@@ -1,1 +1,155 @@
-ewogICJhbGxpZXMiOiAxMiwKICAiYXRrX2NvdW50IjogNDExLAogICJib3NzX3NwYXduZWQiOiB0cnVlLAogICJib3NzX3RhbWVkIjogdHJ1ZSwKICAiY2FyZHNfb3duZWQiOiB7CiAgICAiY2RyIjogMywKICAgICJjb21ib0Zvcm0iOiA0LAogICAgImRhc2hEbWciOiAzLAogICAgImZvcm1EdXJhdGlvbiI6IDEsCiAgICAia2lsbEZvcm0iOiAyLAogICAgInRfbm92YSI6IDMsCiAgICAidF9yZWZsZWN0IjogMywKICAgICJ0X3JpbmciOiAyLAogICAgInVsdEdhaW4iOiAzCiAgfSwKICAiY2hhcHRlciI6ICJ0b25ndGlhbiIsCiAgImNoYXB0ZXJfbm93IjogInRvbmd0aWFuIiwKICAiY2hhcHRlcnNfY2xlYXJlZCI6IDEyLAogICJkZWF0aHMiOiA1LAogICJkcmFmdF9sb2ciOiBbCiAgICBbCiAgICAgICJoZXJvIiwKICAgICAgIm11dGF0aW9uIiwKICAgICAgImdlbmVyaWMiCiAgICBdLAogICAgWwogICAgICAiaGVybyIsCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJzdXJ2aXZhbCIKICAgIF0sCiAgICBbCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJoZXJvIiwKICAgICAgIm1vYmlsaXR5IgogICAgXSwKICAgIFsKICAgICAgImhlcm8iLAogICAgICAibXV0YXRpb24iLAogICAgICAiZWxlbWVudCIKICAgIF0sCiAgICBbCiAgICAgICJoZXJvIiwKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgImhlcm8iLAogICAgICAiZ2VuZXJpYyIKICAgIF0sCiAgICBbCiAgICAgICJoZXJvIiwKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIgogICAgXSwKICAgIFsKICAgICAgImhlcm8iLAogICAgICAibXV0YXRpb24iLAogICAgICAic3Vydml2YWwiCiAgICBdLAogICAgWwogICAgICAiaGVybyIsCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJtb2JpbGl0eSIKICAgIF0sCiAgICBbCiAgICAgICJoZXJvIiwKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIiwKICAgICAgIm11dGF0aW9uIgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIiwKICAgICAgInN1cnZpdmFsIgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgImVsZW1lbnQiLAogICAgICAibW9iaWxpdHkiCiAgICBdLAogICAgWwogICAgICAibXV0YXRpb24iLAogICAgICAiZWxlbWVudCIsCiAgICAgICJtdXRhdGlvbiIKICAgIF0sCiAgICBbCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJnZW5lcmljIiwKICAgICAgImdlbmVyaWMiCiAgICBdLAogICAgWwogICAgICAibXV0YXRpb24iLAogICAgICAic3Vydml2YWwiLAogICAgICAibXV0YXRpb24iCiAgICBdLAogICAgWwogICAgICAibXV0YXRpb24iLAogICAgICAibW9iaWxpdHkiLAogICAgICAibXV0YXRpb24iCiAgICBdLAogICAgWwogICAgICAibXV0YXRpb24iLAogICAgICAic3Vydml2YWwiLAogICAgICAiZ2VuZXJpYyIKICAgIF0sCiAgICBbCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJzdXJ2aXZhbCIsCiAgICAgICJlbGVtZW50IgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgInN1cnZpdmFsIiwKICAgICAgInN1cnZpdmFsIgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgImdlbmVyaWMiLAogICAgICAic3Vydml2YWwiCiAgICBdLAogICAgWwogICAgICAibXV0YXRpb24iLAogICAgICAiZ2VuZXJpYyIsCiAgICAgICJtdXRhdGlvbiIKICAgIF0sCiAgICBbCiAgICAgICJtdXRhdGlvbiIsCiAgICAgICJtb2JpbGl0eSIsCiAgICAgICJlbGVtZW50IgogICAgXSwKICAgIFsKICAgICAgIm11dGF0aW9uIiwKICAgICAgImVsZW1lbnQiLAogICAgICAiZ2VuZXJpYyIKICAgIF0KICBdLAogICJlX2NvdW50IjogMTA1LAogICJlbGFwc2VkX3MiOiA0MDAuMCwKICAiZmxvYXRlcnNfc3Bhd25lZCI6IDAsCiAgImZvcm1fY291bnQiOiAzOSwKICAiZ19jb3VudCI6IDEsCiAgImhlcm8iOiAidGFuZyIsCiAgImhpdHN0b3BfdG90YWxfcyI6IDE0LjgsCiAgImtpbGxzIjogMjg2MzIsCiAgImxldmVsIjogMjUsCiAgInBhc3MiOiB0cnVlLAogICJxX2NvdW50IjogMTk3LAogICJzYXZlX2NoZWNrIjogewogICAgIm1pc21hdGNoIjogW10sCiAgICAib2siOiB0cnVlCiAgfSwKICAic2NyZWVuc2hvdCI6ICJ1bmF2YWlsYWJsZShoZWFkbGVzcykiLAogICJzdHJ1Y3R1cmVfY2hlY2siOiB7CiAgICAiZGV0YWlsIjogIiIsCiAgICAiZmFpbHMiOiAwLAogICAgInRyaWFscyI6IDIwMAogIH0sCiAgInN3aXRjaGVzIjogMTIsCiAgInRyaWFsX2RvbmUiOiB7CiAgICAiYmFndWFGdXJuYWNlIjogdHJ1ZQogIH0sCiAgInVsdF9jb3VudCI6IDI1LAogICJ1bmxvY2tlZCI6IFsKICAgICJ0YW5nIiwKICAgICJ3dWtvbmciLAogICAgIndoaXRlRHJhZ29uIiwKICAgICJiYWppZSIsCiAgICAic2hhV3VqaW5nIiwKICAgICJuZXpoYSIsCiAgICAiZXJsYW5nIgogIF0sCiAgInZpY3RvcnkiOiB0cnVlLAogICJ3YXZlIjogOTk0Cn0=
+{
+  "allies": 12,
+  "atk_count": 348,
+  "boss_spawned": true,
+  "boss_tamed": true,
+  "cards_owned": {
+    "cdr": 2,
+    "comboForm": 1,
+    "d_call": 3,
+    "d_glide": 3,
+    "d_thunder": 3,
+    "dashDmg": 2,
+    "killForm": 3,
+    "t_reflect": 1,
+    "ultGain": 1
+  },
+  "chapter": "tongtian",
+  "chapter_now": "tongtian",
+  "chapters_cleared": 12,
+  "deaths": 11,
+  "draft_log": [
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "mobility"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "element"
+    ],
+    [
+      "mutation",
+      "survival",
+      "mutation"
+    ],
+    [
+      "mutation",
+      "element",
+      "mutation"
+    ]
+  ],
+  "e_count": 97,
+  "elapsed_s": 400.0,
+  "floaters_spawned": 0,
+  "form_count": 38,
+  "g_count": 14,
+  "hero": "whiteDragon",
+  "hitstop_total_s": 13.8,
+  "kills": 7845,
+  "level": 20,
+  "pass": true,
+  "q_count": 168,
+  "save_check": {
+    "mismatch": [],
+    "ok": true
+  },
+  "screenshot": "unavailable(headless)",
+  "structure_check": {
+    "detail": "",
+    "fails": 0,
+    "trials": 200
+  },
+  "switches": 12,
+  "trial_done": {
+    "baguaFurnace": true
+  },
+  "ult_count": 25,
+  "unlocked": [
+    "tang",
+    "wukong",
+    "whiteDragon",
+    "bajie",
+    "shaWujing",
+    "nezha",
+    "erlang"
+  ],
+  "victory": true,
+  "wave": 480
+}

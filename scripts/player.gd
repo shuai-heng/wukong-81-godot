@@ -61,6 +61,16 @@ var ult := 0.0                     # 0-100（法相内可放终结）
 var ai_skill_cd := 0.0
 var sprite: AnimatedSprite2D
 var main: Node2D
+var art_scale := 1.0               # G15 新正式 PNG 归一缩放（只调 scale，不改源图）
+
+# ---- V6.1 关键帧演出状态（KeyframeLib 驱动，纯视觉层） ----
+var kf_sprite: Sprite2D
+var kf_slug := ""                  # 当前角色 V6.1 slug；""=回退旧图集渲染
+var kf_action := ""                # 当前动作；""=无（tick 会回落 idle/run/form 循环）
+var kf_t := 0.0
+var kf_one_shot := false
+var kf_speed := 1.0
+var kf_dragon := false             # 白龙化龙形态跟踪（切 prince/horse 两套姿势库）
 
 # ---- 卡牌数值（web BALANCE_CAPS 同源） ----
 func lvl(id: String) -> int:
@@ -121,10 +131,33 @@ func ult_gain_mul() -> float:
 func _ready() -> void:
 	sprite = AnimatedSprite2D.new()
 	tone = HERO_TONE[hero]
-	sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[hero])
+	var trial := SpriteLib.trial_tex("hero:" + hero)
+	if trial != null:
+		art_scale = SpriteLib.fit_scale(trial)
+		sprite.sprite_frames = SpriteLib._frames_single(trial)
+		sprite.scale = Vector2(art_scale, art_scale)
+	else:
+		sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[hero])
 	sprite.animation = "idle"
 	sprite.play()
 	add_child(sprite)
+	KeyframeLib.attach(self)
+	_kf_rebuild()
+
+func _kf_rebuild() -> void:
+	var slug := KeyframeLib.slug_for(hero, kf_dragon)
+	if slug == kf_slug:
+		return
+	kf_slug = slug
+	kf_action = ""
+	kf_t = 0.0
+	if kf_sprite != null:
+		kf_sprite.visible = false
+	# 新角色有关键帧库则整体换装（idle/run/技能全走 V6.1），否则保持旧图集
+	sprite.visible = slug == ""
+
+func _kf_act(action: String, one_shot := true) -> void:
+	KeyframeLib.play_action(self, action, one_shot)
 
 const HERO_FRAME := {"wukong": "wukong", "tang": "tang", "whiteDragon": "wolf", "bajie": "bone", "shaWujing": "tang", "nezha": "wolf", "erlang": "bone"}
 const HERO_TONE := {"wukong": Color.WHITE, "tang": Color.WHITE, "whiteDragon": Color(0.75, 0.94, 1.0), "bajie": Color(1.0, 0.82, 0.62), "shaWujing": Color(1.0, 0.93, 0.72), "nezha": Color(1.0, 0.62, 0.5), "erlang": Color(0.8, 0.85, 0.95)}
@@ -135,13 +168,20 @@ func set_hero(h: String, silent := false) -> void:
 	hero = h
 	dragon_left = 0.0
 	sprite.modulate = Color.WHITE
-	sprite.scale = Vector2(1.16, 1.16) if in_form() else Vector2.ONE
+	sprite.scale = (Vector2(1.16, 1.16) if in_form() else Vector2.ONE) * art_scale
 	switch_count += 1
 	rage = 0.0
 	tone = HERO_TONE[h]
-	sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[h])
+	var nt := SpriteLib.trial_tex("hero:" + h)
+	if nt != null:
+		art_scale = SpriteLib.fit_scale(nt)
+		sprite.sprite_frames = SpriteLib._frames_single(nt)
+	else:
+		art_scale = 1.0
+		sprite.sprite_frames = SpriteLib.build_frames(HERO_FRAME[h])
 	sprite.play("idle")
 	modulate = tone
+	_kf_rebuild()
 	main.toast("切换出战：" + Cards.HERO_STATS[h]["name"])
 
 func _physics_process(delta: float) -> void:
@@ -186,12 +226,16 @@ func _physics_process(delta: float) -> void:
 
 	dragon_left = maxf(0.0, dragon_left - delta)
 	g_cd_left = maxf(0.0, g_cd_left - delta)
+	var dragon_on := dragon_left > 0.0
+	if dragon_on != kf_dragon:
+		kf_dragon = dragon_on
+		_kf_rebuild()
 	if dragon_left > 0.0:
 		sprite.modulate = Color(0.62, 0.88, 1.0)
-		sprite.scale = Vector2(1.22, 1.22)
+		sprite.scale = Vector2(1.22, 1.22) * art_scale
 	else:
 		sprite.modulate = Color.WHITE
-		sprite.scale = Vector2(1.16, 1.16) if in_form() else Vector2.ONE
+		sprite.scale = (Vector2(1.16, 1.16) if in_form() else Vector2.ONE) * art_scale
 	if dash_left > 0.0:
 		dash_left -= delta
 		velocity = dash_dir * DASH_SPEED
@@ -245,6 +289,7 @@ func _do_dash(dir: Vector2) -> void:
 	dash_cd_left = dash_cd()
 	dash_dir = dir if dir != Vector2.ZERO else Vector2.RIGHT
 	dash_from = global_position
+	_kf_act("dodge")
 	if hero == "wukong":
 		main.spawn_phantom(global_position, sprite.flip_h)
 
@@ -274,6 +319,7 @@ func _cast_q() -> void:
 	q_count += 1
 	atk_anim_left = 0.25
 	attacked.emit()
+	_kf_act("core_1")
 	var r := 195.0 * (1.0 + 0.16 * lvl("range"))
 	var dmg := base_dmg() * 1.9
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -308,6 +354,7 @@ func _cast_e() -> void:
 	e_count += 1
 	atk_anim_left = 0.3
 	attacked.emit()
+	_kf_act("heavy")
 	var target := _nearest_enemy_any()
 	var center := global_position + Vector2(facing_x(), 0) * 190.0
 	if target:
@@ -344,13 +391,17 @@ func add_form_charge(n: float) -> void:
 func _enter_form() -> void:
 	form_left = FORM_TIME_BASE + 1.6 * lvl("formDuration")
 	form_count += 1
-	sprite.scale = Vector2(1.16, 1.16)
+	_kf_act("form", false)
+	sprite.scale = Vector2(1.16, 1.16) * art_scale
 	modulate = Color(1.0, 0.9, 0.68)
 	form_entered.emit()
 
 func _exit_form() -> void:
 	form_left = 0.0
-	sprite.scale = Vector2.ONE
+	kf_action = ""
+	if kf_sprite != null:
+		kf_sprite.visible = false
+	sprite.scale = Vector2.ONE * art_scale
 	modulate = Color.WHITE
 
 func _cast_ult() -> void:
@@ -359,6 +410,7 @@ func _cast_ult() -> void:
 	ult = 0.0
 	ult_cd_left = ULT_CD
 	ult_count += 1
+	_kf_act("finisher")
 	var target := _nearest_enemy_any()
 	var center := target.global_position if target else global_position
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -380,6 +432,9 @@ func _seg_dist(p: Vector2, a: Vector2, b: Vector2) -> float:
 func _update_anim(dir: Vector2) -> void:
 	if dir.x != 0.0:
 		sprite.flip_h = dir.x < 0.0
+	if kf_slug != "":
+		KeyframeLib.tick(self, get_physics_process_delta_time(), velocity.length() > 5.0)
+		return
 	if atk_anim_left > 0.0:
 		sprite.play("atk")
 	elif velocity.length() > 5.0:
@@ -411,6 +466,7 @@ func _auto_attack() -> void:
 	sprite.flip_h = to_t.x < 0.0
 	stance_step = (stance_step + 1) % 3
 	var heavy := lvl("w_pose") > 0 and stance_step == 0
+	_kf_act("heavy" if heavy else "atk_combo")
 	var dmg := base_dmg() * (1.9 if heavy else 1.0)
 	var rng := atk_range() * (1.35 if heavy else 1.0)
 	var arc := atk_arc() * (1.2 if heavy else 1.0)
@@ -495,6 +551,7 @@ func _cast_g() -> void:
 		return
 	g_cd_left = 25.0
 	g_count += 1
+	_kf_act("unlock_1")
 	var dmg := 30.0 + 6.0 * lvl("t_nova")
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not e.is_queued_for_deletion() and e.hp > 0.0:
@@ -506,6 +563,7 @@ func _cast_q_tang() -> void:
 	q_count += 1
 	atk_anim_left = 0.25
 	attacked.emit()
+	_kf_act("core_1")
 	var r := 240.0 + 30.0 * lvl("t_nova")
 	var dmg := base_dmg() * (1.7 + 0.08 * lvl("t_nova") * 4.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -527,6 +585,7 @@ func _cast_e_tang() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("core_2")
 	shield_left = 2.8
 	main.spawn_fx(global_position, 120.0, Color("ffe9a8"))
 	main.toast("锦襕袈裟：2.8 秒护体（减伤 35%，反噬需卡牌）")
@@ -537,6 +596,7 @@ func _cast_q_dragon() -> void:
 	q_count += 1
 	atk_anim_left = 0.24
 	attacked.emit()
+	_kf_act("core_1")
 	var dir := Vector2(facing_x(), 0)
 	var tgt := _nearest_enemy_any()
 	if tgt:
@@ -549,7 +609,8 @@ func _cast_q_dragon() -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if _seg_dist(e.global_position, global_position, to) < 40.0 + e.hit_r:
 			_hit_enemy(e, dmg, dir * 160.0)
-			e.apply_dragon(mark_ms)
+			if e.has_method("apply_dragon"):
+				e.apply_dragon(mark_ms)
 	main.spawn_fx(to, 70.0, Color("8deaff"))
 	global_position = to
 	main.spawn_phantom(global_position, sprite.flip_h)
@@ -558,11 +619,12 @@ func _cast_e_dragon() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("unlock_1")
 	var r := 340.0 + 60.0 * lvl("d_call")
 	var boom := 0
 	var tier3 := 0
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not e.has_dragon() or e.global_position.distance_to(global_position) > r:
+		if not e.has_method("has_dragon") or not e.has_dragon() or e.global_position.distance_to(global_position) > r:
 			continue
 		boom += 1
 		var stk: int = e.dragon_stack
@@ -587,6 +649,7 @@ func _cast_q_bajie() -> void:
 	q_count += 1
 	atk_anim_left = 0.28
 	attacked.emit()
+	_kf_act("heavy" if empowered else "core_1")
 	var r := 195.0 * (1.0 + 0.18 * lvl("b_quake"))
 	var dmg := base_dmg() * (1.7 * 1.15 * lvl("b_quake") if lvl("b_quake") > 0 else 1.7) * (1.6 if empowered else 1.0)
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -605,6 +668,7 @@ func _cast_e_bajie() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("core_2")
 	var r := 300.0 + 60.0 * lvl("b_admiral")
 	var pull := 190.0 + 40.0 * lvl("b_admiral")
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -621,6 +685,7 @@ func _cast_q_sha() -> void:
 	q_count += 1
 	atk_anim_left = 0.26
 	attacked.emit()
+	_kf_act("core_1")
 	var tgt := _nearest_enemy_any()
 	var to := global_position + Vector2(facing_x(), 0) * 300.0
 	if tgt:
@@ -641,6 +706,7 @@ func _cast_e_sha() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("core_2")
 	var r := 260.0
 	var slow_amt := 0.35 + 0.1 * lvl("s_erosion")
 	var dmg := 24.0 + 12.0 * lvl("s_erosion")
@@ -661,6 +727,7 @@ func _cast_q_nezha() -> void:
 	q_count += 1
 	atk_anim_left = 0.22
 	attacked.emit()
+	_kf_act("core_1")
 	var dir := Vector2(facing_x(), 0)
 	var tgt := _nearest_enemy_any()
 	if tgt:
@@ -679,6 +746,7 @@ func _cast_e_nezha() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("core_2")
 	wheels_left = 4.0 + 1.2 * lvl("n_wheels")
 	var r := 130.0
 	for e in get_tree().get_nodes_in_group("enemies"):
@@ -693,6 +761,7 @@ func _cast_q_erlang() -> void:
 	q_count += 1
 	atk_anim_left = 0.28
 	attacked.emit()
+	_kf_act("core_1")
 	var to_t := Vector2(facing_x(), 0)
 	var tgt := _nearest_enemy()
 	if tgt == null:
@@ -712,6 +781,7 @@ func _cast_e_erlang() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
+	_kf_act("core_2")
 	var tgt := _nearest_enemy_any()
 	var dir := Vector2(facing_x(), 0)
 	if tgt:
