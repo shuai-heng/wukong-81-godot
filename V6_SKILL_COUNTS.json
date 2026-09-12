@@ -1,0 +1,11 @@
+{
+ "characters": 8,
+ "real_pose_png": 288,
+ "poses_per_character": 36,
+ "program_keyframes": 1322,
+ "texture_keyframe_coverage": "1322/1322",
+ "distinct_poses_referenced": 288,
+ "used_existing_pose_art_only": true,
+ "v4_frame_mapping_used": false,
+ "v5_single_base_pose_disabled": true
+}

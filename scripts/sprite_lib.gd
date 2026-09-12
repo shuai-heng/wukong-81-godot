@@ -32,6 +32,30 @@ const ART_HERO_DIR := "res://assets/art/heroes/"
 const ART_ENEMY_DIR := "res://assets/art/enemies/"
 static var _art_cache := {}
 
+## G15 正式资产试接入：官方拆分 PNG（缺失时自动回退原渲染链，不删 fallback）
+const ART_TRIAL := {
+	"hero:tang": "res://art/characters/tang_sanzang.png",
+	"hero:wukong": "res://art/characters/sun_wukong.png",
+	"enemy:wolf": "res://art/enemies/wolf_demon.png",
+	"boss:黄风大圣": "res://art/bosses/yellow_wind_king.png",
+	"boss:黄风怪": "res://art/bosses/yellow_wind_king.png",
+	"boss:黄风岭": "res://art/bosses/yellow_wind_king.png",
+	"boss:牛魔王": "res://art/bosses/bull_demon_king.png",
+}
+
+static func trial_tex(key: String) -> Texture2D:
+	var p: String = ART_TRIAL.get(key, "")
+	if p == "":
+		return null
+	var t := _art_tex(p)
+	if t != null:
+		print("[ART] trial override: " + key + " -> " + p)
+	return t
+
+## 新 PNG 尺寸远大于 48px 图集格：只调 Sprite2D.scale 等比归一，不改源图
+static func fit_scale(tex: Texture2D, base := 1.0, cell := 48.0) -> float:
+	return base * cell / maxf(float(tex.get_width()), float(tex.get_height()))
+
 static func _art_tex(path: String) -> Texture2D:
 	if _art_cache.has(path):
 		return _art_cache[path]

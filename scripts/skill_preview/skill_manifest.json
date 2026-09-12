@@ -1,0 +1,1076 @@
+{
+ "characters": [
+  {
+   "slug": "sun_wukong",
+   "name_zh": "孙悟空",
+   "code": "C01",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "大圣待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sun_wukong/idle/孙悟空__大圣待机__关键帧01__总帧01.png",
+      "res://art/frames/sun_wukong/idle/孙悟空__大圣待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "行者步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sun_wukong/walk/孙悟空__行者步__关键帧01__总帧03.png",
+      "res://art/frames/sun_wukong/walk/孙悟空__行者步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "筋斗疾行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sun_wukong/run/孙悟空__筋斗疾行__关键帧01__总帧05.png",
+      "res://art/frames/sun_wukong/run/孙悟空__筋斗疾行__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "筋斗闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sun_wukong/dodge/孙悟空__筋斗闪__关键帧01__总帧07.png",
+      "res://art/frames/sun_wukong/dodge/孙悟空__筋斗闪__关键帧02__总帧08.png",
+      "res://art/frames/sun_wukong/dodge/孙悟空__筋斗闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "翻云跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sun_wukong/jump_land/孙悟空__翻云跃落__关键帧01__总帧10.png",
+      "res://art/frames/sun_wukong/jump_land/孙悟空__翻云跃落__关键帧02__总帧11.png",
+      "res://art/frames/sun_wukong/jump_land/孙悟空__翻云跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "如意棍轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/sun_wukong/atk_light/孙悟空__如意棍轻连击__关键帧01__总帧13.png",
+      "res://art/frames/sun_wukong/atk_light/孙悟空__如意棍轻连击__关键帧02__总帧14.png",
+      "res://art/frames/sun_wukong/atk_light/孙悟空__如意棍轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "大圣横扫重击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/sun_wukong/atk_heavy/孙悟空__大圣横扫重击__关键帧01__总帧16.png",
+      "res://art/frames/sun_wukong/atk_heavy/孙悟空__大圣横扫重击__关键帧02__总帧17.png",
+      "res://art/frames/sun_wukong/atk_heavy/孙悟空__大圣横扫重击__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "定海开山",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/sun_wukong/skill_core_1/孙悟空__定海开山__关键帧01__总帧19.png",
+      "res://art/frames/sun_wukong/skill_core_1/孙悟空__定海开山__关键帧02__总帧20.png",
+      "res://art/frames/sun_wukong/skill_core_1/孙悟空__定海开山__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "毫毛分身阵",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/sun_wukong/skill_core_2/孙悟空__毫毛分身阵__关键帧01__总帧22.png",
+      "res://art/frames/sun_wukong/skill_core_2/孙悟空__毫毛分身阵__关键帧02__总帧23.png",
+      "res://art/frames/sun_wukong/skill_core_2/孙悟空__毫毛分身阵__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "七十二变化",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/sun_wukong/skill_unlock_1/孙悟空__七十二变化__关键帧01__总帧25.png",
+      "res://art/frames/sun_wukong/skill_unlock_1/孙悟空__七十二变化__关键帧02__总帧26.png",
+      "res://art/frames/sun_wukong/skill_unlock_1/孙悟空__七十二变化__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "筋斗云冲阵",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/sun_wukong/skill_unlock_2/孙悟空__筋斗云冲阵__关键帧01__总帧28.png",
+      "res://art/frames/sun_wukong/skill_unlock_2/孙悟空__筋斗云冲阵__关键帧02__总帧29.png",
+      "res://art/frames/sun_wukong/skill_unlock_2/孙悟空__筋斗云冲阵__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "法天象地·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/sun_wukong/ultimate_charge/孙悟空__法天象地·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/sun_wukong/ultimate_charge/孙悟空__法天象地·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/sun_wukong/ultimate_charge/孙悟空__法天象地·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "齐天镇岳终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/sun_wukong/finisher/孙悟空__齐天镇岳终结__关键帧01__总帧34.png",
+      "res://art/frames/sun_wukong/finisher/孙悟空__齐天镇岳终结__关键帧02__总帧35.png",
+      "res://art/frames/sun_wukong/finisher/孙悟空__齐天镇岳终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "tang_sanzang",
+   "name_zh": "唐僧",
+   "code": "C02",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "禅定待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/tang_sanzang/idle/唐僧__禅定待机__关键帧01__总帧01.png",
+      "res://art/frames/tang_sanzang/idle/唐僧__禅定待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "行脚步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/tang_sanzang/walk/唐僧__行脚步__关键帧01__总帧03.png",
+      "res://art/frames/tang_sanzang/walk/唐僧__行脚步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "袈裟疾行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/tang_sanzang/run/唐僧__袈裟疾行__关键帧01__总帧05.png",
+      "res://art/frames/tang_sanzang/run/唐僧__袈裟疾行__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "袈裟回身闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/tang_sanzang/dodge/唐僧__袈裟回身闪__关键帧01__总帧07.png",
+      "res://art/frames/tang_sanzang/dodge/唐僧__袈裟回身闪__关键帧02__总帧08.png",
+      "res://art/frames/tang_sanzang/dodge/唐僧__袈裟回身闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "踏莲跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/tang_sanzang/jump_land/唐僧__踏莲跃落__关键帧01__总帧10.png",
+      "res://art/frames/tang_sanzang/jump_land/唐僧__踏莲跃落__关键帧02__总帧11.png",
+      "res://art/frames/tang_sanzang/jump_land/唐僧__踏莲跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "九环杖轻击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/tang_sanzang/atk_light/唐僧__九环杖轻击__关键帧01__总帧13.png",
+      "res://art/frames/tang_sanzang/atk_light/唐僧__九环杖轻击__关键帧02__总帧14.png",
+      "res://art/frames/tang_sanzang/atk_light/唐僧__九环杖轻击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "佛杖净击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/tang_sanzang/atk_heavy/唐僧__佛杖净击__关键帧01__总帧16.png",
+      "res://art/frames/tang_sanzang/atk_heavy/唐僧__佛杖净击__关键帧02__总帧17.png",
+      "res://art/frames/tang_sanzang/atk_heavy/唐僧__佛杖净击__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "心经法障",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/tang_sanzang/skill_core_1/唐僧__心经法障__关键帧01__总帧19.png",
+      "res://art/frames/tang_sanzang/skill_core_1/唐僧__心经法障__关键帧02__总帧20.png",
+      "res://art/frames/tang_sanzang/skill_core_1/唐僧__心经法障__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "袈裟圣域",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/tang_sanzang/skill_core_2/唐僧__袈裟圣域__关键帧01__总帧22.png",
+      "res://art/frames/tang_sanzang/skill_core_2/唐僧__袈裟圣域__关键帧02__总帧23.png",
+      "res://art/frames/tang_sanzang/skill_core_2/唐僧__袈裟圣域__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "金蝉佛印",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/tang_sanzang/skill_unlock_1/唐僧__金蝉佛印__关键帧01__总帧25.png",
+      "res://art/frames/tang_sanzang/skill_unlock_1/唐僧__金蝉佛印__关键帧02__总帧26.png",
+      "res://art/frames/tang_sanzang/skill_unlock_1/唐僧__金蝉佛印__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "万佛护身",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/tang_sanzang/skill_unlock_2/唐僧__万佛护身__关键帧01__总帧28.png",
+      "res://art/frames/tang_sanzang/skill_unlock_2/唐僧__万佛护身__关键帧02__总帧29.png",
+      "res://art/frames/tang_sanzang/skill_unlock_2/唐僧__万佛护身__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "佛相显化·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/tang_sanzang/ultimate_charge/唐僧__佛相显化·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/tang_sanzang/ultimate_charge/唐僧__佛相显化·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/tang_sanzang/ultimate_charge/唐僧__佛相显化·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "大乘普渡终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/tang_sanzang/finisher/唐僧__大乘普渡终结__关键帧01__总帧34.png",
+      "res://art/frames/tang_sanzang/finisher/唐僧__大乘普渡终结__关键帧02__总帧35.png",
+      "res://art/frames/tang_sanzang/finisher/唐僧__大乘普渡终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "white_dragon_prince",
+   "name_zh": "小白龙人形",
+   "code": "C03",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "龙裔待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_prince/idle/小白龙人形__龙裔待机__关键帧01__总帧01.png",
+      "res://art/frames/white_dragon_prince/idle/小白龙人形__龙裔待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "龙行步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_prince/walk/小白龙人形__龙行步__关键帧01__总帧03.png",
+      "res://art/frames/white_dragon_prince/walk/小白龙人形__龙行步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "破浪疾行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_prince/run/小白龙人形__破浪疾行__关键帧01__总帧05.png",
+      "res://art/frames/white_dragon_prince/run/小白龙人形__破浪疾行__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "游龙闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_prince/dodge/小白龙人形__游龙闪__关键帧01__总帧07.png",
+      "res://art/frames/white_dragon_prince/dodge/小白龙人形__游龙闪__关键帧02__总帧08.png",
+      "res://art/frames/white_dragon_prince/dodge/小白龙人形__游龙闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "凌波跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_prince/jump_land/小白龙人形__凌波跃落__关键帧01__总帧10.png",
+      "res://art/frames/white_dragon_prince/jump_land/小白龙人形__凌波跃落__关键帧02__总帧11.png",
+      "res://art/frames/white_dragon_prince/jump_land/小白龙人形__凌波跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "白龙枪轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/white_dragon_prince/atk_light/小白龙人形__白龙枪轻连击__关键帧01__总帧13.png",
+      "res://art/frames/white_dragon_prince/atk_light/小白龙人形__白龙枪轻连击__关键帧02__总帧14.png",
+      "res://art/frames/white_dragon_prince/atk_light/小白龙人形__白龙枪轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "寒潮穿刺",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/white_dragon_prince/atk_heavy/小白龙人形__寒潮穿刺__关键帧01__总帧16.png",
+      "res://art/frames/white_dragon_prince/atk_heavy/小白龙人形__寒潮穿刺__关键帧02__总帧17.png",
+      "res://art/frames/white_dragon_prince/atk_heavy/小白龙人形__寒潮穿刺__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "水龙卷枪",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/white_dragon_prince/skill_core_1/小白龙人形__水龙卷枪__关键帧01__总帧19.png",
+      "res://art/frames/white_dragon_prince/skill_core_1/小白龙人形__水龙卷枪__关键帧02__总帧20.png",
+      "res://art/frames/white_dragon_prince/skill_core_1/小白龙人形__水龙卷枪__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "逆鳞旋斩",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/white_dragon_prince/skill_core_2/小白龙人形__逆鳞旋斩__关键帧01__总帧22.png",
+      "res://art/frames/white_dragon_prince/skill_core_2/小白龙人形__逆鳞旋斩__关键帧02__总帧23.png",
+      "res://art/frames/white_dragon_prince/skill_core_2/小白龙人形__逆鳞旋斩__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "苍龙护体",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/white_dragon_prince/skill_unlock_1/小白龙人形__苍龙护体__关键帧01__总帧25.png",
+      "res://art/frames/white_dragon_prince/skill_unlock_1/小白龙人形__苍龙护体__关键帧02__总帧26.png",
+      "res://art/frames/white_dragon_prince/skill_unlock_1/小白龙人形__苍龙护体__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "沧海龙啸",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/white_dragon_prince/skill_unlock_2/小白龙人形__沧海龙啸__关键帧01__总帧28.png",
+      "res://art/frames/white_dragon_prince/skill_unlock_2/小白龙人形__沧海龙啸__关键帧02__总帧29.png",
+      "res://art/frames/white_dragon_prince/skill_unlock_2/小白龙人形__沧海龙啸__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "真龙显圣·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/white_dragon_prince/ultimate_charge/小白龙人形__真龙显圣·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/white_dragon_prince/ultimate_charge/小白龙人形__真龙显圣·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/white_dragon_prince/ultimate_charge/小白龙人形__真龙显圣·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "冰海坠星枪终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/white_dragon_prince/finisher/小白龙人形__冰海坠星枪终结__关键帧01__总帧34.png",
+      "res://art/frames/white_dragon_prince/finisher/小白龙人形__冰海坠星枪终结__关键帧02__总帧35.png",
+      "res://art/frames/white_dragon_prince/finisher/小白龙人形__冰海坠星枪终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "white_dragon_horse",
+   "name_zh": "白龙马",
+   "code": "C04",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "龙马驻足",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_horse/idle/白龙马__龙马驻足__关键帧01__总帧01.png",
+      "res://art/frames/white_dragon_horse/idle/白龙马__龙马驻足__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "踏云慢行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_horse/walk/白龙马__踏云慢行__关键帧01__总帧03.png",
+      "res://art/frames/white_dragon_horse/walk/白龙马__踏云慢行__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "御风奔腾",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_horse/run/白龙马__御风奔腾__关键帧01__总帧05.png",
+      "res://art/frames/white_dragon_horse/run/白龙马__御风奔腾__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "踏浪回避",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_horse/dodge/白龙马__踏浪回避__关键帧01__总帧07.png",
+      "res://art/frames/white_dragon_horse/dodge/白龙马__踏浪回避__关键帧02__总帧08.png",
+      "res://art/frames/white_dragon_horse/dodge/白龙马__踏浪回避__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "飞涧跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/white_dragon_horse/jump_land/白龙马__飞涧跃落__关键帧01__总帧10.png",
+      "res://art/frames/white_dragon_horse/jump_land/白龙马__飞涧跃落__关键帧02__总帧11.png",
+      "res://art/frames/white_dragon_horse/jump_land/白龙马__飞涧跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "龙马角击连段",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/white_dragon_horse/atk_light/白龙马__龙马角击连段__关键帧01__总帧13.png",
+      "res://art/frames/white_dragon_horse/atk_light/白龙马__龙马角击连段__关键帧02__总帧14.png",
+      "res://art/frames/white_dragon_horse/atk_light/白龙马__龙马角击连段__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "前蹄裂浪重踏",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/white_dragon_horse/atk_heavy/白龙马__前蹄裂浪重踏__关键帧01__总帧16.png",
+      "res://art/frames/white_dragon_horse/atk_heavy/白龙马__前蹄裂浪重踏__关键帧02__总帧17.png",
+      "res://art/frames/white_dragon_horse/atk_heavy/白龙马__前蹄裂浪重踏__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "云潮冲阵",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/white_dragon_horse/skill_core_1/白龙马__云潮冲阵__关键帧01__总帧19.png",
+      "res://art/frames/white_dragon_horse/skill_core_1/白龙马__云潮冲阵__关键帧02__总帧20.png",
+      "res://art/frames/white_dragon_horse/skill_core_1/白龙马__云潮冲阵__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "水环护体",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/white_dragon_horse/skill_core_2/白龙马__水环护体__关键帧01__总帧22.png",
+      "res://art/frames/white_dragon_horse/skill_core_2/白龙马__水环护体__关键帧02__总帧23.png",
+      "res://art/frames/white_dragon_horse/skill_core_2/白龙马__水环护体__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "龙魂随行",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/white_dragon_horse/skill_unlock_1/白龙马__龙魂随行__关键帧01__总帧25.png",
+      "res://art/frames/white_dragon_horse/skill_unlock_1/白龙马__龙魂随行__关键帧02__总帧26.png",
+      "res://art/frames/white_dragon_horse/skill_unlock_1/白龙马__龙魂随行__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "海啸龙奔",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/white_dragon_horse/skill_unlock_2/白龙马__海啸龙奔__关键帧01__总帧28.png",
+      "res://art/frames/white_dragon_horse/skill_unlock_2/白龙马__海啸龙奔__关键帧02__总帧29.png",
+      "res://art/frames/white_dragon_horse/skill_unlock_2/白龙马__海啸龙奔__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "龙马法相·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/white_dragon_horse/ultimate_charge/白龙马__龙马法相·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/white_dragon_horse/ultimate_charge/白龙马__龙马法相·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/white_dragon_horse/ultimate_charge/白龙马__龙马法相·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "天河坠潮终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/white_dragon_horse/finisher/白龙马__天河坠潮终结__关键帧01__总帧34.png",
+      "res://art/frames/white_dragon_horse/finisher/白龙马__天河坠潮终结__关键帧02__总帧35.png",
+      "res://art/frames/white_dragon_horse/finisher/白龙马__天河坠潮终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "zhu_bajie",
+   "name_zh": "猪八戒",
+   "code": "C05",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "天蓬待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/zhu_bajie/idle/猪八戒__天蓬待机__关键帧01__总帧01.png",
+      "res://art/frames/zhu_bajie/idle/猪八戒__天蓬待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "钉耙步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/zhu_bajie/walk/猪八戒__钉耙步__关键帧01__总帧03.png",
+      "res://art/frames/zhu_bajie/walk/猪八戒__钉耙步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "拱地疾冲",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/zhu_bajie/run/猪八戒__拱地疾冲__关键帧01__总帧05.png",
+      "res://art/frames/zhu_bajie/run/猪八戒__拱地疾冲__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "翻肚闪滚",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/zhu_bajie/dodge/猪八戒__翻肚闪滚__关键帧01__总帧07.png",
+      "res://art/frames/zhu_bajie/dodge/猪八戒__翻肚闪滚__关键帧02__总帧08.png",
+      "res://art/frames/zhu_bajie/dodge/猪八戒__翻肚闪滚__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "腾身坠地",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/zhu_bajie/jump_land/猪八戒__腾身坠地__关键帧01__总帧10.png",
+      "res://art/frames/zhu_bajie/jump_land/猪八戒__腾身坠地__关键帧02__总帧11.png",
+      "res://art/frames/zhu_bajie/jump_land/猪八戒__腾身坠地__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "九齿钉耙轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/zhu_bajie/atk_light/猪八戒__九齿钉耙轻连击__关键帧01__总帧13.png",
+      "res://art/frames/zhu_bajie/atk_light/猪八戒__九齿钉耙轻连击__关键帧02__总帧14.png",
+      "res://art/frames/zhu_bajie/atk_light/猪八戒__九齿钉耙轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "开山砸耙",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/zhu_bajie/atk_heavy/猪八戒__开山砸耙__关键帧01__总帧16.png",
+      "res://art/frames/zhu_bajie/atk_heavy/猪八戒__开山砸耙__关键帧02__总帧17.png",
+      "res://art/frames/zhu_bajie/atk_heavy/猪八戒__开山砸耙__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "卷土翻沙",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/zhu_bajie/skill_core_1/猪八戒__卷土翻沙__关键帧01__总帧19.png",
+      "res://art/frames/zhu_bajie/skill_core_1/猪八戒__卷土翻沙__关键帧02__总帧20.png",
+      "res://art/frames/zhu_bajie/skill_core_1/猪八戒__卷土翻沙__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "天蓬震地",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/zhu_bajie/skill_core_2/猪八戒__天蓬震地__关键帧01__总帧22.png",
+      "res://art/frames/zhu_bajie/skill_core_2/猪八戒__天蓬震地__关键帧02__总帧23.png",
+      "res://art/frames/zhu_bajie/skill_core_2/猪八戒__天蓬震地__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "野猪法相",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/zhu_bajie/skill_unlock_1/猪八戒__野猪法相__关键帧01__总帧25.png",
+      "res://art/frames/zhu_bajie/skill_unlock_1/猪八戒__野猪法相__关键帧02__总帧26.png",
+      "res://art/frames/zhu_bajie/skill_unlock_1/猪八戒__野猪法相__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "天蓬云突",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/zhu_bajie/skill_unlock_2/猪八戒__天蓬云突__关键帧01__总帧28.png",
+      "res://art/frames/zhu_bajie/skill_unlock_2/猪八戒__天蓬云突__关键帧02__总帧29.png",
+      "res://art/frames/zhu_bajie/skill_unlock_2/猪八戒__天蓬云突__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "天蓬真身·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/zhu_bajie/ultimate_charge/猪八戒__天蓬真身·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/zhu_bajie/ultimate_charge/猪八戒__天蓬真身·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/zhu_bajie/ultimate_charge/猪八戒__天蓬真身·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "坠岳轰地终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/zhu_bajie/finisher/猪八戒__坠岳轰地终结__关键帧01__总帧34.png",
+      "res://art/frames/zhu_bajie/finisher/猪八戒__坠岳轰地终结__关键帧02__总帧35.png",
+      "res://art/frames/zhu_bajie/finisher/猪八戒__坠岳轰地终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "sha_wujing",
+   "name_zh": "沙悟净",
+   "code": "C06",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "流沙待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sha_wujing/idle/沙悟净__流沙待机__关键帧01__总帧01.png",
+      "res://art/frames/sha_wujing/idle/沙悟净__流沙待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "河妖步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sha_wujing/walk/沙悟净__河妖步__关键帧01__总帧03.png",
+      "res://art/frames/sha_wujing/walk/沙悟净__河妖步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "逐浪疾行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sha_wujing/run/沙悟净__逐浪疾行__关键帧01__总帧05.png",
+      "res://art/frames/sha_wujing/run/沙悟净__逐浪疾行__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "流沙遁闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sha_wujing/dodge/沙悟净__流沙遁闪__关键帧01__总帧07.png",
+      "res://art/frames/sha_wujing/dodge/沙悟净__流沙遁闪__关键帧02__总帧08.png",
+      "res://art/frames/sha_wujing/dodge/沙悟净__流沙遁闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "踏浪跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/sha_wujing/jump_land/沙悟净__踏浪跃落__关键帧01__总帧10.png",
+      "res://art/frames/sha_wujing/jump_land/沙悟净__踏浪跃落__关键帧02__总帧11.png",
+      "res://art/frames/sha_wujing/jump_land/沙悟净__踏浪跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "月牙铲轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/sha_wujing/atk_light/沙悟净__月牙铲轻连击__关键帧01__总帧13.png",
+      "res://art/frames/sha_wujing/atk_light/沙悟净__月牙铲轻连击__关键帧02__总帧14.png",
+      "res://art/frames/sha_wujing/atk_light/沙悟净__月牙铲轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "怒涛横斩",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/sha_wujing/atk_heavy/沙悟净__怒涛横斩__关键帧01__总帧16.png",
+      "res://art/frames/sha_wujing/atk_heavy/沙悟净__怒涛横斩__关键帧02__总帧17.png",
+      "res://art/frames/sha_wujing/atk_heavy/沙悟净__怒涛横斩__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "漩潮护体",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/sha_wujing/skill_core_1/沙悟净__漩潮护体__关键帧01__总帧19.png",
+      "res://art/frames/sha_wujing/skill_core_1/沙悟净__漩潮护体__关键帧02__总帧20.png",
+      "res://art/frames/sha_wujing/skill_core_1/沙悟净__漩潮护体__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "九骷锁魂",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/sha_wujing/skill_core_2/沙悟净__九骷锁魂__关键帧01__总帧22.png",
+      "res://art/frames/sha_wujing/skill_core_2/沙悟净__九骷锁魂__关键帧02__总帧23.png",
+      "res://art/frames/sha_wujing/skill_core_2/沙悟净__九骷锁魂__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "幽河冥潮",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/sha_wujing/skill_unlock_1/沙悟净__幽河冥潮__关键帧01__总帧25.png",
+      "res://art/frames/sha_wujing/skill_unlock_1/沙悟净__幽河冥潮__关键帧02__总帧26.png",
+      "res://art/frames/sha_wujing/skill_unlock_1/沙悟净__幽河冥潮__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "河伯法相",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/sha_wujing/skill_unlock_2/沙悟净__河伯法相__关键帧01__总帧28.png",
+      "res://art/frames/sha_wujing/skill_unlock_2/沙悟净__河伯法相__关键帧02__总帧29.png",
+      "res://art/frames/sha_wujing/skill_unlock_2/沙悟净__河伯法相__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "流沙真身·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/sha_wujing/ultimate_charge/沙悟净__流沙真身·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/sha_wujing/ultimate_charge/沙悟净__流沙真身·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/sha_wujing/ultimate_charge/沙悟净__流沙真身·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "黄河覆地终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/sha_wujing/finisher/沙悟净__黄河覆地终结__关键帧01__总帧34.png",
+      "res://art/frames/sha_wujing/finisher/沙悟净__黄河覆地终结__关键帧02__总帧35.png",
+      "res://art/frames/sha_wujing/finisher/沙悟净__黄河覆地终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "nezha",
+   "name_zh": "哪吒",
+   "code": "C07",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "风火待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/nezha/idle/哪吒__风火待机__关键帧01__总帧01.png",
+      "res://art/frames/nezha/idle/哪吒__风火待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "轮步行",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/nezha/walk/哪吒__轮步行__关键帧01__总帧03.png",
+      "res://art/frames/nezha/walk/哪吒__轮步行__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "风火疾驰",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/nezha/run/哪吒__风火疾驰__关键帧01__总帧05.png",
+      "res://art/frames/nezha/run/哪吒__风火疾驰__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "风火轮闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/nezha/dodge/哪吒__风火轮闪__关键帧01__总帧07.png",
+      "res://art/frames/nezha/dodge/哪吒__风火轮闪__关键帧02__总帧08.png",
+      "res://art/frames/nezha/dodge/哪吒__风火轮闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "纵火跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/nezha/jump_land/哪吒__纵火跃落__关键帧01__总帧10.png",
+      "res://art/frames/nezha/jump_land/哪吒__纵火跃落__关键帧02__总帧11.png",
+      "res://art/frames/nezha/jump_land/哪吒__纵火跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "火尖枪轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/nezha/atk_light/哪吒__火尖枪轻连击__关键帧01__总帧13.png",
+      "res://art/frames/nezha/atk_light/哪吒__火尖枪轻连击__关键帧02__总帧14.png",
+      "res://art/frames/nezha/atk_light/哪吒__火尖枪轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "裂焰枪轮斩",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/nezha/atk_heavy/哪吒__裂焰枪轮斩__关键帧01__总帧16.png",
+      "res://art/frames/nezha/atk_heavy/哪吒__裂焰枪轮斩__关键帧02__总帧17.png",
+      "res://art/frames/nezha/atk_heavy/哪吒__裂焰枪轮斩__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "乾坤圈飞击",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/nezha/skill_core_1/哪吒__乾坤圈飞击__关键帧01__总帧19.png",
+      "res://art/frames/nezha/skill_core_1/哪吒__乾坤圈飞击__关键帧02__总帧20.png",
+      "res://art/frames/nezha/skill_core_1/哪吒__乾坤圈飞击__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "混天绫缚阵",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/nezha/skill_core_2/哪吒__混天绫缚阵__关键帧01__总帧22.png",
+      "res://art/frames/nezha/skill_core_2/哪吒__混天绫缚阵__关键帧02__总帧23.png",
+      "res://art/frames/nezha/skill_core_2/哪吒__混天绫缚阵__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "莲华护体",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/nezha/skill_unlock_1/哪吒__莲华护体__关键帧01__总帧25.png",
+      "res://art/frames/nezha/skill_unlock_1/哪吒__莲华护体__关键帧02__总帧26.png",
+      "res://art/frames/nezha/skill_unlock_1/哪吒__莲华护体__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "三头六臂",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/nezha/skill_unlock_2/哪吒__三头六臂__关键帧01__总帧28.png",
+      "res://art/frames/nezha/skill_unlock_2/哪吒__三头六臂__关键帧02__总帧29.png",
+      "res://art/frames/nezha/skill_unlock_2/哪吒__三头六臂__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "莲火法相·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/nezha/ultimate_charge/哪吒__莲火法相·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/nezha/ultimate_charge/哪吒__莲火法相·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/nezha/ultimate_charge/哪吒__莲火法相·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "焚天坠枪终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/nezha/finisher/哪吒__焚天坠枪终结__关键帧01__总帧34.png",
+      "res://art/frames/nezha/finisher/哪吒__焚天坠枪终结__关键帧02__总帧35.png",
+      "res://art/frames/nezha/finisher/哪吒__焚天坠枪终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "erlang_shen",
+   "name_zh": "杨戬",
+   "code": "C08",
+   "anims": [
+    {
+     "slug": "idle",
+     "name_zh": "真君待机",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/erlang_shen/idle/杨戬__真君待机__关键帧01__总帧01.png",
+      "res://art/frames/erlang_shen/idle/杨戬__真君待机__关键帧02__总帧02.png"
+     ]
+    },
+    {
+     "slug": "walk",
+     "name_zh": "神行步",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/erlang_shen/walk/杨戬__神行步__关键帧01__总帧03.png",
+      "res://art/frames/erlang_shen/walk/杨戬__神行步__关键帧02__总帧04.png"
+     ]
+    },
+    {
+     "slug": "run",
+     "name_zh": "神犬并驰",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/erlang_shen/run/杨戬__神犬并驰__关键帧01__总帧05.png",
+      "res://art/frames/erlang_shen/run/杨戬__神犬并驰__关键帧02__总帧06.png"
+     ]
+    },
+    {
+     "slug": "dodge",
+     "name_zh": "神影闪",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/erlang_shen/dodge/杨戬__神影闪__关键帧01__总帧07.png",
+      "res://art/frames/erlang_shen/dodge/杨戬__神影闪__关键帧02__总帧08.png",
+      "res://art/frames/erlang_shen/dodge/杨戬__神影闪__关键帧03__总帧09.png"
+     ]
+    },
+    {
+     "slug": "jump_land",
+     "name_zh": "踏云跃落",
+     "type": "基础",
+     "frames": [
+      "res://art/frames/erlang_shen/jump_land/杨戬__踏云跃落__关键帧01__总帧10.png",
+      "res://art/frames/erlang_shen/jump_land/杨戬__踏云跃落__关键帧02__总帧11.png",
+      "res://art/frames/erlang_shen/jump_land/杨戬__踏云跃落__关键帧03__总帧12.png"
+     ]
+    },
+    {
+     "slug": "atk_light",
+     "name_zh": "三尖两刃刀轻连击",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/erlang_shen/atk_light/杨戬__三尖两刃刀轻连击__关键帧01__总帧13.png",
+      "res://art/frames/erlang_shen/atk_light/杨戬__三尖两刃刀轻连击__关键帧02__总帧14.png",
+      "res://art/frames/erlang_shen/atk_light/杨戬__三尖两刃刀轻连击__关键帧03__总帧15.png"
+     ]
+    },
+    {
+     "slug": "atk_heavy",
+     "name_zh": "裂空重斩",
+     "type": "平A",
+     "frames": [
+      "res://art/frames/erlang_shen/atk_heavy/杨戬__裂空重斩__关键帧01__总帧16.png",
+      "res://art/frames/erlang_shen/atk_heavy/杨戬__裂空重斩__关键帧02__总帧17.png",
+      "res://art/frames/erlang_shen/atk_heavy/杨戬__裂空重斩__关键帧03__总帧18.png"
+     ]
+    },
+    {
+     "slug": "skill_core_1",
+     "name_zh": "天眼神光",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/erlang_shen/skill_core_1/杨戬__天眼神光__关键帧01__总帧19.png",
+      "res://art/frames/erlang_shen/skill_core_1/杨戬__天眼神光__关键帧02__总帧20.png",
+      "res://art/frames/erlang_shen/skill_core_1/杨戬__天眼神光__关键帧03__总帧21.png"
+     ]
+    },
+    {
+     "slug": "skill_core_2",
+     "name_zh": "哮天犬协战",
+     "type": "核心技能",
+     "frames": [
+      "res://art/frames/erlang_shen/skill_core_2/杨戬__哮天犬协战__关键帧01__总帧22.png",
+      "res://art/frames/erlang_shen/skill_core_2/杨戬__哮天犬协战__关键帧02__总帧23.png",
+      "res://art/frames/erlang_shen/skill_core_2/杨戬__哮天犬协战__关键帧03__总帧24.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_1",
+     "name_zh": "法阵镇魔",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/erlang_shen/skill_unlock_1/杨戬__法阵镇魔__关键帧01__总帧25.png",
+      "res://art/frames/erlang_shen/skill_unlock_1/杨戬__法阵镇魔__关键帧02__总帧26.png",
+      "res://art/frames/erlang_shen/skill_unlock_1/杨戬__法阵镇魔__关键帧03__总帧27.png"
+     ]
+    },
+    {
+     "slug": "skill_unlock_2",
+     "name_zh": "天门神枪阵",
+     "type": "副本解锁技能",
+     "frames": [
+      "res://art/frames/erlang_shen/skill_unlock_2/杨戬__天门神枪阵__关键帧01__总帧28.png",
+      "res://art/frames/erlang_shen/skill_unlock_2/杨戬__天门神枪阵__关键帧02__总帧29.png",
+      "res://art/frames/erlang_shen/skill_unlock_2/杨戬__天门神枪阵__关键帧03__总帧30.png"
+     ]
+    },
+    {
+     "slug": "ultimate_charge",
+     "name_zh": "清源法相·蓄势",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/erlang_shen/ultimate_charge/杨戬__清源法相·蓄势__关键帧01__总帧31.png",
+      "res://art/frames/erlang_shen/ultimate_charge/杨戬__清源法相·蓄势__关键帧02__总帧32.png",
+      "res://art/frames/erlang_shen/ultimate_charge/杨戬__清源法相·蓄势__关键帧03__总帧33.png"
+     ]
+    },
+    {
+     "slug": "finisher",
+     "name_zh": "灌江诛邪终结",
+     "type": "法相/终结",
+     "frames": [
+      "res://art/frames/erlang_shen/finisher/杨戬__灌江诛邪终结__关键帧01__总帧34.png",
+      "res://art/frames/erlang_shen/finisher/杨戬__灌江诛邪终结__关键帧02__总帧35.png",
+      "res://art/frames/erlang_shen/finisher/杨戬__灌江诛邪终结__关键帧03__总帧36.png"
+     ]
+    }
+   ]
+  }
+ ]
+}

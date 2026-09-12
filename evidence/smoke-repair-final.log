@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[V1] smoke ready: time_scale=6
+[V1] t=10 ch=eagle trial=[] enemies=13 kills=18 maxframe=0.021
+[V1] t=20 ch=heaven trial=[] enemies=37 kills=18 maxframe=0.007
+[V1] sfx: tame
+[V1] t=40 ch=tongtian trial=["id"] enemies=16 kills=1193 maxframe=0.007
+[V1] t=50 ch=tongtian trial=["id"] enemies=80 kills=2083 maxframe=0.007
+[V1] t=60 ch=tongtian trial=["id"] enemies=64 kills=2943 maxframe=0.007
+[V1] t=80 ch=tongtian trial=["id"] enemies=64 kills=4744 maxframe=0.007
+[V1] trial complete: baguaFurnace
+[V1] sfx: tame
+[V1] trial save written: baguaFurnace
+[V1] t=90 ch=tongtian trial=[] enemies=96 kills=5429 maxframe=0.007
+[V1] t=100 ch=tongtian trial=[] enemies=45 kills=6626 maxframe=0.007
+[V1] t=110 ch=tongtian trial=[] enemies=0 kills=7701 maxframe=0.007
+[V1] t=120 ch=tongtian trial=[] enemies=52 kills=8654 maxframe=0.007
+[V1] t=130 ch=tongtian trial=[] enemies=80 kills=9463 maxframe=0.007
+[V1] t=140 ch=tongtian trial=[] enemies=16 kills=10366 maxframe=0.007
+[V1] t=150 ch=tongtian trial=[] enemies=48 kills=11304 maxframe=0.007
+[V1] t=160 ch=tongtian trial=[] enemies=18 kills=12393 maxframe=0.007
+[V1] t=170 ch=tongtian trial=[] enemies=44 kills=13431 maxframe=0.007
+[V1] t=180 ch=tongtian trial=[] enemies=93 kills=14234 maxframe=0.007
+[V1] t=190 ch=tongtian trial=[] enemies=64 kills=15218 maxframe=0.007
+[V1] t=200 ch=tongtian trial=[] enemies=96 kills=16047 maxframe=0.007
+[V1] t=210 ch=tongtian trial=[] enemies=80 kills=16889 maxframe=0.007
+[V1] t=220 ch=tongtian trial=[] enemies=48 kills=17873 maxframe=0.007
+[V1] t=230 ch=tongtian trial=[] enemies=96 kills=18576 maxframe=0.007
+[V1] t=240 ch=tongtian trial=[] enemies=48 kills=19587 maxframe=0.007
+[V1] t=250 ch=tongtian trial=[] enemies=65 kills=20603 maxframe=0.007
+[V1] t=260 ch=tongtian trial=[] enemies=23 kills=21677 maxframe=0.007
+[V1] t=270 ch=tongtian trial=[] enemies=43 kills=22572 maxframe=0.012
+[V1] t=280 ch=tongtian trial=[] enemies=48 kills=23478 maxframe=0.016
+[V1] t=290 ch=tongtian trial=[] enemies=96 kills=24289 maxframe=0.007
+[V1] t=300 ch=tongtian trial=[] enemies=64 kills=25374 maxframe=0.007
+[V1] t=310 ch=tongtian trial=[] enemies=20 kills=26471 maxframe=0.007
+[V1] t=320 ch=tongtian trial=[] enemies=33 kills=27425 maxframe=0.007
+[V1] t=330 ch=tongtian trial=[] enemies=1 kills=28499 maxframe=0.007
+[V1] t=340 ch=tongtian trial=[] enemies=16 kills=29403 maxframe=0.007
+[V1] t=350 ch=tongtian trial=[] enemies=16 kills=30225 maxframe=0.007
+[V1] t=360 ch=tongtian trial=[] enemies=16 kills=31081 maxframe=0.007
+[V1] t=370 ch=tongtian trial=[] enemies=57 kills=32035 maxframe=0.007
+[V1] t=380 ch=tongtian trial=[] enemies=32 kills=33110 maxframe=0.007
+[V1] t=400 ch=tongtian trial=[] enemies=0 kills=35193 maxframe=0.012
+[V1] trial verification incomplete at cap: ["baguaFurnace"]
+[V1] smoke tick enter: elapsed=400 trial_done=["baguaFurnace"]
+[V1] finish_smoke enter, passed=true
+[V1] finish_smoke writing json
+SMOKE_RESULT {"allies":12,"atk_count":418,"boss_spawned":true,"boss_tamed":true,"cards_owned":{"cdr":3,"comboForm":3,"dashDmg":3,"formDuration":3,"killForm":3,"t_nova":3,"t_reflect":3,"t_ring":2,"ultGain":2},"chapter":"tongtian","chapter_now":"tongtian","chapters_cleared":12,"deaths":5,"draft_log":[["hero","mutation","survival"],["hero","mutation","generic"],["mutation","hero","element"],["hero","mutation","generic"],["mutation","hero","generic"],["hero","mutation","mobility"],["mutation","hero","generic"],["hero","mutation","generic"],["hero","mutation","survival"],["hero","mutation","generic"],["mutation","hero","survival"],["mutation","hero","generic"],["hero","mutation","survival"],["mutation","survival","mutation"],["mutation","element","generic"],["mutation","survival","survival"],["mutation","survival","generic"],["mutation","survival","mutation"],["mutation","survival","survival"],["mutation","element","generic"],["mutation","element","mobility"],["mutation","survival","survival"],["mutation","survival","element"],["mutation","mobility","survival"],["mutation","survival","survival"]],"e_count":106,"elapsed_s":400.0,"floaters_spawned":2,"form_count":29,"g_count":16,"hero":"tang","hitstop_total_s":14.2,"kills":35193,"level":26,"pass":true,"q_count":200,"save_check":{"mismatch":[],"ok":true},"screenshot":"unavailable(headless)","structure_check":{"detail":"","fails":0,"trials":200},"switches":12,"trial_done":{"baguaFurnace":true},"ult_count":25,"unlocked":["tang","wukong","whiteDragon","bajie","shaWujing","nezha","erlang"],"victory":true,"wave":1162}

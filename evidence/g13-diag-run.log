@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Unexpected identifier "ZXh0ZW5kcyBOb2RlMkQKIyMg5aSn5Zyj54Gr57q" in class body.
+   at: GDScript::reload (res://scripts/main.gd:1)
+ERROR: Failed to load script "res://scripts/main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

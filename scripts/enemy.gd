@@ -25,6 +25,7 @@ var revived_once := false
 var dragon_until := 0.0
 var sprite: Sprite2D
 var main: Node2D
+var art_static := false             # G15：使用正式 PNG 单帧静态图时停止图集走帧
 
 func setup(k: String, m: Node2D) -> void:
 	kind = k
@@ -40,6 +41,15 @@ func _ready() -> void:
 	sprite.texture = SpriteLib.frame_tex(_cell(0))
 	add_child(sprite)
 	add_to_group("enemies")
+	_apply_trial_art()
+
+func _apply_trial_art() -> void:
+	var t := SpriteLib.trial_tex("enemy:" + kind)
+	if t == null:
+		return
+	sprite.texture = t
+	sprite.scale = Vector2.ONE * SpriteLib.fit_scale(t)
+	art_static = true
 
 func _cell(walk_idx: int) -> Vector2i:
 	var d: Dictionary = DEFS[kind]
@@ -58,7 +68,7 @@ func _physics_process(delta: float) -> void:
 	global_position = global_position.clamp(Vector2(24, 24), Vector2(1576, 1176))
 	sprite.flip_h = dir.x < 0.0
 	anim_t += delta
-	if moving:
+	if moving and not art_static:
 		var f := int(anim_t * 6.0) % 2
 		sprite.texture = SpriteLib.frame_tex(_cell(f))
 	if to_p.length() < 17.0:

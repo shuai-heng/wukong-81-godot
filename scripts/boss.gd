@@ -29,6 +29,7 @@ var follow_t := 0.0
 var sprite: Sprite2D
 var main: Node2D
 var base_tint: Color = Color(0.72, 0.38, 0.85)
+var art_static := false             # G15：使用正式 Boss PNG 单帧静态图时停止图集走帧
 
 func _ready() -> void:
 	sprite = Sprite2D.new()
@@ -38,6 +39,22 @@ func _ready() -> void:
 	add_child(sprite)
 	add_to_group("boss")
 	add_to_group("enemies")
+	_apply_trial_art()
+
+## G15：章节 Boss 名对应正式 PNG（黄风大圣/黄风怪→yellow_wind_king，牛魔王→bull_demon_king），
+## 命中即替换贴图并取消占位紫染色；未命中保持原渲染 fallback
+func _apply_trial_art() -> void:
+	if art_static:
+		return
+	var t := SpriteLib.trial_tex("boss:" + boss_name)
+	if t == null:
+		return
+	sprite.texture = t
+	var base: float = float(cfg.get("scale", DEF["scale"])) if not cfg.is_empty() else float(DEF["scale"])
+	sprite.scale = Vector2.ONE * SpriteLib.fit_scale(t, base)
+	sprite.modulate = Color.WHITE
+	base_tint = Color.WHITE
+	art_static = true
 
 func setup(m: Node2D, chapter_cfg: Dictionary = {}) -> void:
 	main = m
@@ -49,6 +66,7 @@ func setup(m: Node2D, chapter_cfg: Dictionary = {}) -> void:
 	sprite.scale = Vector2(float(cfg.get("scale", 2.1)), float(cfg.get("scale", 2.1)))
 	sprite.modulate = cfg.get("tint", DEF["tint"])
 	base_tint = sprite.modulate
+	_apply_trial_art()
 
 func _physics_process(delta: float) -> void:
 	if is_ally:
@@ -76,7 +94,8 @@ func _physics_process(delta: float) -> void:
 	knock = knock.move_toward(Vector2.ZERO, 500.0 * delta)
 	global_position = global_position.clamp(Vector2(40, 40), Vector2(1560, 1160))
 	sprite.flip_h = dir.x < 0.0
-	sprite.texture = SpriteLib.frame_tex(Vector2i(int(anim_t * 6.0) % 2, 2))
+	if not art_static:
+		sprite.texture = SpriteLib.frame_tex(Vector2i(int(anim_t * 6.0) % 2, 2))
 	# 阶段推进
 	var frac := hp / max_hp
 	phase = 1 if frac > 0.66 else (2 if frac > 0.33 else 3)
@@ -144,7 +163,8 @@ func _ally_tick(delta: float) -> void:
 	if to_p.length() > 60.0:
 		global_position += to_p.normalized() * 150.0 * delta
 	anim_t += delta
-	sprite.texture = SpriteLib.frame_tex(Vector2i(int(anim_t * 5.0) % 2, 2))
+	if not art_static:
+		sprite.texture = SpriteLib.frame_tex(Vector2i(int(anim_t * 5.0) % 2, 2))
 	follow_t -= delta
 	if follow_t <= 0.0:
 		follow_t = 0.8

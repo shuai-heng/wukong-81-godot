@@ -1,0 +1,13 @@
+{
+ "characters": 8,
+ "actions": 83,
+ "keyframes": 1322,
+ "verified_actions_on_disk": 83,
+ "verified_keyframes_on_disk": 1322,
+ "used_base_png_only": true,
+ "v4_frame_mapping_used": false,
+ "source_tiers": [
+  "PROJECT_CANON",
+  "V5_EXPANSION"
+ ]
+}
