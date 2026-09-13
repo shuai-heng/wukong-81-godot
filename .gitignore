@@ -1,4 +1,15 @@
 .godot/
+
 evidence/g12-dure-run.log
 evidence/*.avi
 evidence/save-backup-tmp.json
+
+# Repository hygiene: generated / validation artifacts must not return to repo root.
+# Put new screenshots, videos and reports under evidence/ instead.
+/ART_*
+/SKILL_GALLERY_*
+/V[0-9]*
+
+# Local temporary / recovery files
+*.tmp
+*.bak
