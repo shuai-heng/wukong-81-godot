@@ -50,11 +50,11 @@ godot --headless --path . -- --smoke
 | `evidence/` | 测试日志、截图、录像、验收与修复证据 |
 | `docs/` | Godot 仓特有的结构、接入、维护说明 |
 
-更详细的“该留 / 该迁 / 该归档”清单见 [`docs/REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md)。
+更详细的仓库整理状态见 [`docs/REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md)。
 
 ## 根目录规则
 
-从现在开始，根目录只保留 **工程入口、协作规则和顶层说明**。禁止继续把开发产物平铺到根目录。
+根目录只保留 **工程入口、协作规则和一级正式目录**。禁止继续把开发产物平铺到根目录。
 
 - 截图、录像、测试输出、验收报告 → `evidence/`
 - 历史版本证据 → `evidence/archive/<milestone>/`
@@ -64,7 +64,17 @@ godot --headless --path . -- --smoke
 - 正式接入美术 → `art/` / `assets/`
 - Godot 仓自身说明 → `docs/`
 
-旧的 `ART_*`、`V5_*`、`V6_*`、`V6_1_*` 根目录文件暂不直接删除；它们属于历史验收材料，将在单独的“历史产物归档”提交中迁移，避免一次整理误伤 Godot 引用或验收链。
+### 已完成的历史归档
+
+根目录旧产物已经按原始 blob 直接迁移，内容未重编码：
+
+- `ART_*` / `SKILL_GALLERY_*` → `evidence/archive/art-pipeline/`
+- `V5_*` → `evidence/archive/v5/`
+- `V6_*` → `evidence/archive/v6/`
+- `V6_1_*` → `evidence/archive/v6.1/`
+- `hidden_run.py/.ps1`、`replay_g13.py` → `tools/diagnostics/`
+
+`.gitignore` 同时阻止新的同类历史产物再次进入根目录。
 
 ## AI / 工程协作
 
