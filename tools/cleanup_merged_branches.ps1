@@ -33,8 +33,32 @@ $protected = @(
     'task/pixel-complete'
 )
 
+# 这些分支已由本次仓库整理 PR 明确合并进 main；即使采用 squash merge，仍可安全删除。
+$knownMerged = @(
+    'chore/repo-cleanup-20260913',
+    'chore/archive-root-evidence-20260913'
+)
+
 $protectedSet = @{}
 foreach ($name in $protected) { $protectedSet[$name] = $true }
+$knownMergedSet = @{}
+foreach ($name in $knownMerged) { $knownMergedSet[$name] = $true }
+
+# 如果本机装有并登录 GitHub CLI，同时读取 merged PR 的 head branch，兼容 squash/rebase merge。
+$mergedPrHeads = @{}
+$gh = Get-Command gh -ErrorAction SilentlyContinue
+if ($gh) {
+    try {
+        $prJson = & gh pr list --repo shuai-heng/wukong-81-godot --state merged --limit 500 --json headRefName 2>$null
+        if ($LASTEXITCODE -eq 0 -and $prJson) {
+            foreach ($pr in ($prJson | ConvertFrom-Json)) {
+                if ($pr.headRefName) { $mergedPrHeads[$pr.headRefName] = $true }
+            }
+        }
+    } catch {
+        Write-Warning 'GitHub CLI merged-PR 查询失败；继续使用 Git ancestry + knownMerged 安全名单。'
+    }
+}
 
 $rows = @()
 $rawRefs = & git for-each-ref '--format=%(refname:strip=3)|%(objectname)|%(committerdate:unix)' refs/remotes/origin
@@ -50,15 +74,19 @@ foreach ($line in $rawRefs) {
 
     & git merge-base --is-ancestor "origin/$name" origin/main 2>$null
     $code = $LASTEXITCODE
-    if ($code -eq 0) { $merged = $true }
-    elseif ($code -eq 1) { $merged = $false }
+    if ($code -eq 0) { $ancestorMerged = $true }
+    elseif ($code -eq 1) { $ancestorMerged = $false }
     else { throw "无法判断分支 $name 是否已合并。" }
+
+    $merged = $ancestorMerged -or $knownMergedSet.ContainsKey($name) -or $mergedPrHeads.ContainsKey($name)
+    $reason = if ($ancestorMerged) { 'git-ancestor' } elseif ($knownMergedSet.ContainsKey($name)) { 'known-merged-pr' } elseif ($mergedPrHeads.ContainsKey($name)) { 'github-merged-pr' } else { '' }
 
     $rows += [pscustomobject]@{
         Branch = $name
         Sha = $sha
         LastCommit = $date
         MergedIntoMain = $merged
+        MergeEvidence = $reason
         Protected = $protectedSet.ContainsKey($name)
     }
 }
@@ -70,7 +98,7 @@ $kept = @($rows | Where-Object { $_.Protected -or (-not $_.MergedIntoMain -and $
 
 Write-Host ''
 Write-Host "已合并、可安全删除：$($deleteMerged.Count)" -ForegroundColor Green
-$deleteMerged | Format-Table Branch, LastCommit -AutoSize
+$deleteMerged | Format-Table Branch, MergeEvidence, LastCommit -AutoSize
 
 Write-Host "受保护/仍活跃：$($kept.Count)" -ForegroundColor Yellow
 $kept | Sort-Object Branch | Format-Table Branch, MergedIntoMain, LastCommit -AutoSize
@@ -88,7 +116,7 @@ if (-not $Apply) {
 }
 
 foreach ($row in $deleteMerged) {
-    Write-Host "删除已合并分支：$($row.Branch)" -ForegroundColor Green
+    Write-Host "删除已合并分支：$($row.Branch) [$($row.MergeEvidence)]" -ForegroundColor Green
     Run-Git push origin --delete $row.Branch
 }
 
