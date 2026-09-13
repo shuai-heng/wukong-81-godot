@@ -77,6 +77,11 @@ var kf_xfade_dur := 0.075
 var kf_fade_base := Color.WHITE    # 快照时的着色（受伤/化龙 tint）
 var kf_blend_left := 0.0           # 子步3：状态过渡混合计时
 var kf_blend_dur := 0.1
+var kf_glow_sprite: Sprite2D       # 子步4：vfx_intensity 发光层（ADD 混合）
+var kf_trail: Line2D               # 子步4：trail_enabled 拖尾
+var kf_seg := -1                   # 当前关键帧段索引（元数据触发去重）
+var kf_freeze_left := 0.0          # 子步4：元数据顿帧定格计时
+var kf_after_t := -1.0             # 子步4：上次残影生成的动作时刻（限频）
 
 # ---- 卡牌数值（web BALANCE_CAPS 同源） ----
 func lvl(id: String) -> int:

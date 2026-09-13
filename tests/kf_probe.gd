@@ -1,7 +1,21 @@
 extends SceneTree
 ## V6.1 关键帧接入逻辑探针（headless）：真实物理帧 + 模拟按键，验证 idle/run 实时切换、
-## 姿势推进、一次性动作播完回落、换装（白龙/悟空）。
+## 姿势推进、一次性动作播完回落、换装（白龙/悟空）、M2 插值/交叉淡化/状态过渡/演出元数据。
 var fails: Array = []
+
+## 子步4 桩主循环：承接 hitstop/震屏/残影调用（探针环境无真实 main）
+class StubMain extends Node2D:
+	var hitstop := 0.0
+	var shakes: Array = []
+	var phantom_count := 0
+	var phantom_tex: Texture2D = null
+	func request_shake(s: float) -> void:
+		shakes.append(s)
+	func spawn_phantom(pos: Vector2, flip: bool, tex: Texture2D = null, scl := Vector2.ONE, life := -1.0) -> void:
+		phantom_count += 1
+		phantom_tex = tex
+	func toast(msg: String) -> void:
+		pass
 
 func _initialize() -> void:
 	_run()
@@ -121,6 +135,38 @@ func _run() -> void:
 	p.kf_blend_left = 0.0
 	KeyframeLib._advance_fades(p, 0.0)
 	_chk(absf(p.kf_sprite.modulate.a - 1.0) < 0.01, "缓冲结束后透明度复原", str(p.kf_sprite.modulate.a))
+	# ---- M2 子步4：打击感元数据接入（core_1 段8=747-840ms：hitstop70/震屏4.0/vfx1.0） ----
+	var stub := StubMain.new()
+	p.main = stub
+	KeyframeLib.play_action(p, "core_1", true)
+	p.kf_t = 0.750
+	KeyframeLib.tick(p, 0.0, false)
+	_chk(stub.hitstop > 0.0, "元数据触发hitstop", str(stub.hitstop))
+	_chk(stub.shakes.size() > 0, "元数据触发震屏", str(stub.shakes))
+	_chk(p.kf_freeze_left > 0.0, "元数据顿帧定格", str(p.kf_freeze_left))
+	_chk(p.kf_glow_sprite != null and p.kf_glow_sprite.visible, "高强度vfx发光层可见", "")
+	p.kf_t = 0.0
+	KeyframeLib.tick(p, 0.0, false)
+	_chk(not p.kf_glow_sprite.visible, "低强度vfx关闭发光", "")
+	for i in 120:
+		await physics_frame
+		if str(p.kf_action) == "":
+			break
+	Input.action_press("move_right")
+	var trail_pts := 0
+	for i in 20:
+		await physics_frame
+		if p.kf_trail != null:
+			trail_pts = p.kf_trail.get_point_count()
+	Input.action_release("move_right")
+	_chk(trail_pts >= 2, "run拖尾采样", str(trail_pts))
+	var pc0: int = stub.phantom_count
+	KeyframeLib.play_action(p, "atk_combo", true)
+	for i in 30:
+		await physics_frame
+	_chk(stub.phantom_count > pc0, "元数据残影", str([pc0, stub.phantom_count]))
+	_chk(stub.phantom_tex != null, "残影用姿势纹理", "")
+	p.main = null
 	p.hero = "wukong"
 	p._kf_rebuild()
 	_chk(str(p.kf_slug) == "sun_wukong", "切悟空slug", p.kf_slug)

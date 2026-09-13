@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 581.83 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3060 Laptop GPU
+
+Movie Maker mode enabled, recording movie in 1280×720 @ 60 FPS...
+ERROR: Condition "!enabled || !is_inside_tree()" is true.
+   at: make_current (scene/2d/camera_2d.cpp:588)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/kf_stage.gd:40)
+       [1] _initialize (res://tests/kf_stage.gd:17)
+[ART] trial override: hero:tang -> res://art/characters/tang_sanzang.png
+[STAGE] 锦襕袈裟：2.8 秒护体（减伤 35%，反噬需卡牌）
+[ART] trial override: hero:wukong -> res://art/characters/sun_wukong.png
+[STAGE] 切换出战：孙悟空
+[STAGE] 切换出战：小白龙
+[STAGE] 引雷龙痕引爆 ×0（三层天雷 ×0）
+[STAGE] 切换出战：猪八戒
+[STAGE] 怒气不足 50：承伤积怒后再卷
+[STAGE] 切换出战：沙悟净
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply_frost' in base 'Node2D (Dummy)'.
+   at: _cast_e_sha (res://scripts/player.gd:724)
+   GDScript backtrace (most recent call first):
+       [0] _cast_e_sha (res://scripts/player.gd:724)
+       [1] _cast_e (res://scripts/player.gd:355)
+       [2] _hero_pass (res://tests/kf_stage.gd:79)
+       [3] _wait (res://tests/kf_stage.gd:20)
+[STAGE] 切换出战：哪吒
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply_burn' in base 'Node2D (Dummy)'.
+   at: _cast_q_nezha (res://scripts/player.gd:750)
+   GDScript backtrace (most recent call first):
+       [0] _cast_q_nezha (res://scripts/player.gd:750)
+       [1] _cast_q (res://scripts/player.gd:323)
+       [2] _hero_pass (res://tests/kf_stage.gd:77)
+       [3] _wait (res://tests/kf_stage.gd:20)
+[STAGE] 风火轮起：移速/攻速大增 4.0s
+[STAGE] 切换出战：杨戬
+KF_STAGE done
+--------------------------------------------------------------------------------
+Done recording movie at path: F:/Zcode projects/西游/wukong-godot/evidence/m2s4-meta.avi
+3578 frames at 60 FPS (movie length: 00:00:59:38), recorded in 00:00:47 (125% of real-time speed).
+CPU render time: 1.54 seconds (average: 0.43 ms/frame)
+GPU render time: 2.11 seconds (average: 0.59 ms/frame)
+Encoding time: 23.58 seconds (average: 6.59 ms/frame)
+--------------------------------------------------------------------------------

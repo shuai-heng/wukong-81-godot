@@ -361,15 +361,22 @@ func _phantom_tick(delta: float) -> void:
 					e.take_hit(player.base_dmg() * 0.5, Vector2.ZERO)
 					break
 
-func spawn_phantom(pos: Vector2, flip: bool) -> void:
+func spawn_phantom(pos: Vector2, flip: bool, tex: Texture2D = null, scl := Vector2.ONE, life := -1.0) -> void:
 	var g := Sprite2D.new()
-	g.texture = SpriteLib.frame_tex(Vector2i(2, 0))
+	if tex != null:
+		g.texture = tex
+		g.scale = scl
+	else:
+		g.texture = SpriteLib.frame_tex(Vector2i(2, 0))
 	g.position = pos
 	g.flip_h = flip
 	g.modulate = Color(1.0, 0.94, 0.63, 0.75)
 	g.z_index = -1
 	add_child(g)
-	phantoms.append({"node": g, "life": 3.6 + 0.9 * player.lvl("w_72") + 0.9 * player.lvl("w_clone"), "next": 0.0})
+	var lv: float = 3.6 + 0.9 * player.lvl("w_72") + 0.9 * player.lvl("w_clone")
+	if life > 0.0:
+		lv = life
+	phantoms.append({"node": g, "life": lv, "next": 0.0})
 
 func spawn_fx(pos: Vector2, r: float, color: Color) -> void:
 	fx_rings.append({"pos": pos, "r": 12.0, "max": r, "life": 0.38, "color": color})

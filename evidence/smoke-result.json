@@ -1,23 +1,23 @@
 {
   "allies": 12,
-  "atk_count": 331,
+  "atk_count": 333,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
-    "cdr": 2,
+    "cdr": 3,
+    "comboForm": 1,
     "d_call": 3,
     "d_glide": 3,
-    "d_thunder": 2,
-    "dashDmg": 1,
-    "formDuration": 2,
-    "killForm": 3,
+    "d_thunder": 3,
+    "dashDmg": 2,
+    "killForm": 1,
     "t_reflect": 1,
     "ultGain": 1
   },
   "chapter": "tongtian",
   "chapter_now": "tongtian",
   "chapters_cleared": 12,
-  "deaths": 9,
+  "deaths": 10,
   "draft_log": [
     [
       "hero",
@@ -27,7 +27,52 @@
     [
       "hero",
       "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "generic"
+    ],
+    [
+      "hero",
+      "mutation",
+      "mobility"
+    ],
+    [
+      "mutation",
+      "hero",
+      "generic"
+    ],
+    [
+      "mutation",
+      "hero",
+      "mobility"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
+      "hero",
+      "mutation",
+      "survival"
     ],
     [
       "hero",
@@ -37,90 +82,45 @@
     [
       "hero",
       "mutation",
-      "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
-      "mobility"
-    ],
-    [
-      "mutation",
-      "hero",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "survival"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
-    ],
-    [
-      "mutation",
-      "hero",
-      "survival"
-    ],
-    [
-      "mutation",
-      "hero",
       "element"
     ],
     [
       "hero",
       "mutation",
+      "survival"
+    ],
+    [
+      "mutation",
+      "hero",
       "mobility"
     ],
     [
       "hero",
       "mutation",
-      "generic"
+      "element"
     ],
     [
       "mutation",
-      "hero",
-      "generic"
+      "element",
+      "mutation"
     ],
     [
       "mutation",
-      "hero",
-      "survival"
+      "survival",
+      "element"
     ]
   ],
-  "e_count": 107,
+  "e_count": 109,
   "elapsed_s": 400.0,
   "floaters_spawned": 1,
-  "form_count": 31,
+  "form_count": 36,
   "g_count": 14,
   "hero": "whiteDragon",
-  "hitstop_total_s": 17.0,
-  "kills": 7411,
+  "hitstop_total_s": 16.8,
+  "kills": 6714,
   "level": 19,
   "pass": true,
-  "q_count": 179,
+  "q_count": 180,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -146,5 +146,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 451
+  "wave": 420
 }

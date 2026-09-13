@@ -20,6 +20,19 @@ const XFADE_IN_FROM := 0.0         # 新姿势淡入起始透明度
 const STATE_BLEND_MS := 0.10       # 子步3：动作/状态切换过渡时长（idle/run/form↔技能、收招回落）
 const BLEND_ALPHA_FROM := 0.25     # 过渡期新动作淡入起始透明度
 const STATE_BLEND_SCALE := 0.96    # 过渡期新动作起始缩放缓冲（消切换 pop）
+# ---- 子步4：V6.1 打击感元数据调参（hitstop_ms/camera_shake/trail_enabled/afterimage_count/vfx_intensity） ----
+const META_HITSTOP_SCALE := 1.0    # hitstop_ms→秒 换算（0=关闭元数据顿帧；仅一次性动作触发）
+const META_HITSTOP_MAX := 0.09     # 单段元数据顿帧上限（秒）
+const META_SHAKE_SCALE := 2.2      # camera_shake(0-10) → request_shake 强度
+const META_AFTER_GAP := 0.15       # 残影生成限频间隔（秒，防逐帧刷屏）
+const META_AFTER_LIFE := 0.30      # 元数据残影存活（秒）
+const META_AFTER_STAGGER := 0.06   # 多残影寿命间隔（秒）
+const META_TRAIL_POINTS := 14      # 拖尾采样点数（60Hz≈0.23s 尾长）
+const META_TRAIL_WIDTH := 5.0
+const META_TRAIL_COLOR := Color(1.0, 0.92, 0.65, 0.5)
+const META_GLOW_ALPHA := 0.45      # vfx_intensity(0-1) → 发光层 alpha 系数（0=关闭）
+const META_GLOW_MIN := 0.35        # 发光层启用阈值（idle 基线 0.18 不常亮）
+const META_GLOW_COLOR := Color(1.0, 0.88, 0.55)
 
 ## 游戏 hero_id → V6.1 character_slug（白龙双形态：化龙时用马形）
 const HERO_SLUG := {
@@ -88,6 +101,27 @@ static func attach(p) -> void:
 	f.z_index = 1
 	p.add_child(f)
 	p.kf_fade_sprite = f
+	var g := Sprite2D.new()
+	g.name = "KFGlow"
+	g.visible = false
+	g.z_index = 1
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	g.material = mat
+	p.add_child(g)
+	p.kf_glow_sprite = g
+	var tl := Line2D.new()
+	tl.name = "KFTrail"
+	tl.visible = false
+	tl.width = META_TRAIL_WIDTH
+	tl.default_color = META_TRAIL_COLOR
+	tl.joint_mode = Line2D.LINE_JOINT_ROUND
+	tl.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	tl.end_cap_mode = Line2D.LINE_CAP_ROUND
+	tl.top_level = true
+	tl.z_index = -1
+	p.add_child(tl)
+	p.kf_trail = tl
 
 ## 隐藏全部关键帧演出层（动作清空/换装/退出法相时）
 static func hide_visuals(p) -> void:
@@ -97,6 +131,12 @@ static func hide_visuals(p) -> void:
 		p.kf_fade_sprite.visible = false
 		p.kf_xfade_left = 0.0
 		p.kf_blend_left = 0.0
+	if p.get("kf_glow_sprite") != null:
+		p.kf_glow_sprite.visible = false
+	if p.get("kf_trail") != null:
+		p.kf_trail.visible = false
+		p.kf_trail.clear_points()
+	p.kf_seg = -1
 
 ## 发起一次动作；one_shot=false 为循环基底（idle/run/form）。不存在该动作时静默忽略。
 static func play_action(p, action: String, one_shot := true) -> void:
@@ -119,6 +159,9 @@ static func _switch_action(p, action: String, one_shot: bool) -> void:
 	p.sprite.visible = false
 	p.kf_blend_left = STATE_BLEND_MS
 	p.kf_blend_dur = STATE_BLEND_MS
+	p.kf_seg = -1
+	p.kf_after_t = -1.0
+	p.kf_freeze_left = 0.0
 
 ## 每物理帧推进。循环基底（idle/run/form）按移动/法相状态实时切换；
 ## 一次性动作播完自动清空 kf_action 回落循环基底（子步2 起回落经淡化层软化，不瞬切）。
@@ -136,14 +179,25 @@ static func tick(p, delta: float, moving: bool) -> void:
 	if p.kf_action == "":
 		return
 	var kfs: Array = _acts[p.kf_slug][p.kf_action]
+	# 子步4：元数据顿帧期间定格姿势（淡化计时同步暂停，保留定格感）
+	if p.kf_freeze_left > 0.0:
+		p.kf_freeze_left = maxf(0.0, p.kf_freeze_left - delta)
+		delta = 0.0
 	var t: float = float(p.kf_t) + delta * float(p.kf_speed)
 	var dur: float = float(kfs[kfs.size() - 1]["time_ms"]) / 1000.0
 	if p.kf_one_shot and t >= dur:
 		p.kf_action = ""
+		_glow_update(p, 0.0)
+		_trail_update(p, false)
 		return
 	if t >= dur:
 		t = wrapf(t, 0.0, dur)   # 循环基底
+		p.kf_seg = -1            # 环回重触发首段元数据
 	p.kf_t = t
+	var seg := _seg_index(kfs, t * 1000.0)
+	if seg != p.kf_seg:
+		p.kf_seg = seg
+		_fire_meta(p, kfs[seg])
 	var pre_tex: Texture2D = p.kf_sprite.texture
 	var pre_pos: Vector2 = p.kf_sprite.position
 	var pre_rot: float = p.kf_sprite.rotation
@@ -151,13 +205,64 @@ static func tick(p, delta: float, moving: bool) -> void:
 	var pre_flip: bool = p.kf_sprite.flip_h
 	_apply_pose(p, kfs)
 	if p.kf_sprite.texture != pre_tex and pre_tex != null:
-		var t_ms: float = float(p.kf_t) * 1000.0
-		var i := _seg_index(kfs, t_ms)
 		var win: float = CROSSFADE_MS
-		if i + 1 < kfs.size():
-			win = (float(kfs[i + 1]["time_ms"]) - float(kfs[i]["time_ms"])) / 1000.0 * XFADE_SEG_FRAC
+		if seg + 1 < kfs.size():
+			win = (float(kfs[seg + 1]["time_ms"]) - float(kfs[seg]["time_ms"])) / 1000.0 * XFADE_SEG_FRAC
 		_snapshot_fade(p, clampf(win, XFADE_MIN, CROSSFADE_MS), pre_tex, pre_pos, pre_rot, pre_scl, pre_flip)
 	_advance_fades(p, delta)
+	_glow_update(p, float(kfs[seg].get("vfx_intensity", 0.0)))
+	_trail_update(p, bool(kfs[seg].get("trail_enabled", false)))
+
+## 子步4：按关键帧元数据触发打击感——顿帧（main.hitstop+姿势定格）/震屏/残影；
+## 仅一次性动作触发（idle/run/form 循环段的同类字段会周期性刷屏，不采用）
+static func _fire_meta(p, kf: Dictionary) -> void:
+	if not p.kf_one_shot:
+		return
+	var hs: float = float(kf.get("hitstop_ms", 0))
+	if hs > 0.0 and META_HITSTOP_SCALE > 0.0:
+		var sec: float = minf(hs / 1000.0 * META_HITSTOP_SCALE, META_HITSTOP_MAX)
+		if p.get("main") != null and p.main != null:
+			p.main.hitstop = maxf(float(p.main.hitstop), sec)
+		p.kf_freeze_left = maxf(float(p.kf_freeze_left), sec)
+	var cs: float = float(kf.get("camera_shake", 0.0))
+	if cs > 0.0 and p.get("main") != null and p.main != null and p.main.has_method("request_shake"):
+		p.main.request_shake(cs * META_SHAKE_SCALE)
+	if int(kf.get("afterimage_count", 0)) > 0 and float(p.kf_t) - float(p.kf_after_t) >= META_AFTER_GAP:
+		p.kf_after_t = float(p.kf_t)
+		if p.get("main") != null and p.main != null and p.main.has_method("spawn_phantom"):
+			for j in mini(int(kf.get("afterimage_count", 0)), 3):
+				p.main.spawn_phantom(p.global_position, p.sprite.flip_h, p.kf_sprite.texture, p.kf_sprite.scale, META_AFTER_LIFE + META_AFTER_STAGGER * j)
+
+## 子步4：vfx_intensity → 发光层（ADD 混合姿势叠层，法相/终结高强度时明显）
+static func _glow_update(p, intensity: float) -> void:
+	if p.kf_glow_sprite == null:
+		return
+	var a: float = clampf(intensity, 0.0, 1.0) * META_GLOW_ALPHA
+	if intensity < META_GLOW_MIN or a < 0.02 or not p.kf_sprite.visible:
+		p.kf_glow_sprite.visible = false
+		return
+	var g: Sprite2D = p.kf_glow_sprite
+	g.texture = p.kf_sprite.texture
+	g.flip_h = p.kf_sprite.flip_h
+	g.position = p.kf_sprite.position
+	g.rotation = p.kf_sprite.rotation
+	g.scale = p.kf_sprite.scale
+	g.modulate = Color(META_GLOW_COLOR.r, META_GLOW_COLOR.g, META_GLOW_COLOR.b, a)
+	g.visible = true
+
+## 子步4：trail_enabled → Line2D 拖尾（激活时采样全局坐标，失活时收缩回收）
+static func _trail_update(p, active: bool) -> void:
+	if p.kf_trail == null:
+		return
+	var tl: Line2D = p.kf_trail
+	if active and p.kf_sprite.visible:
+		tl.add_point(p.global_position)
+		while tl.get_point_count() > META_TRAIL_POINTS:
+			tl.remove_point(0)
+	else:
+		for j in mini(2, tl.get_point_count()):
+			tl.remove_point(0)
+	tl.visible = tl.get_point_count() >= 2
 
 ## 把一份姿势快照交给过渡层（子步2 姿势淡化 / 子步3 状态过渡共用）
 static func _snapshot_fade(p, dur: float, old_tex: Texture2D = null, old_pos := Vector2.INF, old_rot := 0.0, old_scl := Vector2.INF, old_flip := false) -> void:
