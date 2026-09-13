@@ -13,6 +13,10 @@ const BASE_CELL := 64.0            # 姿势格映射到 64 世界单位，人物
 
 # ---- M2 真动画调参区（负责人按观感可调） ----
 const POSE_INTERP := true          # 子步1：相邻关键帧间位移/旋转/缩放线性插值（false=回到取最近关键帧）
+const CROSSFADE_MS := 0.075        # 子步2：姿势交叉淡化时长上限（60–90ms 观感区）
+const XFADE_SEG_FRAC := 0.8        # 淡化窗不超过所在关键帧段时长的比例（短段防叠淡闪烁）
+const XFADE_MIN := 0.024           # 淡化窗下限（秒）
+const XFADE_IN_FROM := 0.0         # 新姿势淡入起始透明度
 
 ## 游戏 hero_id → V6.1 character_slug（白龙双形态：化龙时用马形）
 const HERO_SLUG := {
@@ -75,6 +79,20 @@ static func attach(p) -> void:
 	s.z_index = 1
 	p.add_child(s)
 	p.kf_sprite = s
+	var f := Sprite2D.new()
+	f.name = "KFFade"
+	f.visible = false
+	f.z_index = 1
+	p.add_child(f)
+	p.kf_fade_sprite = f
+
+## 隐藏全部关键帧演出层（动作清空/换装/退出法相时）
+static func hide_visuals(p) -> void:
+	if p.get("kf_sprite") != null:
+		p.kf_sprite.visible = false
+	if p.get("kf_fade_sprite") != null:
+		p.kf_fade_sprite.visible = false
+		p.kf_xfade_left = 0.0
 
 ## 发起一次动作；one_shot=false 为循环基底（idle/run/form）。不存在该动作时静默忽略。
 static func play_action(p, action: String, one_shot := true) -> void:
@@ -91,7 +109,7 @@ static func play_action(p, action: String, one_shot := true) -> void:
 	p.sprite.visible = false
 
 ## 每物理帧推进。循环基底（idle/run/form）按移动/法相状态实时切换；
-## 一次性动作播完自动清空 kf_action 回落循环基底。
+## 一次性动作播完自动清空 kf_action 回落循环基底（子步2 起回落经淡化层软化，不瞬切）。
 static func tick(p, delta: float, moving: bool) -> void:
 	if p.kf_slug == "":
 		return
@@ -106,7 +124,7 @@ static func tick(p, delta: float, moving: bool) -> void:
 			p.sprite.visible = false
 		elif p.kf_action == "" and not has_action(p.kf_slug, want):
 			p.sprite.visible = true
-			p.kf_sprite.visible = false
+			hide_visuals(p)
 			return
 	if p.kf_action == "":
 		return
@@ -115,12 +133,58 @@ static func tick(p, delta: float, moving: bool) -> void:
 	var dur: float = float(kfs[kfs.size() - 1]["time_ms"]) / 1000.0
 	if p.kf_one_shot and t >= dur:
 		p.kf_action = ""
-		p.kf_sprite.visible = false
 		return
 	if t >= dur:
 		t = wrapf(t, 0.0, dur)   # 循环基底
 	p.kf_t = t
+	var pre_tex: Texture2D = p.kf_sprite.texture
+	var pre_pos: Vector2 = p.kf_sprite.position
+	var pre_rot: float = p.kf_sprite.rotation
+	var pre_scl: Vector2 = p.kf_sprite.scale
+	var pre_flip: bool = p.kf_sprite.flip_h
 	_apply_pose(p, kfs)
+	if p.kf_sprite.texture != pre_tex and pre_tex != null:
+		_begin_xfade(p, kfs, pre_tex, pre_pos, pre_rot, pre_scl, pre_flip)
+	_advance_xfade(p, delta)
+
+## 子步2：旧姿势快照进淡化层，新姿势在淡化窗内淡入（窗长随关键帧段自适应）
+static func _begin_xfade(p, kfs: Array, old_tex: Texture2D, old_pos: Vector2, old_rot: float, old_scl: Vector2, old_flip: bool) -> void:
+	if p.kf_fade_sprite == null:
+		return
+	var t_ms: float = float(p.kf_t) * 1000.0
+	var i := _seg_index(kfs, t_ms)
+	var win: float = CROSSFADE_MS
+	if i + 1 < kfs.size():
+		win = (float(kfs[i + 1]["time_ms"]) - float(kfs[i]["time_ms"])) / 1000.0 * XFADE_SEG_FRAC
+	var dur: float = clampf(win, XFADE_MIN, CROSSFADE_MS)
+	var f: Sprite2D = p.kf_fade_sprite
+	f.texture = old_tex
+	f.flip_h = old_flip
+	f.position = old_pos
+	f.rotation = old_rot
+	f.scale = old_scl
+	p.kf_fade_base = p.kf_sprite.modulate
+	f.visible = true
+	p.kf_xfade_left = dur
+	p.kf_xfade_dur = dur
+
+## 每帧推进淡化：旧姿势 alpha 1→0，新姿势 alpha XFADE_IN_FROM→1
+static func _advance_xfade(p, delta: float) -> void:
+	if p.kf_fade_sprite == null:
+		return
+	if p.kf_xfade_left <= 0.0:
+		if p.kf_fade_sprite.visible:
+			p.kf_fade_sprite.visible = false
+		return
+	p.kf_xfade_left = maxf(0.0, p.kf_xfade_left - delta)
+	var k: float = 1.0 - p.kf_xfade_left / maxf(p.kf_xfade_dur, 0.001)
+	var m: Color = p.kf_sprite.modulate
+	m.a = lerpf(XFADE_IN_FROM, 1.0, k)
+	p.kf_sprite.modulate = m
+	var b: Color = p.kf_fade_base
+	p.kf_fade_sprite.modulate = Color(b.r, b.g, b.b, b.a * (1.0 - k))
+	if p.kf_xfade_left <= 0.0:
+		p.kf_fade_sprite.visible = false
 
 ## 循环基底选择：法相 > 跑动 > 站立
 static func _want_loop(p, moving: bool) -> String:

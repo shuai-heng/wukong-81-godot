@@ -71,6 +71,25 @@ func _run() -> void:
 	_chk(absf(p.kf_sprite.position.x + r_pos.x) < 0.001 and absf(p.kf_sprite.rotation + r_rot) < 0.0001, "flip镜像取反",
 		str([r_pos, p.kf_sprite.position, r_rot, p.kf_sprite.rotation]))
 	p.sprite.flip_h = false
+	# ---- M2 子步2：姿势交叉淡化 ----
+	_chk(p.kf_fade_sprite != null, "淡化层已创建")
+	if p.kf_fade_sprite != null:
+		Input.action_press("move_right")
+		var switched := false
+		var fade_alpha := -1.0
+		for i in 120:
+			await physics_frame
+			if not switched and p.kf_fade_sprite.visible:
+				switched = true
+				fade_alpha = p.kf_fade_sprite.modulate.a
+		Input.action_release("move_right")
+		_chk(switched, "姿势切换触发交叉淡化")
+		if switched:
+			_chk(fade_alpha > 0.0 and fade_alpha < 1.0, "淡化层中间透明度", str(fade_alpha))
+		for i in 40:
+			await physics_frame
+		_chk(not p.kf_fade_sprite.visible, "淡化层淡出后隐藏")
+		_chk(absf(p.kf_sprite.modulate.a - 1.0) < 0.01, "主精灵透明度回落", str(p.kf_sprite.modulate.a))
 	p.hero = "wukong"
 	p._kf_rebuild()
 	_chk(str(p.kf_slug) == "sun_wukong", "切悟空slug", p.kf_slug)

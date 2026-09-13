@@ -71,6 +71,10 @@ var kf_t := 0.0
 var kf_one_shot := false
 var kf_speed := 1.0
 var kf_dragon := false             # 白龙化龙形态跟踪（切 prince/horse 两套姿势库）
+var kf_fade_sprite: Sprite2D       # 子步2：交叉淡化层（旧姿势淡出）
+var kf_xfade_left := 0.0
+var kf_xfade_dur := 0.075
+var kf_fade_base := Color.WHITE    # 快照时的着色（受伤/化龙 tint）
 
 # ---- 卡牌数值（web BALANCE_CAPS 同源） ----
 func lvl(id: String) -> int:
@@ -151,8 +155,7 @@ func _kf_rebuild() -> void:
 	kf_slug = slug
 	kf_action = ""
 	kf_t = 0.0
-	if kf_sprite != null:
-		kf_sprite.visible = false
+	KeyframeLib.hide_visuals(self)
 	# 新角色有关键帧库则整体换装（idle/run/技能全走 V6.1），否则保持旧图集
 	sprite.visible = slug == ""
 
@@ -399,8 +402,7 @@ func _enter_form() -> void:
 func _exit_form() -> void:
 	form_left = 0.0
 	kf_action = ""
-	if kf_sprite != null:
-		kf_sprite.visible = false
+	KeyframeLib.hide_visuals(self)
 	sprite.scale = Vector2.ONE * art_scale
 	modulate = Color.WHITE
 
