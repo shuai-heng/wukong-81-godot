@@ -46,6 +46,14 @@ var elapsed := 0.0
 var orbs: Array = []          # {pos: Vector2}
 var phantoms: Array = []      # {node: Sprite2D, life: float, next: float}
 var fx_rings: Array = []
+# ---- R3 · 完整技能释放：技能弹体与地面反馈 ----
+var fx_shots: Array = []     # 技能弹体 {from,to,t,dur,color,r,on_arrive}——命中绑定到达
+var fx_dust: Array = []      # 地面尘土 {pos,r,life,max,vx,vy}
+var fx_decals: Array = []    # 地面焦痕 {pos,r,life,max,color}
+var fx_marks: Array = []     # 落点预告圈 {pos,r,life,max,color}
+const DECAL_LIFE := 2.6
+const DUST_LIFE := 0.5
+const MARK_PULSE := 9.0      # 预告圈脉动频率
 var bullets: Array = []       # Boss 弹：{pos, v, dmg, life}
 var floaters: Array = []      # 伤害数字
 var burst: Array = []         # 击杀爆点粒子
@@ -382,12 +390,68 @@ func spawn_fx(pos: Vector2, r: float, color: Color) -> void:
 	fx_rings.append({"pos": pos, "r": 12.0, "max": r, "life": 0.38, "color": color})
 	queue_redraw()
 
+# ---- R3 · 完整技能释放演出接口（玩家经 has_method 探测调用） ----
+func spawn_skill_shot(from: Vector2, to: Vector2, dur: float, color: Color, r := 9.0, on_arrive: Callable = Callable()) -> void:
+	fx_shots.append({"pos": from, "from": from, "to": to, "t": 0.0, "dur": maxf(dur, 0.04), "color": color, "r": r, "on_arrive": on_arrive})
+	queue_redraw()
+
+func spawn_dust(pos: Vector2, r: float, n := 4) -> void:
+	for i in n:
+		var ang := rng.randf_range(0.0, TAU)
+		fx_dust.append({"pos": pos + Vector2(cos(ang), sin(ang) * 0.42) * r * 0.55,
+			"r": rng.randf_range(r * 0.35, r * 0.8),
+			"life": DUST_LIFE * rng.randf_range(0.7, 1.2), "max": DUST_LIFE,
+			"vx": cos(ang) * 26.0, "vy": -rng.randf_range(14.0, 34.0)})
+	queue_redraw()
+
+func spawn_decal(pos: Vector2, r: float, color: Color) -> void:
+	fx_decals.append({"pos": pos + Vector2(0, 4), "r": r, "life": DECAL_LIFE, "max": DECAL_LIFE, "color": color})
+	queue_redraw()
+
+func spawn_ground_mark(pos: Vector2, r: float, life: float, color: Color) -> void:
+	fx_marks.append({"pos": pos, "r": r, "life": maxf(life, 0.05), "max": maxf(life, 0.05), "color": color})
+	queue_redraw()
+
+## 冲击组合：扩散环 + 尘土 + 地面焦痕（命中/砸落点的地图反馈）
+func spawn_impact(pos: Vector2, r: float, color: Color) -> void:
+	spawn_fx(pos, r * 0.9, color)
+	spawn_dust(pos, minf(r, 90.0), 6)
+	spawn_decal(pos, minf(r, 80.0), color)
+
 func _fx_tick(delta: float) -> void:
 	for f in fx_rings.duplicate():
 		f["life"] -= delta
 		f["r"] = lerpf(f["max"], 12.0, f["life"] / 0.38)
 		if f["life"] <= 0.0:
 			fx_rings.erase(f)
+	for s in fx_shots.duplicate():
+		s["t"] = float(s["t"]) + delta
+		var sfrom: Vector2 = s["from"]
+		var sto: Vector2 = s["to"]
+		var k: float = clampf(float(s["t"]) / float(s["dur"]), 0.0, 1.0)
+		var ek: float = 1.0 - (1.0 - k) * (1.0 - k)
+		s["pos"] = sfrom.lerp(sto, ek)
+		if k >= 1.0:
+			var cb: Callable = s["on_arrive"]
+			fx_shots.erase(s)
+			if cb.is_valid():
+				cb.call()
+	for d in fx_dust.duplicate():
+		d["life"] = float(d["life"]) - delta
+		var dp: Vector2 = d["pos"]
+		dp.x += float(d["vx"]) * delta
+		dp.y += float(d["vy"]) * delta
+		d["pos"] = dp
+		if float(d["life"]) <= 0.0:
+			fx_dust.erase(d)
+	for dc in fx_decals.duplicate():
+		dc["life"] = float(dc["life"]) - delta
+		if float(dc["life"]) <= 0.0:
+			fx_decals.erase(dc)
+	for mk in fx_marks.duplicate():
+		mk["life"] = float(mk["life"]) - delta
+		if float(mk["life"]) <= 0.0:
+			fx_marks.erase(mk)
 	queue_redraw()
 
 
@@ -453,6 +517,42 @@ func _visual_tick(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	# ---- R3 地面层：焦痕（人物脚下、弹着点）/ 落点预告圈 / 尘土 ----
+	for dc in fx_decals:
+		var da: float = clampf(float(dc["life"]) / float(dc["max"]), 0.0, 1.0)
+		var dpos: Vector2 = dc["pos"]
+		var dcol: Color = dc["color"]
+		dcol = Color(dcol.r * 0.30 + 0.04, dcol.g * 0.24 + 0.03, dcol.b * 0.20 + 0.03, 0.36 * da)
+		draw_set_transform(dpos + Vector2(0, 3), 0.0, Vector2(1.0, 0.42))
+		draw_circle(Vector2.ZERO, float(dc["r"]), dcol)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for mk in fx_marks:
+		var mpos: Vector2 = mk["pos"]
+		var lf: float = clampf(float(mk["life"]) / float(mk["max"]), 0.0, 1.0)
+		var pulse: float = 0.55 + 0.45 * absf(sin(float(mk["life"]) * MARK_PULSE))
+		var mcol: Color = mk["color"]
+		mcol.a = (0.28 + 0.5 * (1.0 - lf)) * pulse
+		draw_arc(mpos, float(mk["r"]), 0, TAU, 40, mcol, 2.0)
+		var mcol2: Color = mcol
+		mcol2.a *= 0.55
+		draw_arc(mpos, float(mk["r"]) * lf, 0, TAU, 32, mcol2, 1.5)
+	for d in fx_dust:
+		var dfa: float = clampf(float(d["life"]) / float(d["max"]), 0.0, 1.0)
+		var fdpos: Vector2 = d["pos"]
+		draw_circle(fdpos, float(d["r"]) * (1.0 + 0.5 * (1.0 - dfa)), Color(0.78, 0.74, 0.66, 0.35 * dfa))
+	# ---- R3 技能弹体：色晕 + 白核 + 来向拖尾 ----
+	for s in fx_shots:
+		var spos: Vector2 = s["pos"]
+		var sto: Vector2 = s["to"]
+		var scol: Color = s["color"]
+		var dirv: Vector2 = sto - spos
+		if dirv.length() > 1.0:
+			dirv = dirv.normalized()
+			var tail: Vector2 = spos - dirv * 26.0
+			draw_line(tail, spos, Color(scol.r, scol.g, scol.b, 0.4), float(s["r"]) * 0.7)
+			draw_line(tail - dirv * 14.0, tail, Color(scol.r, scol.g, scol.b, 0.18), float(s["r"]) * 0.4)
+		draw_circle(spos, float(s["r"]) * 1.7, Color(scol.r, scol.g, scol.b, 0.35))
+		draw_circle(spos, float(s["r"]), Color(1.0, 1.0, 1.0, 0.9))
 	for orb in orbs:
 		draw_rect(Rect2(orb["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(0.45, 0.9, 1.0))
 	for f in fx_rings:

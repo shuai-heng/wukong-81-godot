@@ -53,8 +53,19 @@ const READ_SCALE := {
 ## 战斗节奏压缩：普攻/位移类短动作加速播放，避免 0.5s 攻击间隔内动作拖沓
 const ACTION_SPEED := {"atk_combo": 2.0, "heavy": 1.6, "dodge": 1.5}
 
+# ---- M2 返工（R3）· 完整技能释放编排调参区（负责人按观感可调） ----
+const ANCHOR_DATA := "res://data/v6_pose_anchors.json"  # 姿势特效锚点（离线提取：质心/前缘/半径/强度）
+const RELEASE_MIN_FRAC := 0.15   # 释放帧钳位下限（动作时长占比）
+const RELEASE_MAX_FRAC := 0.75   # 释放帧钳位上限
+const RELEASE_FALLBACK_FRAC := 0.45  # 无 hitbox/hitstop 元数据时的释放点
+const CHARGE_ORB_BASE := 0.20    # 蓄力光点基础尺寸（×64px 径向纹理）
+const CHARGE_ORB_SWELL := 0.30   # 蓄力推进增大的幅度
+const CHARGE_PULSE := 0.10       # 蓄力光点呼吸幅度
+
 static var _acts := {}             # character_slug -> {action_slug: Array[kf Dictionary]}
 static var _tex_cache := {}
+static var _anchors := {}          # "slug/pose.png" -> {c:[x,y], f:[x,y], r:px, w:0-1}
+static var _rel_cache := {}        # "slug:action" -> 释放时刻（动作时间轴秒）
 
 static func _load() -> bool:
 	if not _acts.is_empty():
@@ -122,6 +133,26 @@ static func attach(p) -> void:
 	tl.z_index = -1
 	p.add_child(tl)
 	p.kf_trail = tl
+	# R3：蓄力光点（径向渐变纹理，ADD 混合，锚点跟随）——起手期在武器/施法锚点上凝聚
+	var orb := Sprite2D.new()
+	orb.name = "KFOrb"
+	orb.visible = false
+	orb.z_index = 3
+	var om := CanvasItemMaterial.new()
+	om.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	orb.material = om
+	var gt := GradientTexture2D.new()
+	gt.width = 64
+	gt.height = 64
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	var gr := Gradient.new()
+	gr.offsets = PackedFloat32Array([0.0, 0.35, 1.0])
+	gr.colors = PackedColorArray([Color.WHITE, Color(1.0, 0.97, 0.85, 0.8), Color(1.0, 0.9, 0.6, 0.0)])
+	gt.gradient = gr
+	orb.texture = gt
+	p.add_child(orb)
+	p.kf_orb = orb
 
 ## 隐藏全部关键帧演出层（动作清空/换装/退出法相时）
 static func hide_visuals(p) -> void:
@@ -133,6 +164,8 @@ static func hide_visuals(p) -> void:
 		p.kf_blend_left = 0.0
 	if p.get("kf_glow_sprite") != null:
 		p.kf_glow_sprite.visible = false
+	if p.get("kf_orb") != null:
+		p.kf_orb.visible = false
 	if p.get("kf_trail") != null:
 		p.kf_trail.visible = false
 		p.kf_trail.clear_points()
@@ -151,6 +184,8 @@ static func play_action(p, action: String, one_shot := true) -> void:
 ## 新动作以 BLEND_ALPHA_FROM 淡入 + STATE_BLEND_SCALE 缩放缓冲，消除切换 pop。
 static func _switch_action(p, action: String, one_shot: bool) -> void:
 	_snapshot_fade(p, STATE_BLEND_MS)
+	if p.has_method("kf_cancel_release"):
+		p.kf_cancel_release()   # 动作被打断即取消未释放的判定（R3 编排）
 	p.kf_action = action
 	p.kf_t = 0.0
 	p.kf_one_shot = one_shot
@@ -379,3 +414,131 @@ static func _pose_tex(kf: Dictionary) -> Texture2D:
 			_tex_cache[path] = tex
 			return tex
 	return null
+
+# ================= R3 · 完整技能释放编排（锚点/释放帧/蓄力） =================
+
+static func _load_anchors() -> void:
+	if not _anchors.is_empty():
+		return
+	var raw := FileAccess.get_file_as_string(ANCHOR_DATA)
+	if raw.is_empty():
+		return
+	var parsed = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		_anchors = parsed
+
+## 当前姿势的锚点（归一化 [0,1]，随关键帧插值平滑移动）
+## kind: "c"=特效质心（周身/nova 生成点） "f"=前缘点（突刺/投射物生成点，≈武器端方向）
+static func _anchor_norm(p, kind: String) -> Vector2:
+	_load_anchors()
+	var def := Vector2(0.5, 0.6)
+	if p.kf_slug == "" or p.kf_action == "":
+		return def
+	var kfs: Array = _acts.get(String(p.kf_slug), {}).get(String(p.kf_action), [])
+	if kfs.is_empty():
+		return def
+	var seg := _seg_index(kfs, float(p.kf_t) * 1000.0)
+	var kf: Dictionary = kfs[seg]
+	var key := String(p.kf_slug) + "/" + String(kf["pose_file"]).get_file()
+	var a: Dictionary = _anchors.get(key, {})
+	var nx: float = float(Array(a.get(kind, [def.x, def.y]))[0])
+	var ny: float = float(Array(a.get(kind, [def.x, def.y]))[1])
+	if POSE_INTERP and seg + 1 < kfs.size():
+		var nxt: Dictionary = kfs[seg + 1]
+		var b: Dictionary = _anchors.get(String(p.kf_slug) + "/" + String(nxt["pose_file"]).get_file(), {})
+		var bx: float = float(Array(b.get(kind, [nx, ny]))[0])
+		var by: float = float(Array(b.get(kind, [nx, ny]))[1])
+		var span: float = float(nxt["time_ms"]) - float(kf["time_ms"])
+		if span > 0.5:
+			var al: float = clampf((float(p.kf_t) * 1000.0 - float(kf["time_ms"])) / span, 0.0, 1.0)
+			nx = lerpf(nx, bx, al)
+			ny = lerpf(ny, by, al)
+	return Vector2(nx, ny)
+
+## 当前姿势特效强度（0-1，蓄力光点大小参考）
+static func _anchor_w(p) -> float:
+	_load_anchors()
+	if p.kf_slug == "" or p.kf_action == "":
+		return 0.0
+	var kfs: Array = _acts.get(String(p.kf_slug), {}).get(String(p.kf_action), [])
+	if kfs.is_empty():
+		return 0.0
+	var seg := _seg_index(kfs, float(p.kf_t) * 1000.0)
+	var kf: Dictionary = kfs[seg]
+	var a: Dictionary = _anchors.get(String(p.kf_slug) + "/" + String(kf["pose_file"]).get_file(), {})
+	return float(a.get("w", 0.0))
+
+## 锚点的世界坐标（套用姿势精灵的位移/旋转/缩放/flip 镜像——技能从此点生成）
+static func anchor_world(p, kind := "f") -> Vector2:
+	if p.get("kf_sprite") == null or p.kf_sprite.texture == null or not p.kf_sprite.visible:
+		return p.global_position
+	var an := _anchor_norm(p, kind)
+	var lx := (an.x - 0.5) * POSE_CELL
+	var ly := (an.y - 0.5) * POSE_CELL
+	if p.kf_sprite.flip_h:
+		lx = -lx
+	var v: Vector2 = Vector2(lx, ly) * p.kf_sprite.scale
+	v = v.rotated(p.kf_sprite.rotation)
+	return p.global_position + p.kf_sprite.position + v
+
+## 判定释放时刻（动作自身时间轴，秒）：首个 hitbox_active 关键帧；
+## 退回首个 hitstop_ms>0；再退回时长占比 45%。钳位 [15%, 75%]。
+static func release_time(slug: String, action: String) -> float:
+	var ck := slug + ":" + action
+	if _rel_cache.has(ck):
+		return float(_rel_cache[ck])
+	var kfs: Array = _acts.get(slug, {}).get(action, [])
+	var dur := 0.6
+	if not kfs.is_empty():
+		dur = float(kfs[kfs.size() - 1]["time_ms"]) / 1000.0
+	var ms := -1.0
+	for kf in kfs:
+		if bool(kf.get("hitbox_active", false)):
+			ms = float(kf["time_ms"])
+			break
+	if ms < 0.0:
+		for kf in kfs:
+			if float(kf.get("hitstop_ms", 0)) > 0.0:
+				ms = float(kf["time_ms"])
+				break
+	if ms < 0.0:
+		ms = dur * 1000.0 * RELEASE_FALLBACK_FRAC
+	var rel: float = clampf(ms / 1000.0, dur * RELEASE_MIN_FRAC, dur * RELEASE_MAX_FRAC)
+	_rel_cache[ck] = rel
+	return rel
+
+## 登记一次待释放判定（玩家 _kf_cast 调用；tick 推进到释放时刻由玩家回调结算）
+static func schedule_release(p, action: String, cb: Callable) -> void:
+	p.kf_release_t = release_time(String(p.kf_slug), action)
+	p.kf_release_cb = cb
+	p.kf_cast_action = action
+
+## 蓄力光点跟随锚点（释放前每帧调用；progress<0 隐藏）
+static func update_charge(p, progress: float) -> void:
+	if p.get("kf_orb") == null:
+		return
+	var orb: Sprite2D = p.kf_orb
+	if progress < 0.0:
+		orb.visible = false
+		return
+	var col := action_color(p)
+	orb.global_position = anchor_world(p, "f")
+	var s: float = CHARGE_ORB_BASE + CHARGE_ORB_SWELL * clampf(progress, 0.0, 1.0) + 0.10 * _anchor_w(p)
+	s *= 1.0 + CHARGE_PULSE * sin(float(p.kf_t) * 46.0)
+	orb.scale = Vector2(s, s)
+	orb.modulate = Color(col.r, col.g, col.b, 0.55 + 0.40 * clampf(progress, 0.0, 1.0))
+	orb.visible = true
+
+## 当前关键帧的官方特效主色（primary_color "#RRGGBB"）
+static func action_color(p) -> Color:
+	if p.kf_slug == "" or p.kf_action == "":
+		return Color("ffd46b")
+	var kfs: Array = _acts.get(String(p.kf_slug), {}).get(String(p.kf_action), [])
+	if kfs.is_empty():
+		return Color("ffd46b")
+	var seg := _seg_index(kfs, float(p.kf_t) * 1000.0)
+	var c := Color("ffd46b")
+	var raw := String(kfs[seg].get("primary_color", ""))
+	if raw.begins_with("#"):
+		c = Color(raw)
+	return c

@@ -1,8 +1,8 @@
 extends SceneTree
-## M2 真动画升级 · 实况录像舞台（带窗 + --write-movie 录制到 evidence/）
-## 用法：Godot_console --path . -s tests/kf_stage.gd --write-movie evidence/<步骤名>.avi -- --title=标题
-## 复用真实 player.gd/keyframe_lib.gd，配桩主循环（顿帧/震屏/特效/飘字）与两个木桩敌人，
-## 依次演示 7 英雄的 idle/run/flip/Q/E/冲刺/法相/终结，供负责人目测动画观感。
+## M2 返工（R3）· 完整技能释放 实况录像舞台（带窗 + --write-movie 录制到 evidence/）
+## 用法：Godot_console --path . -s tests/kf_stage.gd --write-movie evidence/<名>.avi -- --title=标题
+## 复用真实 player.gd/keyframe_lib.gd/main 式特效系统，配 tiled 地面与木桩敌人，
+## 依次演示 7 英雄：起手蓄力（锚点光点）→ 释放帧结算 → 弹体轨迹 → 命中冲击 → 地图反馈（尘土/焦痕/预告圈）。
 
 const HEROES := ["tang", "wukong", "whiteDragon", "bajie", "shaWujing", "nezha", "erlang"]
 const NAMES := {"tang": "唐僧", "wukong": "悟空", "whiteDragon": "小白龙", "bajie": "八戒",
@@ -20,7 +20,7 @@ func _wait(s: float) -> void:
 	await create_timer(s).timeout
 
 func _run() -> void:
-	var title := "M2 真动画升级"
+	var title := "R3 完整技能释放：起手→锚点生成→轨迹→命中→地图反馈"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--title="):
 			title = arg.trim_prefix("--title=")
@@ -38,7 +38,7 @@ func _run() -> void:
 	cam.position_smoothing_enabled = true
 	p.add_child(cam)
 	cam.make_current()
-	for off in [Vector2(112.0, 0.0), Vector2(-112.0, -26.0)]:
+	for off in [Vector2(150.0, -14.0), Vector2(210.0, 40.0), Vector2(-130.0, -30.0)]:
 		var d := Dummy.new()
 		d.position = p.position + off
 		world.add_child(d)
@@ -59,39 +59,41 @@ func _run() -> void:
 	await _wait(0.8)
 	for h in HEROES:
 		await _hero_pass(h)
-	await _wait(0.6)
+	await _wait(0.8)
 	print("KF_STAGE done")
 	quit(0)
 
 func _hero_pass(h: String) -> void:
 	lbl_state.text = "%s · %s" % [NAMES[h], h]
 	p.set_hero(h)
-	await _wait(0.8)
+	await _wait(0.7)
 	Input.action_press("move_right")
-	await _wait(0.9)
+	await _wait(0.7)
 	Input.action_release("move_right")
 	Input.action_press("move_left")
-	await _wait(0.55)
+	await _wait(0.35)
 	Input.action_release("move_left")
-	await _wait(0.15)
+	await _wait(0.2)
+	p.sprite.flip_h = false   # 面向右侧木桩演示技能全链条
 	p._cast_q()
-	await _wait(0.85)
+	await _wait(1.25)         # 起手（蓄力光点）+ 释放 + 命中反馈
 	p._cast_e()
-	await _wait(0.85)
+	await _wait(1.25)         # 落点预告圈 → 砸落 → 尘土焦痕
 	p._do_dash(Vector2.RIGHT)
-	await _wait(0.55)
+	await _wait(0.45)
 	if h in ["tang", "whiteDragon"]:
 		p._cast_g()
-		await _wait(1.0)
-	p.add_form_charge(100.0)
-	await _wait(1.3)
-	p.ult = 100.0
-	p._cast_ult()
-	await _wait(1.5)
-	p._exit_form()
-	await _wait(0.5)
+		await _wait(0.9)
+	if h == "wukong":
+		p.add_form_charge(100.0)
+		await _wait(1.2)
+		p.ult = 100.0
+		p._cast_ult()
+		await _wait(1.4)
+		p._exit_form()
+		await _wait(0.4)
 
-## 桩主循环：对齐 main.gd 的视觉接口（顿帧/震屏/光环/飘字/残影），不改战斗数值
+## 桩主循环：对齐 main.gd 的视觉接口（顿帧/震屏/环/飘字/残影 + R3 弹体/尘土/焦痕/预告圈）
 class StubMain extends Node2D:
 	var stage: SceneTree
 	var rng := RandomNumberGenerator.new()
@@ -100,6 +102,10 @@ class StubMain extends Node2D:
 	var fx_rings: Array = []
 	var floaters: Array = []
 	var ghosts: Array = []
+	var fx_shots: Array = []
+	var fx_dust: Array = []
+	var fx_decals: Array = []
+	var fx_marks: Array = []
 
 	func _ready() -> void:
 		rng.seed = 20260913
@@ -109,7 +115,8 @@ class StubMain extends Node2D:
 		if stage and stage.p != null:
 			if stage.p.kf_slug != "":
 				var a := str(stage.p.kf_action)
-				stage.lbl_state.text = stage.lbl_state.text.split(" · ")[0] + " · " + (a if a != "" else "(回落)")
+				var phase := "蓄力" if float(stage.p.kf_release_t) >= 0.0 else ""
+				stage.lbl_state.text = stage.lbl_state.text.split(" · ")[0] + " · " + (a if a != "" else "(回落)") + ("·" + phase if phase != "" else "")
 		if hitstop > 0.0:
 			hitstop -= delta
 			_shake_tick(delta)
@@ -117,6 +124,7 @@ class StubMain extends Node2D:
 			return
 		_shake_tick(delta)
 		_visual_tick(delta)
+		_fx_tick(delta)
 		for g in ghosts.duplicate():
 			g["life"] -= delta
 			g["node"].modulate.a = maxf(0.0, minf(0.6, g["life"] * 2.0))
@@ -133,6 +141,56 @@ class StubMain extends Node2D:
 	func spawn_fx(pos: Vector2, r: float, color: Color) -> void:
 		fx_rings.append({"pos": pos, "r": 12.0, "max": r, "life": 0.38, "color": color})
 		queue_redraw()
+
+	func spawn_skill_shot(from: Vector2, to: Vector2, dur: float, color: Color, r := 9.0, on_arrive: Callable = Callable()) -> void:
+		fx_shots.append({"pos": from, "from": from, "to": to, "t": 0.0, "dur": maxf(dur, 0.04), "color": color, "r": r, "on_arrive": on_arrive})
+
+	func spawn_dust(pos: Vector2, r: float, n := 4) -> void:
+		for i in n:
+			var ang := rng.randf_range(0.0, TAU)
+			fx_dust.append({"pos": pos + Vector2(cos(ang), sin(ang) * 0.42) * r * 0.55,
+				"r": rng.randf_range(r * 0.35, r * 0.8), "life": 0.5, "max": 0.5,
+				"vx": cos(ang) * 26.0, "vy": -rng.randf_range(14.0, 34.0)})
+
+	func spawn_decal(pos: Vector2, r: float, color: Color) -> void:
+		fx_decals.append({"pos": pos + Vector2(0, 4), "r": r, "life": 2.6, "max": 2.6, "color": color})
+
+	func spawn_ground_mark(pos: Vector2, r: float, life: float, color: Color) -> void:
+		fx_marks.append({"pos": pos, "r": r, "life": maxf(life, 0.05), "max": maxf(life, 0.05), "color": color})
+
+	func spawn_impact(pos: Vector2, r: float, color: Color) -> void:
+		spawn_fx(pos, r * 0.9, color)
+		spawn_dust(pos, minf(r, 90.0), 6)
+		spawn_decal(pos, minf(r, 80.0), color)
+
+	func _fx_tick(delta: float) -> void:
+		for s in fx_shots.duplicate():
+			s["t"] = float(s["t"]) + delta
+			var sfrom: Vector2 = s["from"]
+			var sto: Vector2 = s["to"]
+			var k: float = clampf(float(s["t"]) / float(s["dur"]), 0.0, 1.0)
+			s["pos"] = sfrom.lerp(sto, 1.0 - (1.0 - k) * (1.0 - k))
+			if k >= 1.0:
+				var cb: Callable = s["on_arrive"]
+				fx_shots.erase(s)
+				if cb.is_valid():
+					cb.call()
+		for d in fx_dust.duplicate():
+			d["life"] = float(d["life"]) - delta
+			var dp: Vector2 = d["pos"]
+			dp.x += float(d["vx"]) * delta
+			dp.y += float(d["vy"]) * delta
+			d["pos"] = dp
+			if float(d["life"]) <= 0.0:
+				fx_dust.erase(d)
+		for dc in fx_decals.duplicate():
+			dc["life"] = float(dc["life"]) - delta
+			if float(dc["life"]) <= 0.0:
+				fx_decals.erase(dc)
+		for mk in fx_marks.duplicate():
+			mk["life"] = float(mk["life"]) - delta
+			if float(mk["life"]) <= 0.0:
+				fx_marks.erase(mk)
 
 	func request_shake(s: float) -> void:
 		shake = maxf(shake, s)
@@ -176,9 +234,51 @@ class StubMain extends Node2D:
 				fx_rings.erase(f)
 
 	func _draw() -> void:
-		draw_rect(Rect2(-600, -400, 1840, 1160), Color(0.07, 0.09, 0.13))
-		draw_rect(Rect2(40, 60, 560, 360), Color(0.10, 0.13, 0.18))
-		draw_line(Vector2(40, 320), Vector2(600, 320), Color(0.25, 0.3, 0.38), 2.0)
+		# 地图：双色 tiled 地面 + 碎石点（技能地图反馈的载体）
+		for iy in 16:
+			for ix in 23:
+				var v := (ix * 7 + iy * 13) % 3
+				var c := Color(0.10, 0.13, 0.17) if v == 0 else (Color(0.12, 0.15, 0.20) if v == 1 else Color(0.11, 0.14, 0.185))
+				draw_rect(Rect2(-600 + ix * 52, -400 + iy * 52, 52, 52), c)
+				if v == 2:
+					draw_circle(Vector2(-600 + ix * 52 + 26, -400 + iy * 52 + 30), 2.2, Color(0.16, 0.19, 0.24))
+		draw_rect(Rect2(-600, -400, 1840, 1160), Color(0.05, 0.07, 0.1), false, 2.0)
+		# 地面层：焦痕 / 预告圈 / 尘土
+		for dc in fx_decals:
+			var da: float = clampf(float(dc["life"]) / float(dc["max"]), 0.0, 1.0)
+			var dpos: Vector2 = dc["pos"]
+			var dcol: Color = dc["color"]
+			dcol = Color(dcol.r * 0.30 + 0.04, dcol.g * 0.24 + 0.03, dcol.b * 0.20 + 0.03, 0.36 * da)
+			draw_set_transform(dpos + Vector2(0, 3), 0.0, Vector2(1.0, 0.42))
+			draw_circle(Vector2.ZERO, float(dc["r"]), dcol)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		for mk in fx_marks:
+			var mpos: Vector2 = mk["pos"]
+			var lf: float = clampf(float(mk["life"]) / float(mk["max"]), 0.0, 1.0)
+			var mcol: Color = mk["color"]
+			mcol.a = (0.28 + 0.5 * (1.0 - lf)) * (0.55 + 0.45 * absf(sin(float(mk["life"]) * 9.0)))
+			draw_arc(mpos, float(mk["r"]), 0, TAU, 40, mcol, 2.0)
+			var mcol2: Color = mcol
+			mcol2.a *= 0.55
+			draw_arc(mpos, float(mk["r"]) * lf, 0, TAU, 32, mcol2, 1.5)
+		for d in fx_dust:
+			var dfa: float = clampf(float(d["life"]) / float(d["max"]), 0.0, 1.0)
+			var fdpos: Vector2 = d["pos"]
+			draw_circle(fdpos, float(d["r"]) * (1.0 + 0.5 * (1.0 - dfa)), Color(0.78, 0.74, 0.66, 0.35 * dfa))
+		# 技能弹体
+		for s in fx_shots:
+			var spos: Vector2 = s["pos"]
+			var sto: Vector2 = s["to"]
+			var scol: Color = s["color"]
+			var dirv: Vector2 = sto - spos
+			if dirv.length() > 1.0:
+				dirv = dirv.normalized()
+				var tail: Vector2 = spos - dirv * 26.0
+				draw_line(tail, spos, Color(scol.r, scol.g, scol.b, 0.4), float(s["r"]) * 0.7)
+				draw_line(tail - dirv * 14.0, tail, Color(scol.r, scol.g, scol.b, 0.18), float(s["r"]) * 0.4)
+			draw_circle(spos, float(s["r"]) * 1.7, Color(scol.r, scol.g, scol.b, 0.35))
+			draw_circle(spos, float(s["r"]), Color(1.0, 1.0, 1.0, 0.9))
+		# 扩散环 / 飘字
 		for f in fx_rings:
 			var c: Color = f["color"]
 			c.a = clampf(f["life"] / 0.38, 0.0, 1.0) * 0.8
@@ -207,9 +307,21 @@ class Dummy extends Node2D:
 		hp -= dmg
 		flash = 0.12
 		position += knock * 0.05
-		position = position.clamp(Vector2(140, 100), Vector2(500, 400))
+		position = position.clamp(Vector2(140, 100), Vector2(540, 400))
+
+	func apply_burn(bl: int, dur: float) -> void:
+		flash = 0.2
+
+	func apply_frost(dur: float, slow: float) -> void:
+		flash = 0.16
+
+	func has_dragon() -> bool:
+		return false
 
 	func _draw() -> void:
+		draw_set_transform(Vector2(0, 26), 0.0, Vector2(1.0, 0.34))
+		draw_circle(Vector2.ZERO, 15.0, Color(0.0, 0.0, 0.0, 0.3))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var c := Color(0.45, 0.5, 0.6) if flash <= 0.0 else Color(1.0, 0.6, 0.5)
 		draw_rect(Rect2(-12, -34, 24, 48), c)
 		draw_rect(Rect2(-12, -42, 24, 6), Color(0.3, 0.34, 0.4))

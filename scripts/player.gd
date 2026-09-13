@@ -82,6 +82,10 @@ var kf_trail: Line2D               # 子步4：trail_enabled 拖尾
 var kf_seg := -1                   # 当前关键帧段索引（元数据触发去重）
 var kf_freeze_left := 0.0          # 子步4：元数据顿帧定格计时
 var kf_after_t := -1.0             # 子步4：上次残影生成的动作时刻（限频）
+var kf_orb: Sprite2D               # R3：蓄力光点（锚点跟随，起手期凝聚）
+var kf_release_t := -1.0           # R3：判定释放时刻（动作时间轴秒；-1=无待释放）
+var kf_release_cb: Callable = Callable()  # R3：释放时结算的回调（伤害/特效/位移）
+var kf_cast_action := ""           # R3：待释放判定的归属动作（被打断即取消）
 
 # ---- 卡牌数值（web BALANCE_CAPS 同源） ----
 func lvl(id: String) -> int:
@@ -168,6 +172,65 @@ func _kf_rebuild() -> void:
 
 func _kf_act(action: String, one_shot := true) -> void:
 	KeyframeLib.play_action(self, action, one_shot)
+
+# ---- R3 · 完整技能释放编排：起手（蓄力光点跟锚点）→ 释放帧结算（伤害/主特效/位移）----
+# _kf_cast 返回真实起手时长（秒），供落点预告等演出对齐；数据缺失时立即结算（旧手感兜底）。
+func _kf_cast(action: String, cb: Callable) -> float:
+	_kf_act(action)
+	if kf_slug == "" or not KeyframeLib.has_action(kf_slug, action):
+		if cb.is_valid():
+			cb.call()
+		return 0.0
+	KeyframeLib.schedule_release(self, action, cb)
+	return float(kf_release_t) / maxf(kf_speed, 0.01)
+
+func kf_cancel_release() -> void:
+	kf_release_t = -1.0
+	kf_release_cb = Callable()
+	kf_cast_action = ""
+	if kf_orb != null:
+		kf_orb.visible = false
+
+func _kf_release_tick() -> void:
+	if kf_release_t < 0.0:
+		return
+	if str(kf_action) != kf_cast_action:
+		kf_cancel_release()   # 动作被打断/收招清空：未释放的判定作废
+		return
+	if kf_t >= kf_release_t:
+		var cb: Callable = kf_release_cb
+		kf_cancel_release()
+		if cb.is_valid():
+			cb.call()
+	else:
+		KeyframeLib.update_charge(self, kf_t / maxf(kf_release_t, 0.001))
+
+# ---- R3 · 演出反馈便捷口（老 main/桩主循环无新方法时自动退化） ----
+func _fx_impact(pos: Vector2, r: float, color: Color) -> void:
+	if main == null:
+		return
+	if main.has_method("spawn_impact"):
+		main.spawn_impact(pos, r, color)
+	else:
+		main.spawn_fx(pos, r, color)
+
+func _fx_shot(from: Vector2, to: Vector2, dur: float, color: Color, r := 9.0, on_arrive: Callable = Callable()) -> void:
+	if main == null:
+		return
+	if main.has_method("spawn_skill_shot"):
+		main.spawn_skill_shot(from, to, dur, color, r, on_arrive)
+	else:
+		_fx_impact(to, r * 2.0, color)
+		if on_arrive.is_valid():
+			on_arrive.call()
+
+func _fx_mark(pos: Vector2, r: float, life: float, color: Color) -> void:
+	if main != null and main.has_method("spawn_ground_mark"):
+		main.spawn_ground_mark(pos, r, life, color)
+
+func _fx_dust(pos: Vector2, r: float, n := 4) -> void:
+	if main != null and main.has_method("spawn_dust"):
+		main.spawn_dust(pos, r, n)
 
 const HERO_FRAME := {"wukong": "wukong", "tang": "tang", "whiteDragon": "wolf", "bajie": "bone", "shaWujing": "tang", "nezha": "wolf", "erlang": "bone"}
 const HERO_TONE := {"wukong": Color.WHITE, "tang": Color.WHITE, "whiteDragon": Color(0.75, 0.94, 1.0), "bajie": Color(1.0, 0.82, 0.62), "shaWujing": Color(1.0, 0.93, 0.72), "nezha": Color(1.0, 0.62, 0.5), "erlang": Color(0.8, 0.85, 0.95)}
@@ -261,8 +324,17 @@ func _physics_process(delta: float) -> void:
 		modulate.a = 1.0
 	move_and_slide()
 	global_position = global_position.clamp(WORLD.position, WORLD.end)
+	queue_redraw()
 	_update_anim(dir)
 	_auto_attack()
+
+## R3：脚下接地阴影（人物立于地图，冲刺时变淡拉长）
+func _draw() -> void:
+	var a := 0.30 if dash_left <= 0.0 else 0.15
+	var rx := 17.0 if dash_left <= 0.0 else 24.0
+	draw_set_transform(Vector2(0.0, 25.0), 0.0, Vector2(1.0, 0.32))
+	draw_circle(Vector2.ZERO, rx, Color(0.0, 0.0, 0.0, a))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 # ---- 冒烟自动驾驶（含技能循环） ----
 func _ai_drive(delta: float) -> Vector2:
@@ -300,6 +372,7 @@ func _do_dash(dir: Vector2) -> void:
 	dash_dir = dir if dir != Vector2.ZERO else Vector2.RIGHT
 	dash_from = global_position
 	_kf_act("dodge")
+	_fx_dust(global_position + Vector2(0, 20), 15.0, 4)   # R3：蹬地尘土（地图反馈）
 	if hero == "wukong":
 		main.spawn_phantom(global_position, sprite.flip_h)
 
@@ -329,14 +402,15 @@ func _cast_q() -> void:
 	q_count += 1
 	atk_anim_left = 0.25
 	attacked.emit()
-	_kf_act("core_1")
 	var r := 195.0 * (1.0 + 0.16 * lvl("range"))
 	var dmg := base_dmg() * 1.9
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= r + e.hit_r:
-			_hit_enemy(e, dmg, off.normalized() * 220.0)
-	main.spawn_fx(global_position, r, Color("ffd46b"))
+	_kf_cast("core_1", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= r + e.hit_r:
+				_hit_enemy(e, dmg, off.normalized() * 220.0)
+		_fx_impact(global_position, r, Color("ffd46b"))
+		_fx_dust(global_position + Vector2(0, 22), r * 0.5, 6))
 
 # ---- E 定地重击：落点 slamming ----
 func _cast_e() -> void:
@@ -364,17 +438,19 @@ func _cast_e() -> void:
 	e_count += 1
 	atk_anim_left = 0.3
 	attacked.emit()
-	_kf_act("heavy")
 	var target := _nearest_enemy_any()
 	var center := global_position + Vector2(facing_x(), 0) * 190.0
 	if target:
 		center = target.global_position
 	var r := E_RADIUS * (1.0 + 0.16 * lvl("range"))
 	var dmg := base_dmg() * 2.4
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if e.global_position.distance_to(center) <= r + e.hit_r:
-			_hit_enemy(e, dmg, (e.global_position - center).normalized() * 160.0)
-	main.spawn_fx(center, r, Color("ffb84d"))
+	# R3：起手期在落点地面亮起作用区域预告圈，释放帧砸落
+	var windup := _kf_cast("heavy", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(center) <= r + e.hit_r:
+				_hit_enemy(e, dmg, (e.global_position - center).normalized() * 160.0)
+		_fx_impact(center, r * 1.1, Color("ffb84d")))
+	_fx_mark(center, r, windup, Color("ffb84d"))
 
 func facing_x() -> float:
 	return -1.0 if sprite.flip_h else 1.0
@@ -419,18 +495,18 @@ func _cast_ult() -> void:
 	ult = 0.0
 	ult_cd_left = ULT_CD
 	ult_count += 1
-	_kf_act("finisher")
-	var target := _nearest_enemy_any()
-	var center := target.global_position if target else global_position
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var d: float = e.global_position.distance_to(center)
-		if d <= 260.0:
-			e.take_hit(200.0, (e.global_position - center).normalized() * 260.0)
-		elif d <= 520.0:
-			e.take_hit(60.0, Vector2.ZERO)
-	main.spawn_fx(center, 260.0, Color("fff0a6"))
-	main.spawn_fx(center, 520.0, Color("ffe27a"))
-	ult_fired.emit(center)
+	_kf_cast("finisher", func() -> void:
+		var target := _nearest_enemy_any()
+		var center := target.global_position if target else global_position
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var d: float = e.global_position.distance_to(center)
+			if d <= 260.0:
+				e.take_hit(200.0, (e.global_position - center).normalized() * 260.0)
+			elif d <= 520.0:
+				e.take_hit(60.0, Vector2.ZERO)
+		_fx_impact(center, 260.0, Color("fff0a6"))
+		_fx_impact(center, 520.0, Color("ffe27a"))
+		ult_fired.emit(center))
 
 # ---- 自动攻击 ----
 func _seg_dist(p: Vector2, a: Vector2, b: Vector2) -> float:
@@ -443,6 +519,7 @@ func _update_anim(dir: Vector2) -> void:
 		sprite.flip_h = dir.x < 0.0
 	if kf_slug != "":
 		KeyframeLib.tick(self, get_physics_process_delta_time(), velocity.length() > 5.0)
+		_kf_release_tick()
 		return
 	if atk_anim_left > 0.0:
 		sprite.play("atk")
@@ -475,20 +552,22 @@ func _auto_attack() -> void:
 	sprite.flip_h = to_t.x < 0.0
 	stance_step = (stance_step + 1) % 3
 	var heavy := lvl("w_pose") > 0 and stance_step == 0
-	_kf_act("heavy" if heavy else "atk_combo")
 	var dmg := base_dmg() * (1.9 if heavy else 1.0)
 	var rng := atk_range() * (1.35 if heavy else 1.0)
 	var arc := atk_arc() * (1.2 if heavy else 1.0)
-	var hit_any := false
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= rng + e.hit_r and absf(off.angle_to(to_t)) <= arc:
-			hit_any = true
-			_hit_enemy(e, dmg, off.normalized() * 120.0)
-	if hit_any:
-		add_form_charge(2.0 * (1.0 + 0.45 * lvl("comboForm")))
-		if in_form():
-			ult = minf(100.0, ult + 1.6 * ult_gain_mul())
+	# R3：伤害在 hitbox 关键帧结算（起手→武器到位→命中），黏性放宽 1.35 防走位全空
+	_kf_cast("heavy" if heavy else "atk_combo", func() -> void:
+		var hit_any := false
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= (rng + e.hit_r) * 1.35 and absf(off.angle_to(to_t)) <= arc * 1.25:
+				hit_any = true
+				_hit_enemy(e, dmg, off.normalized() * 120.0)
+		if hit_any:
+			add_form_charge(2.0 * (1.0 + 0.45 * lvl("comboForm")))
+			if in_form():
+				ult = minf(100.0, ult + 1.6 * ult_gain_mul())
+			_fx_impact(global_position + to_t.normalized() * minf(rng, maxf(to_t.length() - 8.0, 26.0)), 34.0, Color("ffe9c0")))
 
 func _hit_enemy(e: Node2D, dmg: float, k: Vector2) -> void:
 	var final_dmg := dmg
@@ -560,11 +639,12 @@ func _cast_g() -> void:
 		return
 	g_cd_left = 25.0
 	g_count += 1
-	_kf_act("unlock_1")
 	var dmg := 30.0 + 6.0 * lvl("t_nova")
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if not e.is_queued_for_deletion() and e.hp > 0.0:
-			e.take_hit(dmg, (e.global_position - global_position).normalized() * 40.0)
+	_kf_cast("unlock_1", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if not e.is_queued_for_deletion() and e.hp > 0.0:
+				e.take_hit(dmg, (e.global_position - global_position).normalized() * 40.0)
+		_fx_impact(global_position, 130.0, Color("fff3c0")))
 
 
 func _cast_q_tang() -> void:
@@ -572,32 +652,34 @@ func _cast_q_tang() -> void:
 	q_count += 1
 	atk_anim_left = 0.25
 	attacked.emit()
-	_kf_act("core_1")
 	var r := 240.0 + 30.0 * lvl("t_nova")
 	var dmg := base_dmg() * (1.7 + 0.08 * lvl("t_nova") * 4.0)
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= r + e.hit_r:
-			_hit_enemy(e, dmg, off.normalized() * 140.0)
-	main.spawn_fx(global_position, r, Color("fff3c0"))
-	# 九环余音：Q 后追加一道外环
-	if lvl("t_ring") > 0:
-		var r2 := r * 1.45
-		var dmg2 := base_dmg() * 0.55
+	var ring2 := lvl("t_ring")
+	_kf_cast("core_1", func() -> void:
 		for e in get_tree().get_nodes_in_group("enemies"):
-			var o2: Vector2 = e.global_position - global_position
-			if o2.length() <= r2 + e.hit_r:
-				_hit_enemy(e, dmg2, o2.normalized() * 90.0)
-		main.spawn_fx(global_position, r2, Color("ffd46b"))
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= r + e.hit_r:
+				_hit_enemy(e, dmg, off.normalized() * 140.0)
+		_fx_impact(global_position, r, Color("fff3c0"))
+		# 九环余音：Q 命中后 0.12s 追加一道外环
+		if ring2 > 0:
+			var r2 := r * 1.45
+			var dmg2 := base_dmg() * 0.55
+			get_tree().create_timer(0.12).timeout.connect(func():
+				for e in get_tree().get_nodes_in_group("enemies"):
+					var o2: Vector2 = e.global_position - global_position
+					if o2.length() <= r2 + e.hit_r:
+						_hit_enemy(e, dmg2, o2.normalized() * 90.0)
+				_fx_impact(global_position, r2, Color("ffd46b"))))
 
 func _cast_e_tang() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("core_2")
-	shield_left = 2.8
-	main.spawn_fx(global_position, 120.0, Color("ffe9a8"))
+	shield_left = 2.8   # 护体即时生效（防御数值不延迟），演出在释放帧展开
 	main.toast("锦襕袈裟：2.8 秒护体（减伤 35%，反噬需卡牌）")
+	_kf_cast("core_2", func() -> void:
+		_fx_impact(global_position, 120.0, Color("ffe9a8")))
 
 # ---- 小白龙：Q 龙牙穿浪（突进+路径伤害+刻龙痕） / E 引雷龙痕（按层数引爆） ----
 func _cast_q_dragon() -> void:
@@ -605,49 +687,61 @@ func _cast_q_dragon() -> void:
 	q_count += 1
 	atk_anim_left = 0.24
 	attacked.emit()
-	_kf_act("core_1")
-	var dir := Vector2(facing_x(), 0)
-	var tgt := _nearest_enemy_any()
-	if tgt:
-		dir = (tgt.global_position - global_position).normalized()
-		sprite.flip_h = dir.x < 0.0
-	var len := 340.0 + 70.0 * lvl("d_glide")
-	var to := (global_position + dir * len).clamp(WORLD.position, WORLD.end)
+	var glide_len := 340.0 + 70.0 * lvl("d_glide")
 	var mark_ms := 4.0 + 2.0 * lvl("d_glide")
 	var dmg := base_dmg() * 1.8
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if _seg_dist(e.global_position, global_position, to) < 40.0 + e.hit_r:
-			_hit_enemy(e, dmg, dir * 160.0)
-			if e.has_method("apply_dragon"):
-				e.apply_dragon(mark_ms)
-	main.spawn_fx(to, 70.0, Color("8deaff"))
-	global_position = to
-	main.spawn_phantom(global_position, sprite.flip_h)
+	# R3：起手蓄力（锚点光点）→ 释放帧蹬地尘土+突进+路径伤害（结算在位移后同帧）
+	_kf_cast("core_1", func() -> void:
+		var dir := Vector2(facing_x(), 0)
+		var tgt := _nearest_enemy_any()
+		if tgt:
+			dir = (tgt.global_position - global_position).normalized()
+			sprite.flip_h = dir.x < 0.0
+		var to := (global_position + dir * glide_len).clamp(WORLD.position, WORLD.end)
+		_fx_dust(global_position + Vector2(0, 20), 16.0, 5)
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if _seg_dist(e.global_position, global_position, to) < 40.0 + e.hit_r:
+				_hit_enemy(e, dmg, dir * 160.0)
+				if e.has_method("apply_dragon"):
+					e.apply_dragon(mark_ms)
+		global_position = to
+		main.spawn_phantom(global_position, sprite.flip_h)
+		_fx_impact(to, 70.0, Color("8deaff")))
 
 func _cast_e_dragon() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("unlock_1")
 	var r := 340.0 + 60.0 * lvl("d_call")
-	var boom := 0
-	var tier3 := 0
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if not e.has_method("has_dragon") or not e.has_dragon() or e.global_position.distance_to(global_position) > r:
-			continue
-		boom += 1
-		var stk: int = e.dragon_stack
-		e.dragon_stack = 0
-		var dm := 62.0 + 18.0 * lvl("d_thunder")
-		if stk >= 3:
-			dm *= 2.2
-			tier3 += 1
-		elif stk == 2:
-			dm *= 1.6
-		_hit_enemy(e, dm * dmg_mul(), (e.global_position - global_position).normalized() * 120.0)
-		main.spawn_fx(e.global_position, 60.0, Color("bdf4f1"))
-	main.spawn_fx(global_position, r, Color("8deaff"))
-	main.toast("引雷龙痕引爆 ×%d（三层天雷 ×%d）" % [boom, tier3])
+	# R3：起手聚雷 → 释放帧按当前龙痕分布引爆（雷束从锚点射向每个目标）
+	_kf_cast("unlock_1", func() -> void:
+		var boom := 0
+		var tier3 := 0
+		var marks: Array = []
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if not e.has_method("has_dragon") or not e.has_dragon() or e.global_position.distance_to(global_position) > r:
+				continue
+			boom += 1
+			var stk: int = e.dragon_stack
+			e.dragon_stack = 0
+			var dm := 62.0 + 18.0 * lvl("d_thunder")
+			if stk >= 3:
+				dm *= 2.2
+				tier3 += 1
+			elif stk == 2:
+				dm *= 1.6
+			marks.append([e, dm * dmg_mul()])
+		for m in marks:
+			var e: Node2D = m[0]
+			if is_instance_valid(e):
+				_fx_shot(KeyframeLib.anchor_world(self, "f"), e.global_position, 0.14, Color("bdf4f1"), 7.0, Callable())
+		for m in marks:
+			var e: Node2D = m[0]
+			if is_instance_valid(e):
+				_hit_enemy(e, float(m[1]), (e.global_position - global_position).normalized() * 120.0)
+				_fx_impact(e.global_position, 60.0, Color("bdf4f1"))
+		_fx_impact(global_position, r * 0.5, Color("8deaff"))
+		main.toast("引雷龙痕引爆 ×%d（三层天雷 ×%d）" % [boom, tier3]))
 
 # ---- 八戒：Q 钉耙裂地（怒气满 50 强化） / E 倒卷天河（聚怪） ----
 func _cast_q_bajie() -> void:
@@ -658,16 +752,17 @@ func _cast_q_bajie() -> void:
 	q_count += 1
 	atk_anim_left = 0.28
 	attacked.emit()
-	_kf_act("heavy" if empowered else "core_1")
 	var r := 195.0 * (1.0 + 0.18 * lvl("b_quake"))
 	var dmg := base_dmg() * (1.7 * 1.15 * lvl("b_quake") if lvl("b_quake") > 0 else 1.7) * (1.6 if empowered else 1.0)
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= r + e.hit_r:
-			_hit_enemy(e, dmg, off.normalized() * (260.0 if empowered else 150.0))
-	main.spawn_fx(global_position, r, Color("e58a4b"))
-	if empowered:
-		shake_request(10.0)
+	_kf_cast("heavy" if empowered else "core_1", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= r + e.hit_r:
+				_hit_enemy(e, dmg, off.normalized() * (260.0 if empowered else 150.0))
+		_fx_impact(global_position, r, Color("e58a4b"))
+		_fx_dust(global_position + Vector2(0, 22), r * 0.6, 7)
+		if empowered:
+			shake_request(10.0))
 
 func _cast_e_bajie() -> void:
 	if rage < 50.0:
@@ -677,16 +772,18 @@ func _cast_e_bajie() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("core_2")
 	var r := 300.0 + 60.0 * lvl("b_admiral")
 	var pull := 190.0 + 40.0 * lvl("b_admiral")
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= r:
-			var dir := -off.normalized()
-			e.global_position += dir * pull
-			_hit_enemy(e, base_dmg() * 0.8, Vector2.ZERO)
-	main.spawn_fx(global_position, r, Color("ffad69"))
+	var dmg := base_dmg() * 0.8
+	# R3：释放帧卷动——敌人被吸向当时的宝杖锚点方向
+	_kf_cast("core_2", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= r:
+				var dir := -off.normalized()
+				e.global_position += dir * pull
+				_hit_enemy(e, dmg, Vector2.ZERO)
+		_fx_impact(global_position, r, Color("ffad69")))
 
 # ---- 沙悟净：Q 宝杖去返（去+回两段） / E 流沙定域 ----
 func _cast_q_sha() -> void:
@@ -694,36 +791,42 @@ func _cast_q_sha() -> void:
 	q_count += 1
 	atk_anim_left = 0.26
 	attacked.emit()
-	_kf_act("core_1")
-	var tgt := _nearest_enemy_any()
-	var to := global_position + Vector2(facing_x(), 0) * 300.0
-	if tgt:
-		to = tgt.global_position
 	var spd_mul := 1.0 + 0.3 * lvl("s_speed")
 	var dmg := base_dmg() * 1.7 * (1.0 + 0.1 * lvl("s_speed"))
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
-			_hit_enemy(e, dmg, Vector2.ZERO)
-	main.spawn_fx(to, 44.0, Color("d9ba80"))
-	get_tree().create_timer(0.3 / spd_mul).timeout.connect(func():
+	# R3：释放帧宝杖从锚点脱手飞出（弹体拖尾），落点命中后 0.3s 折返二段
+	_kf_cast("core_1", func() -> void:
+		var tgt := _nearest_enemy_any()
+		var to := global_position + Vector2(facing_x(), 0) * 300.0
+		if tgt:
+			to = tgt.global_position
+		var from := KeyframeLib.anchor_world(self, "f")
+		_fx_shot(from, to, 0.18 / spd_mul, Color("d9ba80"), 11.0, Callable())
 		for e in get_tree().get_nodes_in_group("enemies"):
-			if is_instance_valid(e) and _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
-				_hit_enemy(e, dmg * 1.3, Vector2.ZERO)
-		main.spawn_fx(to, 52.0, Color("e6d8ad")))
+			if _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
+				_hit_enemy(e, dmg, Vector2.ZERO)
+		_fx_impact(to, 44.0, Color("d9ba80"))
+		get_tree().create_timer(0.3 / spd_mul).timeout.connect(func():
+			for e in get_tree().get_nodes_in_group("enemies"):
+				if is_instance_valid(e) and _seg_dist(e.global_position, global_position, to) < 30.0 + e.hit_r:
+					_hit_enemy(e, dmg * 1.3, Vector2.ZERO)
+			_fx_impact(to, 52.0, Color("e6d8ad"))))
 
 func _cast_e_sha() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("core_2")
 	var r := 260.0
 	var slow_amt := 0.35 + 0.1 * lvl("s_erosion")
 	var dmg := 24.0 + 12.0 * lvl("s_erosion")
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if e.global_position.distance_to(global_position) <= r:
-			e.apply_frost(2.0 + 0.5 * lvl("s_erosion"), slow_amt)
-			e.take_hit(dmg, Vector2.ZERO)
-	main.spawn_fx(global_position, r, Color("c8a06b"))
+	# R3：释放帧流沙铺场（地面焦痕=作用区域留驻）
+	_kf_cast("core_2", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(global_position) <= r:
+				e.apply_frost(2.0 + 0.5 * lvl("s_erosion"), slow_amt)
+				e.take_hit(dmg, Vector2.ZERO)
+		_fx_impact(global_position, r, Color("c8a06b"))
+		if main.has_method("spawn_decal"):
+			main.spawn_decal(global_position, r * 0.8, Color("c8a06b")))
 	if lvl("s_guard") > 0:
 		shield_left = maxf(shield_left, 1.0 + 0.5 * lvl("s_guard"))
 
@@ -736,32 +839,36 @@ func _cast_q_nezha() -> void:
 	q_count += 1
 	atk_anim_left = 0.22
 	attacked.emit()
-	_kf_act("core_1")
-	var dir := Vector2(facing_x(), 0)
-	var tgt := _nearest_enemy_any()
-	if tgt:
-		dir = (tgt.global_position - global_position).normalized()
-		sprite.flip_h = dir.x < 0.0
-	var to := (global_position + dir * 360.0).clamp(WORLD.position, WORLD.end)
+	var pierce_len := 360.0
 	var dmg := base_dmg() * (2.0 + 0.2 * lvl("n_spear"))
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if _seg_dist(e.global_position, global_position, to) < 34.0 + e.hit_r:
-			_hit_enemy(e, dmg, dir * 140.0)
-			e.apply_burn(1 + lvl("n_spear"), 3.0)
-	main.spawn_fx(to, 56.0, Color("ff8a5c"))
-	global_position = to
+	# R3：起手蓄力（枪尖锚点光点）→ 释放帧蹬地突进，路径灼烧，落点火尘
+	_kf_cast("core_1", func() -> void:
+		var dir := Vector2(facing_x(), 0)
+		var tgt := _nearest_enemy_any()
+		if tgt:
+			dir = (tgt.global_position - global_position).normalized()
+			sprite.flip_h = dir.x < 0.0
+		var to := (global_position + dir * pierce_len).clamp(WORLD.position, WORLD.end)
+		_fx_dust(global_position + Vector2(0, 20), 15.0, 5)
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if _seg_dist(e.global_position, global_position, to) < 34.0 + e.hit_r:
+				_hit_enemy(e, dmg, dir * 140.0)
+				e.apply_burn(1 + lvl("n_spear"), 3.0)
+		global_position = to
+		_fx_impact(to, 56.0, Color("ff8a5c")))
 
 func _cast_e_nezha() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("core_2")
-	wheels_left = 4.0 + 1.2 * lvl("n_wheels")
+	wheels_left = 4.0 + 1.2 * lvl("n_wheels")   # 增益即时，火环演出在释放帧展开
 	var r := 130.0
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if e.global_position.distance_to(global_position) <= r:
-			_hit_enemy(e, base_dmg() * 0.9, (e.global_position - global_position).normalized() * 130.0)
-	main.spawn_fx(global_position, r, Color("ffb84d"))
+	var dmg := base_dmg() * 0.9
+	_kf_cast("core_2", func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(global_position) <= r:
+				_hit_enemy(e, dmg, (e.global_position - global_position).normalized() * 130.0)
+		_fx_impact(global_position, r, Color("ffb84d")))
 	main.toast("风火轮起：移速/攻速大增 %.1fs" % wheels_left)
 
 # ---- 杨戬：Q 三尖两刃（宽弧重劈） / E 天眼射线（穿透直线） ----
@@ -770,42 +877,53 @@ func _cast_q_erlang() -> void:
 	q_count += 1
 	atk_anim_left = 0.28
 	attacked.emit()
-	_kf_act("core_1")
-	var to_t := Vector2(facing_x(), 0)
-	var tgt := _nearest_enemy()
-	if tgt == null:
-		tgt = _nearest_enemy_any()
-	if tgt:
-		to_t = (tgt.global_position - global_position).normalized()
-		sprite.flip_h = to_t.x < 0.0
-	var heavy_bonus := 1.0 + 0.18 * lvl("e_meishan")
-	var dmg := base_dmg() * 2.3 * heavy_bonus
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if off.length() <= atk_range() * 2.0 + e.hit_r and absf(off.angle_to(to_t)) <= 0.85:
-			_hit_enemy(e, dmg, off.normalized() * 200.0)
-	main.spawn_fx(global_position + to_t * 100.0, 120.0, Color("a8f2ff"))
+	var reach := atk_range() * 2.0
+	var dmg := base_dmg() * 2.3 * (1.0 + 0.18 * lvl("e_meishan"))
+	# R3：释放帧在刀锋锚点甩出弧光（主特效从武器位置生成）
+	_kf_cast("core_1", func() -> void:
+		var to_t := Vector2(facing_x(), 0)
+		var tgt := _nearest_enemy()
+		if tgt == null:
+			tgt = _nearest_enemy_any()
+		if tgt:
+			to_t = (tgt.global_position - global_position).normalized()
+			sprite.flip_h = to_t.x < 0.0
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var off: Vector2 = e.global_position - global_position
+			if off.length() <= reach + e.hit_r and absf(off.angle_to(to_t)) <= 0.85:
+				_hit_enemy(e, dmg, off.normalized() * 200.0)
+		_fx_shot(KeyframeLib.anchor_world(self, "f"), global_position + to_t * reach * 0.8, 0.12, Color("a8f2ff"), 13.0, Callable())
+		_fx_impact(global_position + to_t * reach * 0.5, 120.0, Color("a8f2ff")))
 
 func _cast_e_erlang() -> void:
 	e_cd_left = E_CD_BASE * cd_mul()
 	e_count += 1
 	attacked.emit()
-	_kf_act("core_2")
-	var tgt := _nearest_enemy_any()
-	var dir := Vector2(facing_x(), 0)
-	if tgt:
-		dir = (tgt.global_position - global_position).normalized()
-		sprite.flip_h = dir.x < 0.0
-	var dmg := base_dmg() * (2.6 * (1.0 + 0.25 * lvl("e_eye")))
-	var hits := 0
-	for e in get_tree().get_nodes_in_group("enemies"):
-		var off: Vector2 = e.global_position - global_position
-		if _seg_dist(e.global_position, global_position, global_position + dir * 700.0) < 26.0 + e.hit_r:
-			_hit_enemy(e, dmg, Vector2.ZERO)
-			hits += 1
-	main.spawn_fx(global_position + dir * 350.0, 46.0, Color("c9a8ff"))
-	# 哮天犬：射线命中后咬残余
-	if lvl("e_dog") > 0 and hits > 0:
-		for e in get_tree().get_nodes_in_group("enemies"):
-			if e.global_position.distance_to(global_position) < 200.0:
-				e.take_hit(30.0 * lvl("e_dog"), (e.global_position - global_position).normalized() * 120.0)
+	var beam_len := 700.0
+	# R3：起手（额间锚点蓄光）→ 释放帧三尖两刃枪眼射出三束穿射弹体，
+	# 中束抵达时结算穿透伤害（命中绑定轨迹到达）
+	_kf_cast("core_2", func() -> void:
+		var tgt := _nearest_enemy_any()
+		var dir := Vector2(facing_x(), 0)
+		if tgt:
+			dir = (tgt.global_position - global_position).normalized()
+			sprite.flip_h = dir.x < 0.0
+		var dmg := base_dmg() * (2.6 * (1.0 + 0.25 * lvl("e_eye")))
+		var from := KeyframeLib.anchor_world(self, "c")
+		var end := (global_position + dir * beam_len).clamp(WORLD.position, WORLD.end)
+		var perp := Vector2(-dir.y, dir.x) * 16.0
+		_fx_shot(from + perp, end + perp, 0.15, Color("c9a8ff"), 6.0, Callable())
+		_fx_shot(from - perp, end - perp, 0.15, Color("c9a8ff"), 6.0, Callable())
+		_fx_shot(from, end, 0.15, Color("d9c2ff"), 9.0, func() -> void:
+			var hits := 0
+			for e in get_tree().get_nodes_in_group("enemies"):
+				var off: Vector2 = e.global_position - global_position
+				if _seg_dist(e.global_position, global_position, global_position + dir * beam_len) < 26.0 + e.hit_r:
+					_hit_enemy(e, dmg, Vector2.ZERO)
+					hits += 1
+			_fx_impact(end, 46.0, Color("c9a8ff"))
+			# 哮天犬：射线命中后咬残余
+			if lvl("e_dog") > 0 and hits > 0:
+				for e in get_tree().get_nodes_in_group("enemies"):
+					if e.global_position.distance_to(global_position) < 200.0:
+						e.take_hit(30.0 * lvl("e_dog"), (e.global_position - global_position).normalized() * 120.0)))
