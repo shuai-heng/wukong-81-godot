@@ -140,7 +140,7 @@ static func structure_check(rng: RandomNumberGenerator) -> Dictionary:
 ## 英雄基础参数（移植自 web HERO 表）
 const HERO_STATS := {
 	"wukong": {"name": "孙悟空", "dmg": 34.0, "speed": 130.0, "auto_range": 95.0, "q": "乾坤一棒", "e": "定地重击"},
-	"tang": {"name": "唐三藏", "dmg": 26.0, "speed": 118.0, "auto_range": 100.0, "q": "净化梵环", "e": "锦襕袈裟"},
+	"tang": {"name": "唐三藏", "dmg": 26.0, "speed": 118.0, "auto_range": 380.0, "q": "净化梵环", "e": "锦襕袈裟"},  # R4 负责人硬性要求：唐僧远程平A（原100贴脸；伤害/攻速不变）
 	"whiteDragon": {"name": "小白龙", "dmg": 30.0, "speed": 145.0, "auto_range": 90.0, "q": "龙牙穿浪", "e": "引雷龙痕"},
 	"bajie": {"name": "猪八戒", "dmg": 38.0, "speed": 108.0, "auto_range": 88.0, "q": "钉耙裂地", "e": "倒卷天河"},
 	"shaWujing": {"name": "沙悟净", "dmg": 32.0, "speed": 122.0, "auto_range": 105.0, "q": "宝杖去返", "e": "流沙定域"},

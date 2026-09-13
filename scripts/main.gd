@@ -51,9 +51,17 @@ var fx_shots: Array = []     # 技能弹体 {from,to,t,dur,color,r,on_arrive}—
 var fx_dust: Array = []      # 地面尘土 {pos,r,life,max,vx,vy}
 var fx_decals: Array = []    # 地面焦痕 {pos,r,life,max,color}
 var fx_marks: Array = []     # 落点预告圈 {pos,r,life,max,color}
+# ---- R4 · 动作锚点编排：武器弧/碎石/地裂/梵环波/念珠/护体/梵文星点（世界空间） ----
+var fx_swings: Array = []    # 武器挥击弧 {pts: Array[Vector2], times: Array, color, width, tail}
+var fx_debris: Array = []    # 碎石 {pos,v,origin_y,size,life,max,spin,rot,color}
+var fx_cracks: Array = []    # 地裂 {pos,arms: Array[Array[Vector2]],life,max,color}
+var fx_waves: Array = []     # 梵环波 {pos,r,t,dur,r1,color,white,hits: {enemy:{d,cb}}}
+var fx_auras: Array = []     # 护体光环（跟人） {follow,life,max,color}
+var fx_motes: Array = []     # 梵文星点（跟人绕行） {follow,t,dur,color,n}
 const DECAL_LIFE := 2.6
 const DUST_LIFE := 0.5
 const MARK_PULSE := 9.0      # 预告圈脉动频率
+const SWING_TAIL := 0.34     # R4：挥击弧采样点存活（秒）——弧=近期真实棍端轨迹
 var bullets: Array = []       # Boss 弹：{pos, v, dmg, life}
 var floaters: Array = []      # 伤害数字
 var burst: Array = []         # 击杀爆点粒子
@@ -418,6 +426,93 @@ func spawn_impact(pos: Vector2, r: float, color: Color) -> void:
 	spawn_dust(pos, minf(r, 90.0), 6)
 	spawn_decal(pos, minf(r, 80.0), color)
 
+# ---- R4 · 动作锚点编排接口（玩家经 has_method 探测调用） ----
+
+## 武器挥击弧：动作窗口内每物理帧喂入武器端点世界坐标，弧=真实棍端轨迹
+var _swing_seq := 0
+func swing_begin(color: Color, width := 7.0) -> int:
+	_swing_seq += 1
+	fx_swings.append({"id": _swing_seq, "pts": [], "times": [], "color": color, "width": width, "tail": 0.0, "feeding": true})
+	queue_redraw()
+	return _swing_seq
+
+func swing_point(id: int, pos: Vector2) -> void:
+	for sw in fx_swings:
+		if int(sw["id"]) == id:
+			var pts: Array = sw["pts"]
+			if pts.size() > 0 and Vector2(pts[pts.size() - 1]).distance_to(pos) < 1.5:
+				return
+			pts.append(pos)
+			sw["times"].append(0.0)
+			sw["tail"] = 0.0
+			queue_redraw()
+			return
+
+func swing_end(id: int) -> void:
+	for sw in fx_swings:
+		if int(sw["id"]) == id:
+			sw["feeding"] = false
+			return
+
+## 碎石飞溅（砸地真实落点反馈）：石块带重力抛物线+一次弹跳+淡出
+func spawn_debris(pos: Vector2, n := 7, color := Color("8a7a62")) -> void:
+	for i in n:
+		var ang := rng.randf_range(-PI * 0.95, -PI * 0.05)
+		var spd := rng.randf_range(120.0, 320.0)
+		fx_debris.append({"pos": pos + Vector2(rng.randf_range(-8, 8), 0.0),
+			"v": Vector2(cos(ang), sin(ang)) * spd,
+			"origin_y": pos.y + rng.randf_range(0.0, 6.0),
+			"size": rng.randf_range(2.5, 6.0), "life": rng.randf_range(0.55, 0.95),
+			"max": 0.95, "spin": rng.randf_range(-14.0, 14.0), "rot": 0.0, "color": color})
+	queue_redraw()
+
+## 地裂（砸地真实落点反馈）：从冲击点生成放射状锯齿裂纹
+func spawn_crack(pos: Vector2, r: float, color: Color) -> void:
+	var arms: Array = []
+	var n := 6 + rng.randi_range(0, 3)
+	for i in n:
+		var ang := TAU * i / float(n) + rng.randf_range(-0.3, 0.3)
+		var segs: Array = [pos]
+		var cur: Vector2 = pos
+		var steps := 3
+		for j in steps:
+			var rr := r * (0.4 + 0.6 * (j + 1) / float(steps)) * rng.randf_range(0.75, 1.15)
+			cur = pos + Vector2.from_angle(ang + rng.randf_range(-0.28, 0.28)) * rr
+			segs.append(cur)
+		arms.append(segs)
+	fx_cracks.append({"pos": pos, "arms": arms, "life": 3.2, "max": 3.2, "color": color})
+	queue_redraw()
+
+## 梵环波（唐僧Q）：从施法点扩散的地面波；波前抵达登记距离时逐敌回调（命中绑定到达）
+func spawn_wave(pos: Vector2, r1: float, dur: float, color: Color, hits: Dictionary, white := false) -> void:
+	fx_waves.append({"pos": pos, "r": 26.0, "t": 0.0, "dur": maxf(dur, 0.08), "r1": r1,
+		"color": color, "white": white, "hits": hits})
+	queue_redraw()
+
+## 念珠弹（唐僧G）：小珠弹体，目标存活时追踪
+func spawn_bead(from: Vector2, target: Node2D, speed: float, color: Color, on_arrive: Callable) -> void:
+	fx_shots.append({"pos": from, "from": from, "to": target.global_position if is_instance_valid(target) else from,
+		"t": 0.0, "dur": maxf(0.08, from.distance_to(target.global_position) / maxf(speed, 1.0) if is_instance_valid(target) else 0.1),
+		"color": color, "r": 4.0, "kind": "bead", "target": target, "on_arrive": on_arrive})
+	queue_redraw()
+
+## 锡杖环弹（唐僧平A）：九环锡杖脱手的环状弹体（默认直线；homing=true 时追踪目标）
+func spawn_ring_shot(from: Vector2, to: Vector2, dur: float, color: Color, r := 10.0,
+		on_arrive: Callable = Callable(), target: Node2D = null) -> void:
+	fx_shots.append({"pos": from, "from": from, "to": to, "t": 0.0, "dur": maxf(dur, 0.05),
+		"color": color, "r": r, "kind": "ring", "target": target, "on_arrive": on_arrive})
+	queue_redraw()
+
+## 护体光环（唐僧E 袈裟）：跟随人物的旋转光弧（未脱手类技能跟人）
+func spawn_aura(follow: Node2D, life: float, color: Color) -> void:
+	fx_auras.append({"follow": follow, "life": life, "max": life, "color": color})
+	queue_redraw()
+
+## 梵文星点（起手诵咒）：跟随人物绕行的金点（未脱手类演出跟锚点）
+func spawn_motes(follow: Node2D, dur: float, color: Color, n := 7) -> void:
+	fx_motes.append({"follow": follow, "t": 0.0, "dur": maxf(dur, 0.1), "color": color, "n": n})
+	queue_redraw()
+
 func _fx_tick(delta: float) -> void:
 	for f in fx_rings.duplicate():
 		f["life"] -= delta
@@ -428,6 +523,11 @@ func _fx_tick(delta: float) -> void:
 		s["t"] = float(s["t"]) + delta
 		var sfrom: Vector2 = s["from"]
 		var sto: Vector2 = s["to"]
+		# R4：bead/ring 类弹体目标存活时追踪（保证伤害到达；目标亡则按最后落点飞行）
+		var tgt = s.get("target")
+		if tgt != null and is_instance_valid(tgt):
+			s["to"] = tgt.global_position
+			sto = tgt.global_position
 		var k: float = clampf(float(s["t"]) / float(s["dur"]), 0.0, 1.0)
 		var ek: float = 1.0 - (1.0 - k) * (1.0 - k)
 		s["pos"] = sfrom.lerp(sto, ek)
@@ -436,6 +536,33 @@ func _fx_tick(delta: float) -> void:
 			fx_shots.erase(s)
 			if cb.is_valid():
 				cb.call()
+	for w in fx_waves.duplicate():
+		w["t"] = float(w["t"]) + delta
+		var wk: float = clampf(float(w["t"]) / float(w["dur"]), 0.0, 1.0)
+		var rr := lerpf(26.0, float(w["r1"]), 1.0 - (1.0 - wk) * (1.0 - wk))
+		w["r"] = rr
+		# 波前抵达登记距离→逐敌结算（命中绑定到达）
+		var hits: Dictionary = w["hits"]
+		for e in hits.keys().duplicate():
+			var rec: Dictionary = hits[e]
+			if rr >= float(rec["d"]):
+				hits.erase(e)
+				if is_instance_valid(e):
+					var cbw: Callable = rec["cb"]
+					if cbw.is_valid():
+						cbw.call(e)
+		if wk >= 1.0:
+			fx_waves.erase(w)
+	for sw in fx_swings.duplicate():
+		var times: Array = sw["times"]
+		for i in times.size():
+			times[i] = float(times[i]) + delta
+		sw["tail"] = float(sw.get("tail", 0.0)) + delta
+		while times.size() > 0 and float(times[0]) > SWING_TAIL:
+			times.pop_front()
+			sw["pts"].pop_front()
+		if not sw["pts"].size() and bool(sw.get("feeding", false)) == false and float(sw["tail"]) > SWING_TAIL:
+			fx_swings.erase(sw)
 	for d in fx_dust.duplicate():
 		d["life"] = float(d["life"]) - delta
 		var dp: Vector2 = d["pos"]
@@ -444,10 +571,40 @@ func _fx_tick(delta: float) -> void:
 		d["pos"] = dp
 		if float(d["life"]) <= 0.0:
 			fx_dust.erase(d)
+	for db in fx_debris.duplicate():
+		db["life"] = float(db["life"]) - delta
+		var dp: Vector2 = db["pos"]
+		var dv: Vector2 = db["v"]
+		dv.y += 900.0 * delta
+		dp += dv * delta
+		if dp.y > float(db["origin_y"]) and dv.y > 0.0:
+			if absf(dv.y) > 90.0:
+				dv.y = -dv.y * 0.35   # 一次弹跳
+				dv.x *= 0.6
+			else:
+				dv = Vector2.ZERO
+				dp.y = float(db["origin_y"])
+		db["pos"] = dp
+		db["v"] = dv
+		db["rot"] = float(db["rot"]) + float(db["spin"]) * delta
+		if float(db["life"]) <= 0.0:
+			fx_debris.erase(db)
 	for dc in fx_decals.duplicate():
 		dc["life"] = float(dc["life"]) - delta
 		if float(dc["life"]) <= 0.0:
 			fx_decals.erase(dc)
+	for ck in fx_cracks.duplicate():
+		ck["life"] = float(ck["life"]) - delta
+		if float(ck["life"]) <= 0.0:
+			fx_cracks.erase(ck)
+	for au in fx_auras.duplicate():
+		au["life"] = float(au["life"]) - delta
+		if float(au["life"]) <= 0.0 or not is_instance_valid(au["follow"]):
+			fx_auras.erase(au)
+	for mo in fx_motes.duplicate():
+		mo["t"] = float(mo["t"]) + delta
+		if float(mo["t"]) >= float(mo["dur"]) or not is_instance_valid(mo["follow"]):
+			fx_motes.erase(mo)
 	for mk in fx_marks.duplicate():
 		mk["life"] = float(mk["life"]) - delta
 		if float(mk["life"]) <= 0.0:
@@ -517,7 +674,7 @@ func _visual_tick(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	# ---- R3 地面层：焦痕（人物脚下、弹着点）/ 落点预告圈 / 尘土 ----
+	# ---- R3/R4 地面层：焦痕 / 地裂 / 落点预告圈 / 尘土 ----
 	for dc in fx_decals:
 		var da: float = clampf(float(dc["life"]) / float(dc["max"]), 0.0, 1.0)
 		var dpos: Vector2 = dc["pos"]
@@ -525,6 +682,20 @@ func _draw() -> void:
 		dcol = Color(dcol.r * 0.30 + 0.04, dcol.g * 0.24 + 0.03, dcol.b * 0.20 + 0.03, 0.36 * da)
 		draw_set_transform(dpos + Vector2(0, 3), 0.0, Vector2(1.0, 0.42))
 		draw_circle(Vector2.ZERO, float(dc["r"]), dcol)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for ck in fx_cracks:
+		var ka: float = clampf(float(ck["life"]) / float(ck["max"]), 0.0, 1.0)
+		var kcol: Color = ck["color"]
+		kcol = Color(kcol.r * 0.22 + 0.02, kcol.g * 0.17 + 0.02, kcol.b * 0.13 + 0.02, 0.55 * ka)
+		var kpos: Vector2 = ck["pos"]
+		for arm in ck["arms"]:
+			for j in range(1, arm.size()):
+				var pa: Vector2 = arm[j - 1]
+				var pb: Vector2 = arm[j]
+				draw_line(kpos + (pa - kpos) * Vector2(1.0, 0.9), kpos + (pb - kpos) * Vector2(1.0, 0.9),
+					kcol, 2.6 if j <= 1 else 1.6)
+		draw_set_transform(kpos + Vector2(0, 2), 0.0, Vector2(1.0, 0.42))
+		draw_circle(Vector2.ZERO, 9.0, Color(0.03, 0.03, 0.04, 0.5 * ka))
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for mk in fx_marks:
 		var mpos: Vector2 = mk["pos"]
@@ -540,11 +711,75 @@ func _draw() -> void:
 		var dfa: float = clampf(float(d["life"]) / float(d["max"]), 0.0, 1.0)
 		var fdpos: Vector2 = d["pos"]
 		draw_circle(fdpos, float(d["r"]) * (1.0 + 0.5 * (1.0 - dfa)), Color(0.78, 0.74, 0.66, 0.35 * dfa))
-	# ---- R3 技能弹体：色晕 + 白核 + 来向拖尾 ----
+	# ---- R4 梵环波：地面扩散波前（双环+内侧白闪）----
+	for w in fx_waves:
+		var wpos: Vector2 = w["pos"]
+		var wcol: Color = w["color"]
+		var wk2: float = clampf(float(w["t"]) / float(w["dur"]), 0.0, 1.0)
+		draw_set_transform(wpos, 0.0, Vector2(1.0, 0.52))
+		wcol.a = 0.75 * (1.0 - wk2 * 0.5)
+		draw_arc(Vector2.ZERO, float(w["r"]), 0, TAU, 48, wcol, 5.0)
+		wcol.a *= 0.45
+		draw_arc(Vector2.ZERO, float(w["r"]) * 0.86, 0, TAU, 40, wcol, 2.5)
+		if bool(w["white"]) and wk2 > 0.55:
+			var wc2: Color = Color(1.0, 1.0, 0.95, 0.5 * (1.0 - wk2))
+			draw_arc(Vector2.ZERO, float(w["r"]) * 0.97, 0, TAU, 44, wc2, 2.0)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# ---- R4 护体光环（跟人）：双向旋转光弧 + 底盘微光 ----
+	for au in fx_auras:
+		var ap: Vector2 = au["follow"].global_position + Vector2(0, -26)
+		var aa: float = clampf(float(au["life"]) / float(au["max"]), 0.0, 1.0)
+		var acol: Color = au["color"]
+		acol.a = 0.6 * aa
+		var tt := elapsed * 2.6
+		draw_arc(ap, 44.0, tt, tt + 2.0, 24, acol, 3.0)
+		draw_arc(ap, 44.0, -tt + PI, -tt + PI + 2.0, 24, acol, 3.0)
+		acol.a = 0.14 * aa
+		draw_circle(ap, 44.0, acol)
+	# ---- R4 武器挥击弧：真实棍端轨迹（近端亮粗、远端暗细渐隐）----
+	for sw in fx_swings:
+		var pts: Array = sw["pts"]
+		if pts.size() < 2:
+			continue
+		var scol: Color = sw["color"]
+		var wid: float = float(sw["width"])
+		for i in range(1, pts.size()):
+			var age: float = clampf(1.0 - float(sw["times"][i]) / SWING_TAIL, 0.0, 1.0)
+			var sc2: Color = Color(scol.r, scol.g, scol.b, 0.22 + 0.6 * age)
+			draw_line(Vector2(pts[i - 1]), Vector2(pts[i]), sc2, wid * (0.4 + 0.7 * age))
+		var head: Vector2 = Vector2(pts[pts.size() - 1])
+		var hage: float = clampf(1.0 - float(sw["times"][pts.size() - 1]) / SWING_TAIL, 0.0, 1.0)
+		draw_circle(head, wid * 0.9, Color(1.0, 0.95, 0.8, 0.5 * hage))
+	# ---- R4 梵文星点（跟锚点绕行）----
+	for mo in fx_motes:
+		var mp: Vector2 = mo["follow"].global_position + Vector2(0, -18)
+		var mk3: float = clampf(float(mo["t"]) / float(mo["dur"]), 0.0, 1.0)
+		var mocol: Color = mo["color"]
+		for i in int(mo["n"]):
+			var ang := elapsed * 3.2 + TAU * i / float(mo["n"])
+			var mpos2: Vector2 = mp + Vector2(cos(ang), sin(ang) * 0.42) * 40.0
+			mocol.a = (0.25 + 0.65 * mk3) * (0.4 + 0.6 * absf(sin(ang * 2.0 + elapsed * 7.0)))
+			draw_circle(mpos2, 2.6, mocol)
+	# ---- R3/R4 技能弹体：bead 念珠 / ring 环弹 / 通用弹（白核+拖尾）----
 	for s in fx_shots:
 		var spos: Vector2 = s["pos"]
 		var sto: Vector2 = s["to"]
 		var scol: Color = s["color"]
+		var kind: String = String(s.get("kind", "shot"))
+		if kind == "bead":
+			draw_circle(spos, 7.5, Color(scol.r, scol.g, scol.b, 0.28))
+			draw_circle(spos, 3.6, scol)
+			draw_circle(spos, 1.6, Color(1.0, 1.0, 0.92, 0.9))
+			continue
+		if kind == "ring":
+			# 九环锡杖环弹：空心环（描边圆），旋转缺口=飞行方向
+			var rdir: Vector2 = sto - spos
+			var rot := rdir.angle() if rdir.length() > 1.0 else 0.0
+			draw_arc(spos, float(s["r"]), rot + 0.5, rot + TAU - 0.5, 26, scol, 4.0)
+			draw_arc(spos, float(s["r"]) * 0.62, rot + PI + 0.6, rot + TAU + PI - 0.6, 20,
+				Color(scol.r, scol.g, scol.b, 0.55), 2.0)
+			draw_circle(spos, 2.0, Color(1.0, 1.0, 0.9, 0.85))
+			continue
 		var dirv: Vector2 = sto - spos
 		if dirv.length() > 1.0:
 			dirv = dirv.normalized()
@@ -553,6 +788,20 @@ func _draw() -> void:
 			draw_line(tail - dirv * 14.0, tail, Color(scol.r, scol.g, scol.b, 0.18), float(s["r"]) * 0.4)
 		draw_circle(spos, float(s["r"]) * 1.7, Color(scol.r, scol.g, scol.b, 0.35))
 		draw_circle(spos, float(s["r"]), Color(1.0, 1.0, 1.0, 0.9))
+	# ---- R4 碎石：石块（带影子）----
+	for db in fx_debris:
+		var bpos: Vector2 = db["pos"]
+		var bsize: float = float(db["size"])
+		var bfa: float = clampf(float(db["life"]) / float(db["max"]), 0.0, 1.0)
+		var bcol: Color = db["color"]
+		bcol.a = 0.9 * minf(1.0, bfa * 2.0)
+		draw_set_transform(bpos, float(db["rot"]), Vector2.ONE)
+		draw_rect(Rect2(-bsize * 0.5, -bsize * 0.5, bsize, bsize * 0.8), bcol)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var shf: float = clampf((float(db["origin_y"]) - bpos.y) / 60.0, 0.0, 1.0)
+		draw_set_transform(Vector2(bpos.x, float(db["origin_y"]) + 2.0), 0.0, Vector2(1.0, 0.35))
+		draw_circle(Vector2.ZERO, bsize * 0.7 * (0.5 + shf), Color(0.0, 0.0, 0.0, 0.25 * (0.4 + shf)))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for orb in orbs:
 		draw_rect(Rect2(orb["pos"] - Vector2(2, 2), Vector2(4, 4)), Color(0.45, 0.9, 1.0))
 	for f in fx_rings:

@@ -1,0 +1,94 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started 项目初始化 (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | 正在扫描文件结构……[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | 正在加载全局类名……[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | 正在校验 GDExtension……[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | 正在创建自动加载脚本……[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | 正在初始化插件……[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | 正在启动文件扫描……[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started 正在扫描动作…… (22 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | _overview.png[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | tang-E-aura_t44.4.jpg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tang-flip-ranged_t47.0.jpg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | tang-G-beads2_t42.4.jpg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tang-G-beads_t41.6.jpg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | tang-Q2_t49.4.jpg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tang-Q-wave2_t39.6.jpg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | tang-Q-wave_t39.0.jpg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | tang-ranged2_t36.8.jpg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | tang-ranged_t36.0.jpg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | tang-switch_t34.0.jpg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | wukong-autoarc2_t06.6.jpg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | wukong-autoarc_t06.0.jpg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | wukong-dash_t12.9.jpg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | wukong-E2b_t19.0.jpg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | wukong-E2_t18.4.jpg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | wukong-E-crack_t11.4.jpg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | wukong-E-slam_t10.8.jpg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | wukong-E-windup_t10.0.jpg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | wukong-Q2_t16.6.jpg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | wukong-Q-clones2_t08.6.jpg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | wukong-Q-clones_t08.2.jpg[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started 正在导入或重新导入资产 (22 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[   4% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[   8% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  13% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  17% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  21% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  26% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  30% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  34% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  39% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  43% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  47% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  52% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  56% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  60% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  65% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  69% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  73% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  78% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  82% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  86% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[  91% ] [90m[1mreimport[22m | 正在准备重新导入文件……[39m[0m
+[   0% ] [90m[1mreimport[22m | 正在执行重新导入的前置操作……[39m[0m
+[   0% ] [90m[1mreimport[22m | wukong-Q-clones_t08.2.jpg[39m[0m
+[   4% ] [90m[1mreimport[22m | wukong-Q-clones2_t08.6.jpg[39m[0m
+[   8% ] [90m[1mreimport[22m | wukong-Q2_t16.6.jpg[39m[0m
+[  13% ] [90m[1mreimport[22m | wukong-E-windup_t10.0.jpg[39m[0m
+[  17% ] [90m[1mreimport[22m | wukong-E-slam_t10.8.jpg[39m[0m
+[  21% ] [90m[1mreimport[22m | wukong-E-crack_t11.4.jpg[39m[0m
+[  26% ] [90m[1mreimport[22m | wukong-E2_t18.4.jpg[39m[0m
+[  30% ] [90m[1mreimport[22m | wukong-E2b_t19.0.jpg[39m[0m
+[  34% ] [90m[1mreimport[22m | wukong-dash_t12.9.jpg[39m[0m
+[  39% ] [90m[1mreimport[22m | wukong-autoarc_t06.0.jpg[39m[0m
+[  43% ] [90m[1mreimport[22m | wukong-autoarc2_t06.6.jpg[39m[0m
+[  47% ] [90m[1mreimport[22m | tang-switch_t34.0.jpg[39m[0m
+[  52% ] [90m[1mreimport[22m | tang-ranged_t36.0.jpg[39m[0m
+[  56% ] [90m[1mreimport[22m | tang-ranged2_t36.8.jpg[39m[0m
+[  60% ] [90m[1mreimport[22m | tang-Q-wave_t39.0.jpg[39m[0m
+[  65% ] [90m[1mreimport[22m | tang-Q-wave2_t39.6.jpg[39m[0m
+[  69% ] [90m[1mreimport[22m | tang-Q2_t49.4.jpg[39m[0m
+[  73% ] [90m[1mreimport[22m | tang-G-beads_t41.6.jpg[39m[0m
+[  78% ] [90m[1mreimport[22m | tang-G-beads2_t42.4.jpg[39m[0m
+[  82% ] [90m[1mreimport[22m | tang-flip-ranged_t47.0.jpg[39m[0m
+[  86% ] [90m[1mreimport[22m | tang-E-aura_t44.4.jpg[39m[0m
+[  91% ] [90m[1mreimport[22m | _overview.png[39m[0m
+[  95% ] [90m[1mreimport[22m | 正在结束资产导入……[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started 正在导入或重新导入资产 (22 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | 正在执行重新导入的后置操作……[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started 正在加载编辑器 (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | 正在加载编辑器布局……[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | 正在加载停靠面板……[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m

@@ -55,17 +55,22 @@ const ACTION_SPEED := {"atk_combo": 2.0, "heavy": 1.6, "dodge": 1.5}
 
 # ---- M2 返工（R3）· 完整技能释放编排调参区（负责人按观感可调） ----
 const ANCHOR_DATA := "res://data/v6_pose_anchors.json"  # 姿势特效锚点（离线提取：质心/前缘/半径/强度）
+const BODY_ANCHOR_DATA := "res://data/v6_body_anchors.json"  # R4：人工标注身体/武器锚点（随关键帧插值）
 const RELEASE_MIN_FRAC := 0.15   # 释放帧钳位下限（动作时长占比）
 const RELEASE_MAX_FRAC := 0.75   # 释放帧钳位上限
 const RELEASE_FALLBACK_FRAC := 0.45  # 无 hitbox/hitstop 元数据时的释放点
 const CHARGE_ORB_BASE := 0.20    # 蓄力光点基础尺寸（×64px 径向纹理）
 const CHARGE_ORB_SWELL := 0.30   # 蓄力推进增大的幅度
 const CHARGE_PULSE := 0.10       # 蓄力光点呼吸幅度
+# ---- M2 返工（R4）· 动作锚点编排调参区 ----
+const SWING_PRE := 0.30          # 挥击弧采样窗口：释放帧前（覆盖举棒/横扫起势）
+const SWING_POST := 0.16         # 挥击弧采样窗口：最后命中帧后（收势尾迹）
 
 static var _acts := {}             # character_slug -> {action_slug: Array[kf Dictionary]}
 static var _tex_cache := {}
 static var _anchors := {}          # "slug/pose.png" -> {c:[x,y], f:[x,y], r:px, w:0-1}
 static var _rel_cache := {}        # "slug:action" -> 释放时刻（动作时间轴秒）
+static var _body_anchors := {}     # R4: slug -> {action -> {"idx" -> {kind:[nx,ny]}}}（人工标注）
 
 static func _load() -> bool:
 	if not _acts.is_empty():
@@ -521,7 +526,8 @@ static func update_charge(p, progress: float) -> void:
 	if progress < 0.0:
 		orb.visible = false
 		return
-	var col := action_color(p)
+	# R4：蓄力主色=英雄技能主色（一人一色贯穿）
+	var col := hero_primary(String(p.get("hero"))) if p.get("hero") != null else action_color(p)
 	orb.global_position = anchor_world(p, "f")
 	var s: float = CHARGE_ORB_BASE + CHARGE_ORB_SWELL * clampf(progress, 0.0, 1.0) + 0.10 * _anchor_w(p)
 	s *= 1.0 + CHARGE_PULSE * sin(float(p.kf_t) * 46.0)
@@ -542,3 +548,119 @@ static func action_color(p) -> Color:
 	if raw.begins_with("#"):
 		c = Color(raw)
 	return c
+
+# ================= R4 · 身体/武器锚点编排（人工标注轨迹，动作优先于 VFX） =================
+
+static func _load_body_anchors() -> void:
+	if not _body_anchors.is_empty():
+		return
+	var raw := FileAccess.get_file_as_string(BODY_ANCHOR_DATA)
+	if raw.is_empty():
+		return
+	var parsed = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		for slug in parsed.keys():
+			if String(slug).begins_with("_"):
+				continue
+			_body_anchors[String(slug)] = parsed[slug]
+
+## 该动作是否有人工标注锚点轨道
+static func has_body_track(slug: String, action: String) -> bool:
+	_load_body_anchors()
+	return _body_anchors.has(slug) and _body_anchors[slug].has(action)
+
+## 标注锚点插值（归一化姿势坐标）：在相邻标注关键帧间线性插值；
+## kind 缺帧时回退 body_center → (0.5,0.6)。
+static func body_anchor_norm(p, kind: String) -> Vector2:
+	_load_body_anchors()
+	var def := Vector2(0.5, 0.6)
+	if p.kf_slug == "" or p.kf_action == "":
+		return def
+	var track: Dictionary = _body_anchors.get(String(p.kf_slug), {}).get(String(p.kf_action), {})
+	if track.is_empty():
+		return def
+	var kfs: Array = _acts.get(String(p.kf_slug), {}).get(String(p.kf_action), [])
+	if kfs.is_empty():
+		return def
+	var t_ms := float(p.kf_t) * 1000.0
+	# 找当前时刻相邻两个“有该 kind 标注”的关键帧
+	var lo_idx := -1
+	var lo_kf: Dictionary = {}
+	for i in kfs.size():
+		var e: Dictionary = track.get(str(int(kfs[i]["keyframe_index"])), {})
+		if e.has(kind):
+			if float(kfs[i]["time_ms"]) <= t_ms:
+				lo_idx = i
+				lo_kf = kfs[i]
+			else:
+				break
+	var nxt_idx := lo_idx
+	for j in range(lo_idx + 1, kfs.size()):
+		var e2: Dictionary = track.get(str(int(kfs[j]["keyframe_index"])), {})
+		if e2.has(kind):
+			nxt_idx = j
+			break
+	var lo_e: Dictionary = track.get(str(int(lo_kf.get("keyframe_index", 0))), {}) if lo_idx >= 0 else {}
+	if lo_idx < 0:
+		# 窗口前：取首个有标注的关键帧
+		for j in kfs.size():
+			var e3: Dictionary = track.get(str(int(kfs[j]["keyframe_index"])), {})
+			if e3.has(kind):
+				lo_kf = kfs[j]
+				lo_e = e3
+				lo_idx = j
+				break
+	if lo_e.is_empty():
+		return def
+	var a: Array = lo_e.get(kind, [def.x, def.y])
+	var nx := float(a[0])
+	var ny := float(a[1])
+	if nxt_idx > lo_idx:
+		var hi_kf: Dictionary = kfs[nxt_idx]
+		var hi_e: Dictionary = track.get(str(int(hi_kf["keyframe_index"])), {})
+		var b: Array = hi_e.get(kind, a)
+		var span: float = float(hi_kf["time_ms"]) - float(lo_kf["time_ms"])
+		if span > 0.5:
+			var al: float = clampf((t_ms - float(lo_kf["time_ms"])) / span, 0.0, 1.0)
+			nx = lerpf(nx, float(b[0]), al)
+			ny = lerpf(ny, float(b[1]), al)
+	return Vector2(nx, ny)
+
+## 标注锚点的世界坐标（套用姿势精灵位移/旋转/缩放/flip 镜像）——技能/弹体从此点生成。
+## kind: staff_tip/staff_tail/hand_r/palm/body_center/ground/shield_center
+static func body_anchor_world(p, kind: String) -> Vector2:
+	if p.get("kf_sprite") == null or p.kf_sprite.texture == null or not p.kf_sprite.visible:
+		return p.global_position
+	if not has_body_track(String(p.kf_slug), String(p.kf_action)):
+		return anchor_world(p, "f" if kind != "body_center" else "c")
+	var an := body_anchor_norm(p, kind)
+	return _anchor_to_world(p, an)
+
+static func _anchor_to_world(p, an: Vector2) -> Vector2:
+	var lx := (an.x - 0.5) * POSE_CELL
+	var ly := (an.y - 0.5) * POSE_CELL
+	if p.kf_sprite.flip_h:
+		lx = -lx
+	var v: Vector2 = Vector2(lx, ly) * p.kf_sprite.scale
+	v = v.rotated(p.kf_sprite.rotation)
+	return p.global_position + p.kf_sprite.position + v
+
+## 挥击弧采样窗口（动作时间轴秒）：[释放帧-SWING_PRE, 最后命中帧+SWING_POST]
+static func swing_window(slug: String, action: String) -> Vector2:
+	var kfs: Array = _acts.get(slug, {}).get(action, [])
+	var dur := 0.6
+	if not kfs.is_empty():
+		dur = float(kfs[kfs.size() - 1]["time_ms"]) / 1000.0
+	var rel := release_time(slug, action)
+	var last_hit := rel
+	for kf in kfs:
+		if bool(kf.get("hitbox_active", false)):
+			last_hit = maxf(last_hit, float(kf["time_ms"]) / 1000.0)
+	return Vector2(maxf(0.0, rel - SWING_PRE), minf(dur, last_hit + SWING_POST))
+
+## 英雄技能主色（一人一色：平A/弹道/拖尾/命中/蓄力/地面反馈贯穿）
+static func hero_primary(hero: String) -> Color:
+	return HeroIdentity.primary(hero)
+
+static func hero_secondary(hero: String) -> Color:
+	return HeroIdentity.secondary(hero)
