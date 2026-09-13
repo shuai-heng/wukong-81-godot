@@ -11,6 +11,9 @@ const BODY_UNIT := 48.0
 const POSE_CELL := 256.0
 const BASE_CELL := 64.0            # 姿势格映射到 64 世界单位，人物主体≈旧 48px 立绘观感
 
+# ---- M2 真动画调参区（负责人按观感可调） ----
+const POSE_INTERP := true          # 子步1：相邻关键帧间位移/旋转/缩放线性插值（false=回到取最近关键帧）
+
 ## 游戏 hero_id → V6.1 character_slug（白龙双形态：化龙时用马形）
 const HERO_SLUG := {
 	"wukong": "sun_wukong", "tang": "tang_sanzang",
@@ -125,28 +128,50 @@ static func _want_loop(p, moving: bool) -> String:
 		return "form"
 	return "run" if moving else "idle"
 
-static func _apply_pose(p, kfs: Array) -> void:
-	var kf: Dictionary = kfs[0]
-	var t_ms: float = float(p.kf_t) * 1000.0
-	for k in kfs:
-		if float(k["time_ms"]) <= t_ms:
-			kf = k
+## 段索引：当前时刻落在哪个关键帧段（纹理=该段起始关键帧的姿势，即仍在关键帧时刻切换）
+static func _seg_index(kfs: Array, t_ms: float) -> int:
+	var i := 0
+	for j in kfs.size():
+		if float(kfs[j]["time_ms"]) <= t_ms:
+			i = j
 		else:
 			break
+	return i
+
+## 子步1：变换取相邻关键帧线性插值；纹理仍按关键帧时刻整张切换
+static func _apply_pose(p, kfs: Array) -> void:
+	var t_ms: float = float(p.kf_t) * 1000.0
+	var i := _seg_index(kfs, t_ms)
+	var kf: Dictionary = kfs[i]
+	var bx := float(kf["body_x"])
+	var by := float(kf["body_y"])
+	var rot := float(kf["rotation_deg"])
+	var sx := float(kf["scale_x"])
+	var sy := float(kf["scale_y"])
+	if POSE_INTERP and i + 1 < kfs.size():
+		var nxt: Dictionary = kfs[i + 1]
+		var span: float = float(nxt["time_ms"]) - float(kf["time_ms"])
+		if span > 0.5:
+			var a: float = clampf((t_ms - float(kf["time_ms"])) / span, 0.0, 1.0)
+			bx = lerpf(bx, float(nxt["body_x"]), a)
+			by = lerpf(by, float(nxt["body_y"]), a)
+			rot = lerpf(rot, float(nxt["rotation_deg"]), a)
+			sx = lerpf(sx, float(nxt["scale_x"]), a)
+			sy = lerpf(sy, float(nxt["scale_y"]), a)
 	var flip: bool = p.sprite.flip_h
 	p.kf_sprite.texture = _pose_tex(kf)
 	p.kf_sprite.flip_h = flip
 	var rs: float = _read_scale(p.kf_slug, p.kf_action)
 	var fit := BASE_CELL / POSE_CELL
-	var scl := Vector2(fit * float(kf["scale_x"]), fit * float(kf["scale_y"])) * rs
+	var scl := Vector2(fit * sx, fit * sy) * rs
 	if p.get("dragon_left") != null and float(p.dragon_left) > 0.0:
 		scl *= 1.22
 	p.kf_sprite.scale = scl
-	var off := Vector2(float(kf["body_x"]), float(kf["body_y"])) * (BASE_CELL / BODY_UNIT)
+	var off := Vector2(bx, by) * (BASE_CELL / BODY_UNIT)
 	if flip:
 		off.x = -off.x
 	p.kf_sprite.position = off
-	p.kf_sprite.rotation = -deg_to_rad(float(kf["rotation_deg"])) if flip else deg_to_rad(float(kf["rotation_deg"]))
+	p.kf_sprite.rotation = -deg_to_rad(rot) if flip else deg_to_rad(rot)
 	p.kf_sprite.modulate = p.sprite.modulate
 
 static func _read_scale(slug: String, action: String) -> float:

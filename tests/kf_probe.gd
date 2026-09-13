@@ -37,6 +37,40 @@ func _run() -> void:
 	for i in 150:
 		await physics_frame
 	_chk(str(p.kf_action) == "idle", "Q播完回idle", p.kf_action)
+	# ---- M2 子步1：关键帧间插值（同步采样，core_1 段[280,373)ms）----
+	KeyframeLib.play_action(p, "core_1", true)
+	var kfs: Array = KeyframeLib._acts["tang_sanzang"]["core_1"]
+	p.kf_t = 0.3265
+	KeyframeLib._apply_pose(p, kfs)
+	var mid_pos: Vector2 = p.kf_sprite.position
+	var mid_rot: float = p.kf_sprite.rotation
+	var mid_tex: Texture2D = p.kf_sprite.texture
+	p.kf_t = 0.280
+	KeyframeLib._apply_pose(p, kfs)
+	var lo_pos: Vector2 = p.kf_sprite.position
+	var lo_rot: float = p.kf_sprite.rotation
+	p.kf_t = 0.373
+	KeyframeLib._apply_pose(p, kfs)
+	var hi_pos: Vector2 = p.kf_sprite.position
+	var hi_rot: float = p.kf_sprite.rotation
+	_chk(mid_pos != lo_pos and mid_pos != hi_pos, "插值中间位移异于两端", str([lo_pos, mid_pos, hi_pos]))
+	_chk(mid_rot > minf(lo_rot, hi_rot) and mid_rot < maxf(lo_rot, hi_rot), "旋转插值介于两端", str([lo_rot, mid_rot, hi_rot]))
+	p.kf_t = 0.3729
+	KeyframeLib._apply_pose(p, kfs)
+	_chk(p.kf_sprite.texture == mid_tex, "段内纹理不变", "")
+	p.kf_t = 0.373
+	KeyframeLib._apply_pose(p, kfs)
+	_chk(p.kf_sprite.texture != mid_tex, "关键帧时刻纹理切换", "")
+	p.kf_t = 0.3265
+	p.sprite.flip_h = false
+	KeyframeLib._apply_pose(p, kfs)
+	var r_pos: Vector2 = p.kf_sprite.position
+	var r_rot: float = p.kf_sprite.rotation
+	p.sprite.flip_h = true
+	KeyframeLib._apply_pose(p, kfs)
+	_chk(absf(p.kf_sprite.position.x + r_pos.x) < 0.001 and absf(p.kf_sprite.rotation + r_rot) < 0.0001, "flip镜像取反",
+		str([r_pos, p.kf_sprite.position, r_rot, p.kf_sprite.rotation]))
+	p.sprite.flip_h = false
 	p.hero = "wukong"
 	p._kf_rebuild()
 	_chk(str(p.kf_slug) == "sun_wukong", "切悟空slug", p.kf_slug)

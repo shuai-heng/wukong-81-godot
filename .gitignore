@@ -1,2 +1,4 @@
 .godot/
 evidence/g12-dure-run.log
+evidence/*.avi
+evidence/save-backup-tmp.json
