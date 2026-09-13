@@ -1,18 +1,18 @@
 {
   "allies": 12,
-  "atk_count": 308,
+  "atk_count": 331,
   "boss_spawned": true,
   "boss_tamed": true,
   "cards_owned": {
     "cdr": 2,
-    "comboForm": 1,
     "d_call": 3,
     "d_glide": 3,
-    "d_thunder": 3,
-    "dashDmg": 2,
-    "killForm": 1,
+    "d_thunder": 2,
+    "dashDmg": 1,
+    "formDuration": 2,
+    "killForm": 3,
     "t_reflect": 1,
-    "ultGain": 3
+    "ultGain": 1
   },
   "chapter": "tongtian",
   "chapter_now": "tongtian",
@@ -27,22 +27,22 @@
     [
       "hero",
       "mutation",
+      "generic"
+    ],
+    [
+      "hero",
+      "mutation",
       "element"
     ],
     [
       "hero",
       "mutation",
-      "generic"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
+      "mobility"
     ],
     [
       "mutation",
       "hero",
-      "generic"
+      "survival"
     ],
     [
       "mutation",
@@ -55,14 +55,14 @@
       "generic"
     ],
     [
+      "hero",
+      "mutation",
+      "survival"
+    ],
+    [
       "mutation",
       "hero",
       "mobility"
-    ],
-    [
-      "hero",
-      "mutation",
-      "generic"
     ],
     [
       "mutation",
@@ -77,55 +77,50 @@
     [
       "hero",
       "mutation",
-      "element"
-    ],
-    [
-      "hero",
-      "mutation",
       "generic"
     ],
     [
-      "hero",
       "mutation",
-      "generic"
-    ],
-    [
       "hero",
-      "mutation",
       "survival"
     ],
     [
       "mutation",
-      "mobility",
+      "hero",
       "element"
     ],
     [
+      "hero",
       "mutation",
-      "mobility",
+      "mobility"
+    ],
+    [
+      "hero",
+      "mutation",
       "generic"
     ],
     [
       "mutation",
-      "survival",
+      "hero",
       "generic"
     ],
     [
       "mutation",
-      "mobility",
-      "generic"
+      "hero",
+      "survival"
     ]
   ],
-  "e_count": 104,
+  "e_count": 107,
   "elapsed_s": 400.0,
   "floaters_spawned": 1,
-  "form_count": 33,
+  "form_count": 31,
   "g_count": 14,
   "hero": "whiteDragon",
-  "hitstop_total_s": 13.4,
-  "kills": 7018,
-  "level": 20,
+  "hitstop_total_s": 17.0,
+  "kills": 7411,
+  "level": 19,
   "pass": true,
-  "q_count": 163,
+  "q_count": 179,
   "save_check": {
     "mismatch": [],
     "ok": true
@@ -140,7 +135,7 @@
   "trial_done": {
     "baguaFurnace": true
   },
-  "ult_count": 24,
+  "ult_count": 25,
   "unlocked": [
     "tang",
     "wukong",
@@ -151,5 +146,5 @@
     "erlang"
   ],
   "victory": true,
-  "wave": 456
+  "wave": 451
 }

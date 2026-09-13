@@ -75,6 +75,8 @@ var kf_fade_sprite: Sprite2D       # 子步2：交叉淡化层（旧姿势淡出
 var kf_xfade_left := 0.0
 var kf_xfade_dur := 0.075
 var kf_fade_base := Color.WHITE    # 快照时的着色（受伤/化龙 tint）
+var kf_blend_left := 0.0           # 子步3：状态过渡混合计时
+var kf_blend_dur := 0.1
 
 # ---- 卡牌数值（web BALANCE_CAPS 同源） ----
 func lvl(id: String) -> int:

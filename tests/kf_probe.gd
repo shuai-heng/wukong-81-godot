@@ -90,6 +90,37 @@ func _run() -> void:
 			await physics_frame
 		_chk(not p.kf_fade_sprite.visible, "淡化层淡出后隐藏")
 		_chk(absf(p.kf_sprite.modulate.a - 1.0) < 0.01, "主精灵透明度回落", str(p.kf_sprite.modulate.a))
+	# ---- M2 子步3：状态过渡混合（idle↔run 切换短过渡；收招不冻结） ----
+	for i in 30:
+		await physics_frame
+	Input.action_press("move_right")
+	var blended := false
+	var blend_alpha := -1.0
+	for i in 20:
+		await physics_frame
+		if i < 8 and p.kf_blend_left > 0.0:
+			blended = true
+			blend_alpha = p.kf_sprite.modulate.a
+	Input.action_release("move_right")
+	_chk(blended, "状态切换触发过渡混合")
+	if blended:
+		_chk(blend_alpha < 1.0, "过渡期主精灵半透明", str(blend_alpha))
+	for i in 40:
+		await physics_frame
+	_chk(absf(p.kf_sprite.modulate.a - 1.0) < 0.01, "过渡后透明度回落", str(p.kf_sprite.modulate.a))
+	_chk(str(p.kf_action) == "idle", "子步3后回idle", p.kf_action)
+	# 确定性验证缩放缓冲：手动设 blend 中点，同帧施加后 scale 应小于纯姿势 scale
+	var kfs_run: Array = KeyframeLib._acts["tang_sanzang"]["run"]
+	p.kf_t = 0.045
+	KeyframeLib._apply_pose(p, kfs_run)
+	var sc_pure: float = p.kf_sprite.scale.x
+	p.kf_blend_left = 0.05
+	p.kf_blend_dur = 0.1
+	KeyframeLib._advance_fades(p, 0.0)
+	_chk(p.kf_sprite.scale.x < sc_pure, "过渡期缩放缓冲生效", str([sc_pure, p.kf_sprite.scale.x]))
+	p.kf_blend_left = 0.0
+	KeyframeLib._advance_fades(p, 0.0)
+	_chk(absf(p.kf_sprite.modulate.a - 1.0) < 0.01, "缓冲结束后透明度复原", str(p.kf_sprite.modulate.a))
 	p.hero = "wukong"
 	p._kf_rebuild()
 	_chk(str(p.kf_slug) == "sun_wukong", "切悟空slug", p.kf_slug)

@@ -17,6 +17,9 @@ const CROSSFADE_MS := 0.075        # 子步2：姿势交叉淡化时长上限（
 const XFADE_SEG_FRAC := 0.8        # 淡化窗不超过所在关键帧段时长的比例（短段防叠淡闪烁）
 const XFADE_MIN := 0.024           # 淡化窗下限（秒）
 const XFADE_IN_FROM := 0.0         # 新姿势淡入起始透明度
+const STATE_BLEND_MS := 0.10       # 子步3：动作/状态切换过渡时长（idle/run/form↔技能、收招回落）
+const BLEND_ALPHA_FROM := 0.25     # 过渡期新动作淡入起始透明度
+const STATE_BLEND_SCALE := 0.96    # 过渡期新动作起始缩放缓冲（消切换 pop）
 
 ## 游戏 hero_id → V6.1 character_slug（白龙双形态：化龙时用马形）
 const HERO_SLUG := {
@@ -93,6 +96,7 @@ static func hide_visuals(p) -> void:
 	if p.get("kf_fade_sprite") != null:
 		p.kf_fade_sprite.visible = false
 		p.kf_xfade_left = 0.0
+		p.kf_blend_left = 0.0
 
 ## 发起一次动作；one_shot=false 为循环基底（idle/run/form）。不存在该动作时静默忽略。
 static func play_action(p, action: String, one_shot := true) -> void:
@@ -101,12 +105,20 @@ static func play_action(p, action: String, one_shot := true) -> void:
 		return
 	if p.kf_action == action and one_shot:
 		return   # 同名一次性动作不打断重播（普攻连击保持连贯）
+	_switch_action(p, action, one_shot)
+
+## 子步3：所有动作/状态切换走统一入口——旧姿势快照进过渡层淡出，
+## 新动作以 BLEND_ALPHA_FROM 淡入 + STATE_BLEND_SCALE 缩放缓冲，消除切换 pop。
+static func _switch_action(p, action: String, one_shot: bool) -> void:
+	_snapshot_fade(p, STATE_BLEND_MS)
 	p.kf_action = action
 	p.kf_t = 0.0
 	p.kf_one_shot = one_shot
 	p.kf_speed = float(ACTION_SPEED.get(action, 1.0))
 	p.kf_sprite.visible = true
 	p.sprite.visible = false
+	p.kf_blend_left = STATE_BLEND_MS
+	p.kf_blend_dur = STATE_BLEND_MS
 
 ## 每物理帧推进。循环基底（idle/run/form）按移动/法相状态实时切换；
 ## 一次性动作播完自动清空 kf_action 回落循环基底（子步2 起回落经淡化层软化，不瞬切）。
@@ -116,12 +128,7 @@ static func tick(p, delta: float, moving: bool) -> void:
 	if p.kf_action == "" or not p.kf_one_shot:
 		var want := _want_loop(p, moving)
 		if want != p.kf_action and has_action(p.kf_slug, want):
-			p.kf_action = want
-			p.kf_t = 0.0
-			p.kf_one_shot = false
-			p.kf_speed = float(ACTION_SPEED.get(want, 1.0))
-			p.kf_sprite.visible = true
-			p.sprite.visible = false
+			_switch_action(p, want, false)
 		elif p.kf_action == "" and not has_action(p.kf_slug, want):
 			p.sprite.visible = true
 			hide_visuals(p)
@@ -144,19 +151,26 @@ static func tick(p, delta: float, moving: bool) -> void:
 	var pre_flip: bool = p.kf_sprite.flip_h
 	_apply_pose(p, kfs)
 	if p.kf_sprite.texture != pre_tex and pre_tex != null:
-		_begin_xfade(p, kfs, pre_tex, pre_pos, pre_rot, pre_scl, pre_flip)
-	_advance_xfade(p, delta)
+		var t_ms: float = float(p.kf_t) * 1000.0
+		var i := _seg_index(kfs, t_ms)
+		var win: float = CROSSFADE_MS
+		if i + 1 < kfs.size():
+			win = (float(kfs[i + 1]["time_ms"]) - float(kfs[i]["time_ms"])) / 1000.0 * XFADE_SEG_FRAC
+		_snapshot_fade(p, clampf(win, XFADE_MIN, CROSSFADE_MS), pre_tex, pre_pos, pre_rot, pre_scl, pre_flip)
+	_advance_fades(p, delta)
 
-## 子步2：旧姿势快照进淡化层，新姿势在淡化窗内淡入（窗长随关键帧段自适应）
-static func _begin_xfade(p, kfs: Array, old_tex: Texture2D, old_pos: Vector2, old_rot: float, old_scl: Vector2, old_flip: bool) -> void:
+## 把一份姿势快照交给过渡层（子步2 姿势淡化 / 子步3 状态过渡共用）
+static func _snapshot_fade(p, dur: float, old_tex: Texture2D = null, old_pos := Vector2.INF, old_rot := 0.0, old_scl := Vector2.INF, old_flip := false) -> void:
 	if p.kf_fade_sprite == null:
 		return
-	var t_ms: float = float(p.kf_t) * 1000.0
-	var i := _seg_index(kfs, t_ms)
-	var win: float = CROSSFADE_MS
-	if i + 1 < kfs.size():
-		win = (float(kfs[i + 1]["time_ms"]) - float(kfs[i]["time_ms"])) / 1000.0 * XFADE_SEG_FRAC
-	var dur: float = clampf(win, XFADE_MIN, CROSSFADE_MS)
+	if old_tex == null:
+		if p.kf_sprite.texture == null or not p.kf_sprite.visible:
+			return
+		old_tex = p.kf_sprite.texture
+		old_pos = p.kf_sprite.position
+		old_rot = p.kf_sprite.rotation
+		old_scl = p.kf_sprite.scale
+		old_flip = p.kf_sprite.flip_h
 	var f: Sprite2D = p.kf_fade_sprite
 	f.texture = old_tex
 	f.flip_h = old_flip
@@ -168,23 +182,29 @@ static func _begin_xfade(p, kfs: Array, old_tex: Texture2D, old_pos: Vector2, ol
 	p.kf_xfade_left = dur
 	p.kf_xfade_dur = dur
 
-## 每帧推进淡化：旧姿势 alpha 1→0，新姿势 alpha XFADE_IN_FROM→1
-static func _advance_xfade(p, delta: float) -> void:
+## 每帧推进两层过渡：姿势淡化（旧姿势 alpha 1→0）+ 状态过渡（新动作淡入/缩放缓冲）
+static func _advance_fades(p, delta: float) -> void:
 	if p.kf_fade_sprite == null:
 		return
-	if p.kf_xfade_left <= 0.0:
-		if p.kf_fade_sprite.visible:
+	var a_in := 1.0
+	if p.kf_blend_left > 0.0:
+		p.kf_blend_left = maxf(0.0, p.kf_blend_left - delta)
+		var kb: float = 1.0 - p.kf_blend_left / maxf(p.kf_blend_dur, 0.001)
+		a_in *= lerpf(BLEND_ALPHA_FROM, 1.0, kb)
+		p.kf_sprite.scale = p.kf_sprite.scale * lerpf(STATE_BLEND_SCALE, 1.0, kb)
+	if p.kf_xfade_left > 0.0:
+		p.kf_xfade_left = maxf(0.0, p.kf_xfade_left - delta)
+		var kx: float = 1.0 - p.kf_xfade_left / maxf(p.kf_xfade_dur, 0.001)
+		a_in *= lerpf(XFADE_IN_FROM, 1.0, kx)
+		var b: Color = p.kf_fade_base
+		p.kf_fade_sprite.modulate = Color(b.r, b.g, b.b, b.a * (1.0 - kx))
+		if p.kf_xfade_left <= 0.0:
 			p.kf_fade_sprite.visible = false
-		return
-	p.kf_xfade_left = maxf(0.0, p.kf_xfade_left - delta)
-	var k: float = 1.0 - p.kf_xfade_left / maxf(p.kf_xfade_dur, 0.001)
-	var m: Color = p.kf_sprite.modulate
-	m.a = lerpf(XFADE_IN_FROM, 1.0, k)
-	p.kf_sprite.modulate = m
-	var b: Color = p.kf_fade_base
-	p.kf_fade_sprite.modulate = Color(b.r, b.g, b.b, b.a * (1.0 - k))
-	if p.kf_xfade_left <= 0.0:
+	elif p.kf_fade_sprite.visible:
 		p.kf_fade_sprite.visible = false
+	var m: Color = p.kf_sprite.modulate
+	m.a = a_in
+	p.kf_sprite.modulate = m
 
 ## 循环基底选择：法相 > 跑动 > 站立
 static func _want_loop(p, moving: bool) -> String:
