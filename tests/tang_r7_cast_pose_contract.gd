@@ -1,14 +1,14 @@
 extends SceneTree
 
 const CONTRACT := "res://data/tang_runtime_pose_r7.json"
-const MASK := "res://data/tang_pose24_r7_mask_png.b64"
+const CLEAN_CAST := "res://art/v7_clean/tang_sanzang/tang_sanzang__POSE_24__CAST_CLEAN.png"
 
 func _init() -> void:
 	var errors: Array[String] = []
 	if not FileAccess.file_exists(CONTRACT):
 		errors.append("missing R7 pose contract")
-	if not FileAccess.file_exists(MASK):
-		errors.append("missing R7 cleanup mask")
+	if not ResourceLoader.exists(CLEAN_CAST):
+		errors.append("missing R7 clean cast PNG")
 	if not errors.is_empty():
 		_finish(errors)
 		return
@@ -24,8 +24,10 @@ func _init() -> void:
 	var release: Dictionary = data.get("release_pose", {})
 	if int(release.get("source_pose", -1)) != 24:
 		errors.append("R7 release pose must derive from POSE24")
-	if String(release.get("cleanup_method", "")) != "runtime_alpha_mask_only":
-		errors.append("R7 must clean POSE24 with alpha mask only")
+	if String(release.get("clean_asset", "")) != "art/v7_clean/tang_sanzang/tang_sanzang__POSE_24__CAST_CLEAN.png":
+		errors.append("R7 clean asset path drifted")
+	if String(release.get("cleanup_method", "")) != "alpha_cleanup_from_existing_pose":
+		errors.append("R7 clean asset must be alpha-cleaned from existing pose")
 	if bool(release.get("rgb_repainted", true)):
 		errors.append("R7 must preserve original POSE24 RGB")
 	var palm: Array = release.get("palm_uv", [])
@@ -46,18 +48,23 @@ func _init() -> void:
 	var r7 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r7.gd")
 	if game_v6.find("TangFighterV6R7") < 0:
 		errors.append("complete-game entry is not wired to TangFighterV6R7")
-	for token in ["extends TangFighterV6R6", "R7_POSE24_FILE", "R7_MASK_PATH", "Marshalls.base64_to_raw", "load_png_from_buffer", "ImageTexture.create_from_image", "return 24", "R7_PALM_UV", "func _r4_palm_local"]:
+	for token in ["extends TangFighterV6R6", "R7_CAST_PATH", "return 24", "R7_PALM_UV", "func _r4_palm_local"]:
 		if r7.find(token) < 0:
 			errors.append("R7 missing cast-pose token: " + token)
+	if r7.find("tang_pose24_r7_mask_png.b64") >= 0 or r7.find("Marshalls.base64_to_raw") >= 0:
+		errors.append("R7 still depends on temporary runtime base64 mask")
 	if r7.find("queue_attack(") >= 0 or r7.find("fx.emit(\"lotus\"") >= 0 or r7.find("fx.emit(\"ring\"") >= 0 or r7.find("fx.emit(\"rune\"") >= 0:
 		errors.append("R7 reintroduced legacy Tang skill template")
 	if r7.find("player.position + Vector2") >= 0 or r7.find("position + Vector2(30") >= 0:
 		errors.append("R7 introduced fake fixed anchor")
 
-	# Base64 PNG 必须至少能解码为 PNG 签名，防止文本损坏。
-	var raw := Marshalls.base64_to_raw(FileAccess.get_file_as_string(MASK).strip_edges())
-	if raw.size() < 8 or raw[0] != 137 or raw[1] != 80 or raw[2] != 78 or raw[3] != 71:
-		errors.append("R7 mask is not valid PNG bytes")
+	var tex: Texture2D = load(CLEAN_CAST)
+	if tex == null:
+		errors.append("R7 clean cast PNG failed ResourceLoader load")
+	else:
+		var img := tex.get_image()
+		if img == null or img.is_empty() or img.get_width() != 256 or img.get_height() != 256:
+			errors.append("R7 clean cast PNG dimensions invalid")
 
 	_finish(errors)
 
