@@ -20,6 +20,13 @@ func configure(g, owner, duration := 3.0, r := 105.0, dmg := 4.0) -> void:
 	secondary = HeroIdentity.secondary("tang")
 	queue_redraw()
 
+func _spawn_tick_contact(at: Vector2, dir: Vector2) -> void:
+	if game == null or not is_instance_valid(game):
+		return
+	var fx := TangImpactV6.new()
+	game.add_child(fx)
+	fx.configure(at, "ward_tick", 12.0, primary, secondary, dir)
+
 func _process(delta: float) -> void:
 	if owner_fighter == null or not is_instance_valid(owner_fighter):
 		queue_free()
@@ -36,7 +43,11 @@ func _process(delta: float) -> void:
 				continue
 			if e.global_position.distance_to(global_position) <= radius:
 				# 对齐旧 ward zone：4 点静默持续伤害，不额外触发平A命中/法相充能。
-				e.hit(tick_damage, Vector2.ZERO, false, true)
+				# 但视觉必须在真实受伤目标位置发生，不能人物中心凭空亮一下。
+				var ok := e.hit(tick_damage, Vector2.ZERO, false, true)
+				if ok:
+					var dir := (e.global_position - global_position).normalized()
+					_spawn_tick_contact(e.global_position, dir)
 	if life <= 0.0:
 		queue_free()
 		return
