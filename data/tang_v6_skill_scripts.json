@@ -1,14 +1,18 @@
 {
   "character": "tang",
   "combat_role": "ranged_caster_support",
-  "primary_color": "#F4C75B",
-  "secondary_color": "#FFF4D7",
+  "primary_color": "#F6C85F",
+  "secondary_color": "#FFF7DC",
+  "runtime": "TangFighterV6R2",
   "rules": {
     "single_clock": "V6.1 KeyframeLib kf_t",
     "source_anchor": "palm",
     "world_space_after_release": true,
+    "world_collision": true,
+    "contact_before_impact": true,
     "old_tang_runtime_skills_disabled": true,
-    "balance_policy": "reuse legacy damage/cooldown values during visual rebuild"
+    "old_generic_tang_vfx_disabled": ["lotus", "ring", "rune", "generic impact"],
+    "balance_policy": "reuse legacy damage/cooldown/crit/frost/burn/objective-cleanse values during visual rebuild"
   },
   "skills": {
     "normal": {
@@ -16,12 +20,13 @@
       "action": "atk_combo",
       "type": "projectile",
       "script": [
-        "起手：唐僧抬手，掌心出现小型金白法印",
-        "释放：V6.1 动作释放帧从 palm 锚点生成单枚咒弹",
-        "飞行：咒弹脱手后成为 world-space object，不再跟随唐僧",
-        "接触：真正碰到敌人才结算伤害",
-        "命中：2-4 个金白碎片 + 小型经文闪，不震屏",
-        "收招：回落 idle/run，可边走边连续远程平A"
+        "0ms 起手：唐僧抬手，掌心只出现四点小型金白法印",
+        "释放帧：从实时 palm 锚点生成一枚咒弹，三拍只更换弹体几何节奏，不额外复制伤害",
+        "飞行：弹体进入 world-space，唐僧移动不会拖着弹体走",
+        "地图接触：撞石块/边界就在真实 contact 点消散",
+        "敌人接触：保留旧平A 40×range 的小范围命中口径、crit/frost/burn 构筑效果",
+        "命中：仅小型经文碎片，不使用 hitstop/震屏",
+        "恢复：回落 idle/run，可连续远程平A"
       ]
     },
     "q": {
@@ -29,22 +34,24 @@
       "action": "core_1",
       "type": "ranged_ground_impact",
       "script": [
-        "起手：合掌/抬手，掌前法印逐渐成形",
-        "释放：从 palm 发出中型法印弹，飞向目标世界落点",
-        "接触：法印抵达落点后才展开镇压范围",
-        "命中：沿用旧 Q 的伤害与范围口径，并执行净化",
-        "余音：t_ring 升级存在时追加一次延迟余印，不在起手阶段提前爆炸"
+        "起手：掌前八角小法印逐渐成形",
+        "释放：从 palm 发出法印弹，飞向目标世界落点",
+        "Travel：可被世界障碍截断；不允许敌人位置提前爆炸",
+        "Contact：抵达落点或真正接触目标后才展开镇压",
+        "Impact：亮核心八角印 + 低亮度真实作用范围轮廓，保留旧 Q 1.9×伤害、185+22×t_nova 范围、净化和关卡机制推进",
+        "余印：t_ring 存在时 240ms 后追加一枚余印弹，仍需飞行/接触"
       ]
     },
     "e": {
       "name": "锦襕袈裟",
       "action": "core_2",
-      "type": "defense",
+      "type": "defense_close_pulse",
       "script": [
-        "起手：袈裟展开姿势，金线从肩侧收拢",
-        "释放：释放帧形成贴身护持，不生成巨大圆环",
-        "持续：护持跟随人物局部坐标；沿用旧 E 护盾时长与近身微量伤害口径",
-        "结束：护持淡出并完整清理，不残留 scale/rotation"
+        "起手：金线沿双肩向袈裟边缘收拢，不画圆盾",
+        "释放：袈裟展开产生一次 170 半径近身布势，保留旧 E 0.4×初始伤害与 200 击退",
+        "持续：3 秒护盾 + 105 半径贴身护持，每 0.5 秒 4 点静默伤害，保留旧 ward 数值",
+        "空间：护持跟随人物，因为它是穿戴型防御，不是地面持续区",
+        "结束：袈裟线条淡出，清理节点，不保留错误 scale/rotation"
       ]
     },
     "g": {
@@ -52,11 +59,12 @@
       "action": "unlock_1",
       "type": "multi_projectile_control",
       "script": [
-        "起手：诵经，掌心和身侧少量金白经文粒子聚集",
-        "释放：从 palm 向范围内目标逐一发出念珠/经文弹",
-        "飞行：每枚弹体进入 world-space，可轻度制导但不黏在人物身上",
-        "接触：命中目标后才结算旧 G 伤害；同时保留旧 G 治疗、净化、揭示效果",
-        "视觉：不再使用旧的大莲花覆盖人物"
+        "起手：六枚念珠围绕实时 palm 锚点蓄势",
+        "释放：390 范围内目标按 42ms 节奏分批发射念珠，而非同一帧全屏出现",
+        "飞行：每枚念珠 world-space 轻制导并参与地图碰撞",
+        "接触：命中后才结算旧 G 2.2×伤害；整批只记一次 on_hit/法相充能",
+        "系统效果：保留旧 G 18% 治疗、420 净化、6 秒揭示以及 seal/cleanse/rain 机制推进",
+        "视觉：只用小念珠和经文碎片，不再使用旧大莲花"
       ]
     },
     "form": {
@@ -64,10 +72,11 @@
       "action": "form",
       "type": "transformation",
       "script": [
-        "形成：V6.1 form 姿势从人物本体向后形成低透明法身投影",
-        "持续：法身约为本体 1.55 倍，使用佛光金/象牙白；碰撞体与数值不跟着放大",
-        "细节：九点经文刻度缓慢绕身，禁止直接贴巨大佛像 PNG",
-        "退出：投影、经文刻度、发光层全部回收"
+        "形成：约 620ms，从 V6.1 当前 form 姿势向后长成低透明法身投影",
+        "持续：法身约 1.72 倍本体，佛光金/象牙白；碰撞体、伤害范围不随视觉放大",
+        "细节：十二段经文刻度绕身，主体仍是人物，不贴巨大佛像 PNG",
+        "层级：法身在人物后方；普通弹体按世界 y 排序，不永远覆盖人物",
+        "退出：投影、刻度、发光层一起收束"
       ]
     },
     "r": {
@@ -75,11 +84,12 @@
       "action": "finisher",
       "type": "ultimate_multi_projectile",
       "script": [
-        "起手：法相收势、掌印集中，禁止第一帧满屏爆炸",
-        "释放：从 palm 向旧终结技范围内的敌人发出金白梵音矢",
-        "飞行：弹体全部是 world-space object",
-        "接触：各目标真正接触后才结算旧 R 伤害",
-        "命中：重击目标才有短 hitstop/轻震屏；法相随后收束退出"
+        "起手：法相收势，掌前形成扇形经文刻度，第一帧禁止满屏爆炸",
+        "释放：630 范围内目标按 40ms 节奏分批发出梵音矢",
+        "飞行：弹体全部 world-space，可被地图阻挡；保留旧 R 8×伤害、Boss ultimate cap、crit/frost/burn",
+        "Contact：各目标真正接触后才结算；整批只记一次 on_hit",
+        "Impact：单目标中型八角梵印；R 才允许约 50ms hitstop 和中等震屏",
+        "收束：最后一批弹体生成约 200ms 后法相退出，而不是发射瞬间消失"
       ]
     }
   }
