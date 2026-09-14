@@ -17,6 +17,7 @@ var _hero := ""
 var _form_was_on := false
 var _form_age := 0.0
 var _form_alpha := 0.0
+var _form_center := Vector2.ZERO
 var _seal_alpha := 0.0
 var _seal_pos := Vector2.ZERO
 var _seal_r := 0.0
@@ -66,12 +67,13 @@ func _kf_sprite() -> Sprite2D:
 
 func _tick_form(delta: float) -> void:
 	var form_on := float(player.get("form_left")) > 0.0
+	_form_center = to_local(KeyframeLib.body_anchor_world(player, "body_center"))
 	if form_on and not _form_was_on:
 		_form_age = 0.0
 		if main != null and main.has_method("request_shake"):
-			main.request_shake(1.6 if _hero == "tang" else 3.2)
+			main.call("request_shake", 1.6 if _hero == "tang" else 3.2)
 		if _hero == "tang" and main != null and main.has_method("spawn_motes"):
-			main.spawn_motes(player, 0.8, HeroIdentity.primary(_hero), 7)
+			main.call("spawn_motes", player, 0.8, HeroIdentity.primary(_hero), 7)
 	_form_was_on = form_on
 
 	if form_on:
@@ -118,7 +120,7 @@ func _tick_cast_seal(delta: float) -> void:
 		_seal_r = lerpf(4.0, TANG_SEAL_MAX_R, pre)
 
 func _tick_movement(delta: float) -> void:
-	var vel: Vector2 = player.get("velocity")
+	var vel: Vector2 = player.velocity
 	if vel.length() < 24.0:
 		_move_alpha = maxf(0.0, _move_alpha - delta * 7.0)
 		return
@@ -183,24 +185,24 @@ func _draw() -> void:
 			var start := _move_pos + side * spread * s
 			draw_line(start, start - _move_dir * len, mc, 1.2)
 
-	# 法相几何层：跟人物、分角色语义；只是形成/强化视觉，不改碰撞。
+	# 法相几何层：跟真实 body_center 锚点；只是形成/强化视觉，不改碰撞。
 	if _form_alpha > 0.01:
 		var fc := Color(primary.r, primary.g, primary.b, 0.34 * _form_alpha)
 		var sc := Color(secondary.r, secondary.g, secondary.b, 0.26 * _form_alpha)
 		var t := Time.get_ticks_msec() * 0.001
 		if _hero == "tang":
-			# 佛光：双环 + 克制的莲瓣/经文刻度，不贴巨大佛像。
-			draw_arc(Vector2(0, -15), 31.0, 0, TAU, 36, fc, 1.8)
-			draw_arc(Vector2(0, -15), 24.0, 0, TAU, 28, sc, 1.0)
+			# 佛光：双环 + 克制的经文刻度，不贴巨大佛像。
+			draw_arc(_form_center, 31.0, 0, TAU, 36, fc, 1.8)
+			draw_arc(_form_center, 24.0, 0, TAU, 28, sc, 1.0)
 			for i in 8:
 				var a := TAU * float(i) / 8.0 + t * 0.25
-				var p0 := Vector2(0, -15) + Vector2.from_angle(a) * 28.0
-				var p1 := Vector2(0, -15) + Vector2.from_angle(a) * 34.0
+				var p0 := _form_center + Vector2.from_angle(a) * 28.0
+				var p1 := _form_center + Vector2.from_angle(a) * 34.0
 				draw_line(p0, p1, sc, 1.0)
 		else:
 			# 悟空：断续赤金棍势环 + 外冲火星，强调武器战士而非佛光模板。
 			for i in 4:
 				var a0 := t * 0.7 + i * TAU / 4.0
-				draw_arc(Vector2(0, -9), 34.0, a0, a0 + 0.62, 8, fc, 2.2)
-				var sp := Vector2(0, -9) + Vector2.from_angle(a0 + 0.31) * 39.0
+				draw_arc(_form_center, 34.0, a0, a0 + 0.62, 8, fc, 2.2)
+				var sp := _form_center + Vector2.from_angle(a0 + 0.31) * 39.0
 				draw_line(sp, sp + Vector2.from_angle(a0 + 0.31) * 7.0, sc, 1.4)
