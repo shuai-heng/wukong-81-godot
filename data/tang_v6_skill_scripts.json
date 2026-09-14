@@ -5,13 +5,14 @@
   "secondary_color": "#FFF7DC",
   "runtime": "TangFighterV6R3",
   "rules": {
-    "single_clock": "KeyframeLib.kf_t decides release; post-release cadence uses TangFighterV6R3 player-tick absolute schedule, never SceneTreeTimer",
+    "single_clock": "KeyframeLib.kf_t decides primary release; post-release cadence uses TangFighterV6R3 player-tick schedule and pauses with game hitstop, never SceneTreeTimer",
     "source_anchor": "palm",
     "world_space_after_release": true,
     "world_collision": true,
     "contact_before_impact": true,
     "old_tang_runtime_skills_disabled": true,
     "old_generic_tang_vfx_disabled": ["lotus", "ring", "rune", "generic impact"],
+    "visual_hold_policy": "multi-projectile release may freeze only the V6 pose clock during the bounded cadence; it must not freeze world movement, collision or input",
     "balance_policy": "reuse legacy damage/cooldown/crit/frost/burn/objective-cleanse values during visual rebuild"
   },
   "skills": {
@@ -60,7 +61,8 @@
       "type": "multi_projectile_control",
       "script": [
         "起手：六枚念珠围绕实时 palm 锚点蓄势",
-        "释放：390 范围内目标按 42ms 节奏由 R3 player-tick 时间轴分批释放，不建立独立 timer",
+        "释放顺序：目标按近→远排序；14 个以内严格 42ms 一拍一枚，超过 14 个时均匀压入最多 14 拍，同拍允许多枚",
+        "动作同步：释放段最长约 0.55 秒，只冻结 V6 施法姿势时间，玩家移动/碰撞/输入仍正常",
         "飞行：每枚念珠 world-space 轻制导并参与地图碰撞；每枚真正生成时重新读取 palm",
         "接触：命中后才结算旧 G 2.2×伤害；整批只记一次 on_hit/法相充能",
         "系统效果：保留旧 G 18% 治疗、420 净化、6 秒揭示以及 seal/cleanse/rain 机制推进",
@@ -94,11 +96,12 @@
       "type": "ultimate_multi_projectile",
       "script": [
         "起手：法相收势，掌前形成扇形经文刻度，第一帧禁止满屏爆炸",
-        "释放：630 范围内目标按 40ms 节奏由 R3 player-tick 时间轴分批发出梵音矢，不建立 SceneTreeTimer",
+        "释放顺序：目标按相对面向左→右排序；16 个以内严格 40ms 一拍一枚，超过 16 个时均匀压入最多 16 拍",
+        "动作同步：释放段最长约 0.60 秒，只冻结 V6 finisher 姿势时间，不冻结玩家世界移动",
         "飞行：弹体全部 world-space，可被地图阻挡；保留旧 R 8×伤害、Boss ultimate cap、crit/frost/burn",
         "Contact：各目标真正接触后才结算；整批只记一次 on_hit",
         "Impact：单目标中型八角梵印；R 才允许约 50ms hitstop 和中等震屏",
-        "收束：最后一批弹体 release 约 200ms 后法相退出，而不是发射瞬间消失"
+        "收束：最后一拍 release 约 200ms 后法相退出，而不是发射瞬间消失"
       ]
     }
   }
