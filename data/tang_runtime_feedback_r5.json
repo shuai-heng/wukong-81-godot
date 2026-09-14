@@ -1,0 +1,42 @@
+{
+  "character": "tang_sanzang",
+  "runtime": "TangFighterV6R5",
+  "inherits": ["TangFighterV6R4", "TangFighterV6R3"],
+  "balance_changes": false,
+  "feedback_policy": {
+    "legacy_keyframe_hitstop": "suppressed_for_tang_r5",
+    "legacy_keyframe_camera_shake": "suppressed_for_tang_r5",
+    "release_pose_hold": "visual_pose_clock_only",
+    "player_movement_during_hold": true,
+    "world_collision_during_hold": true,
+    "input_during_hold": true,
+    "projectile_world_space_after_release": true,
+    "contact_before_damage": true,
+    "contact_before_impact_vfx": true,
+    "contact_before_hitstop": true,
+    "contact_before_camera_shake": true
+  },
+  "contact_feedback": {
+    "normal": {"hitstop_ms": 0, "camera_shake": 0.0},
+    "q_seal": {"hitstop_ms": 18, "camera_shake": 0.55},
+    "g_bead": {"hitstop_ms": 10, "condition": "only_when_one_impact_hits_3_or_more_targets", "camera_shake": 0.0},
+    "r_ultimate": {"hitstop_ms": 50, "camera_shake": 2.4},
+    "wall_contact": {"hitstop_ms": 0, "camera_shake": 0.0}
+  },
+  "visual_runtime": {
+    "pose_contract": "res://data/tang_runtime_pose_r4.json",
+    "source_anchor": "current_visual_pose.palm",
+    "projectile": "res://scripts/tang_spell_projectile_v6.gd",
+    "impact": "res://scripts/tang_impact_v6.gd",
+    "ward": "res://scripts/tang_ward_v6.gd",
+    "movie_entry": "res://tests/tang_v6_movie.gd"
+  },
+  "acceptance": [
+    "windup and release frames must not cause hitstop before any world contact",
+    "normal attack must never use old melee staff hitstop",
+    "Q impact may use only light contact feedback",
+    "R impact may use stronger contact feedback, but only after a real target contact",
+    "world collision may terminate a projectile without damaging an enemy",
+    "post-release projectile motion must not follow the caster"
+  ]
+}
