@@ -18,6 +18,7 @@ var target_id := 0
 var homing := false
 var grant_combo := false
 var cleanse := false
+var is_ultimate := false
 var _done := false
 var _trail: Array[Vector2] = []
 
@@ -39,6 +40,7 @@ func configure(g, owner, start: Vector2, target: Vector2, dmg: float, p_kind := 
 	homing = bool(opts.get("homing", false))
 	grant_combo = bool(opts.get("grant_combo", false))
 	cleanse = bool(opts.get("cleanse", false))
+	is_ultimate = bool(opts.get("is_ultimate", false))
 	var d := destination - start
 	velocity = (d.normalized() if d.length_squared() > 0.01 else Vector2.RIGHT) * speed
 	z_index = 235
@@ -92,14 +94,14 @@ func _impact(direct_target) -> void:
 				continue
 			var off := e.global_position - global_position
 			if off.length() <= impact_radius + 20.0:
-				if e.hit(damage, off.normalized() * knock, false):
+				if e.hit(damage, off.normalized() * knock, false, false, is_ultimate):
 					hit_any = true
 	else:
 		var victim = direct_target
 		if victim == null and target_id != 0:
 			victim = instance_from_id(target_id)
 		if victim is Node2D and is_instance_valid(victim) and not victim.dead and not victim.tame_ready:
-			hit_any = victim.hit(damage, dir * knock, false)
+			hit_any = victim.hit(damage, dir * knock, false, false, is_ultimate)
 
 	if cleanse:
 		game.clear_hazards(global_position, impact_radius if impact_radius > 0.0 else 44.0)
@@ -124,7 +126,7 @@ func _impact(direct_target) -> void:
 	queue_free()
 
 func _draw() -> void:
-	# 2-4 像素级拖尾，不做整屏光带。
+	# 2–4px 拖尾，不做整屏光带。
 	for i in range(_trail.size() - 1):
 		var a: Vector2 = _trail[i] - global_position
 		var b: Vector2 = _trail[i + 1] - global_position
