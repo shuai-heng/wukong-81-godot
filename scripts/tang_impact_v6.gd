@@ -58,16 +58,20 @@ func _draw() -> void:
 	var c2 := Color(secondary.r, secondary.g, secondary.b, .86 * f)
 	match kind:
 		"seal":
-			# 亮核心 + 低亮度真实作用范围轮廓，避免旧式巨大实心莲花。
-			var inner := lerpf(14.0, minf(72.0, radius * .42), p)
-			var outer := lerpf(24.0, radius, minf(1.0, p * 1.35))
+			# Q：真正主体只有中心八角镇压印。
+			# 实际 185+ 数值范围不再连成巨大几何圈，只在八方向留下低亮短刻度。
+			var inner := lerpf(14.0, minf(58.0, radius * .34), p)
 			draw_polyline(_octagon(inner, PI / 8.0), c2, 2.0)
-			draw_polyline(_octagon(outer, 0.0), Color(primary.r, primary.g, primary.b, .20 * f), 1.0)
 			for i in 8:
 				var a := i * TAU / 8.0
-				var a0 := Vector2.from_angle(a) * (inner + 4.0)
-				var a1 := Vector2.from_angle(a) * (inner + 10.0)
-				draw_line(a0, a1, c, 2.0)
+				var radial := Vector2.from_angle(a)
+				var tangent := radial.rotated(PI * .5)
+				var core0 := radial * (inner + 4.0)
+				var core1 := radial * (inner + 11.0)
+				draw_line(core0, core1, c, 2.0)
+				# 真实作用范围位置只画 5–7px 的刻度，禁止连接成大圆/大八角。
+				var edge := radial * radius
+				draw_line(edge - tangent * 3.5, edge + tangent * 3.5, Color(primary.r, primary.g, primary.b, .18 * f), 1.0)
 			for i in 4:
 				var y := -9.0 + i * 6.0
 				draw_line(Vector2(-8, y), Vector2(8, y), Color(secondary.r, secondary.g, secondary.b, .42 * f), 1.0)
@@ -86,7 +90,7 @@ func _draw() -> void:
 				draw_circle(q, 1.8, c if i % 2 == 0 else c2)
 			draw_line(-direction * 8.0, direction * 8.0, Color(secondary.r, secondary.g, secondary.b, .46 * f), 1.0)
 		"ultimate":
-			# 终结技单目标命中仍保持中等尺寸；强度来自多目标同步和法相本体，而非整屏贴图。
+			# 终结技单目标命中保持中等尺寸；强度来自多目标梵音矢与法相本体，而非整屏贴图。
 			var r0 := lerpf(12.0, minf(48.0, radius), p)
 			var r1 := r0 * 1.55
 			draw_polyline(_octagon(r0, p * .28), c2, 3.0)
