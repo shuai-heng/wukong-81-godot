@@ -21,6 +21,7 @@ func configure(at: Vector2, p_kind: String, p_radius: float, p_primary: Color, p
 	match kind:
 		"seal": duration = .34
 		"robe": duration = .28
+		"ward_tick": duration = .14
 		"ultimate": duration = .40
 		"wall": duration = .14
 		"bead": duration = .16
@@ -82,6 +83,17 @@ func _draw() -> void:
 			draw_arc(Vector2(8, -22), spread, .12, 1.44, 18, c, 3.0)
 			draw_line(Vector2(-spread * .72, -8), Vector2(-spread * .45, 18), c2, 2.0)
 			draw_line(Vector2(spread * .72, -8), Vector2(spread * .45, 18), c2, 2.0)
+		"ward_tick":
+			# E 持续护持真正触碰敌人的瞬间：只给目标一个小型袈裟线/经文触点。
+			# 不画范围圈、不震屏，视觉位置严格等于实际受伤目标位置。
+			var dir := direction.normalized()
+			var tangent := dir.rotated(PI * .5)
+			var half := lerpf(3.0, minf(10.0, radius), p)
+			draw_line(-tangent * half, tangent * half, c2, 2.0)
+			draw_line(-dir * 3.0, dir * lerpf(4.0, 11.0, p), c, 2.0)
+			for i in 3:
+				var q := tangent * float(i - 1) * 5.0 - dir * 2.0
+				draw_colored_polygon(PackedVector2Array([q+Vector2(0,-1.8), q+Vector2(1.8,0), q+Vector2(0,1.8), q+Vector2(-1.8,0)]), c if i != 1 else c2)
 		"bead":
 			var rr := lerpf(5.0, 16.0, p)
 			for i in 6:
