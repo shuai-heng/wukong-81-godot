@@ -4,6 +4,7 @@ extends Node2D
 ## It reads the player's existing V6.1 kf_action/kf_t clock and body anchors.
 ## No second skill clock is created.
 
+const IMPACT_SCRIPT := preload("res://scripts/visual_choreography_impact.gd")
 const SUPPORTED_HEROES := ["tang", "wukong"]
 const TANG_SEAL_MAX_R := 10.0
 const FORM_BUILD_TIME := 0.55
@@ -24,6 +25,9 @@ var _seal_r := 0.0
 var _move_alpha := 0.0
 var _move_pos := Vector2.ZERO
 var _move_dir := Vector2.RIGHT
+var _next_shot_id := 1
+var _shot_last_world: Dictionary = {}
+var _projectile_visuals: Array[Dictionary] = []
 
 func _ready() -> void:
 	player = get_parent() as CharacterBody2D
@@ -52,12 +56,15 @@ func _process(delta: float) -> void:
 	_tick_cast_seal(delta)
 	_tick_movement(delta)
 	_rebind_tang_ring_shots_to_palm()
+	_tick_tang_projectiles()
 	queue_redraw()
 
 func _reset_visuals(delta: float) -> void:
 	_form_alpha = maxf(0.0, _form_alpha - delta / FORM_FADE_TIME)
 	_seal_alpha = 0.0
 	_move_alpha = 0.0
+	_projectile_visuals.clear()
+	_shot_last_world.clear()
 	if form_echo != null:
 		form_echo.visible = false
 	queue_redraw()
@@ -152,10 +159,57 @@ func _rebind_tang_ring_shots_to_palm() -> void:
 		shot["from"] = palm_world
 		shot["pos"] = palm_world
 		shot["_m2r5_anchor_bound"] = true
+		shot["_m2r5_id"] = _next_shot_id
+		_next_shot_id += 1
 		shots[i] = shot
 		changed = true
 	if changed:
 		main.set("fx_shots", shots)
+
+func _tick_tang_projectiles() -> void:
+	_projectile_visuals.clear()
+	if _hero != "tang" or main == null:
+		_shot_last_world.clear()
+		return
+	var shots_v = main.get("fx_shots")
+	if not (shots_v is Array):
+		return
+	var shots: Array = shots_v
+	var live: Dictionary = {}
+	for shot_v in shots:
+		if not (shot_v is Dictionary):
+			continue
+		var shot: Dictionary = shot_v
+		if String(shot.get("kind", "")) != "ring" or not bool(shot.get("_m2r5_anchor_bound", false)):
+			continue
+		var sid := int(shot.get("_m2r5_id", 0))
+		if sid <= 0:
+			continue
+		var pos: Vector2 = shot.get("pos", Vector2.ZERO)
+		var to: Vector2 = shot.get("to", pos)
+		var dir_world := (to - pos).normalized() if to.distance_to(pos) > 0.5 else Vector2.RIGHT
+		var dir_local := (to_local(pos + dir_world * 8.0) - to_local(pos)).normalized()
+		live[sid] = true
+		_shot_last_world[sid] = pos
+		_projectile_visuals.append({"pos": to_local(pos), "dir": dir_local})
+
+	var ended: Array[int] = []
+	for sid_v in _shot_last_world.keys():
+		var sid := int(sid_v)
+		if not live.has(sid):
+			_spawn_tang_impact(_shot_last_world[sid])
+			ended.append(sid)
+	for sid in ended:
+		_shot_last_world.erase(sid)
+
+func _spawn_tang_impact(world_pos: Vector2) -> void:
+	if main == null:
+		return
+	var impact := IMPACT_SCRIPT.new() as Node2D
+	if impact == null:
+		return
+	main.add_child(impact)
+	impact.call("setup", world_pos, HeroIdentity.primary("tang"), HeroIdentity.secondary("tang"))
 
 func _draw() -> void:
 	if not SUPPORTED_HEROES.has(_hero):
@@ -174,6 +228,19 @@ func _draw() -> void:
 			var p0 := _seal_pos + Vector2.from_angle(a) * (_seal_r * 0.72)
 			var p1 := _seal_pos + Vector2.from_angle(a) * (_seal_r * 1.05)
 			draw_line(p0, p1, c2, 1.0)
+
+	# 同一枚 world-space ring shot 的小型莲瓣轮廓与2粒拖尾；不是第二枚 projectile。
+	if _hero == "tang":
+		var pc := Color(primary.r, primary.g, primary.b, 0.72)
+		var pw := Color(secondary.r, secondary.g, secondary.b, 0.84)
+		for pv in _projectile_visuals:
+			var p: Vector2 = pv["pos"]
+			var dir: Vector2 = pv["dir"]
+			var side := dir.orthogonal()
+			var diamond := PackedVector2Array([p + dir * 4.0, p + side * 2.2, p - dir * 3.0, p - side * 2.2, p + dir * 4.0])
+			draw_polyline(diamond, pw, 1.0)
+			draw_circle(p - dir * 6.0, 1.1, pc)
+			draw_circle(p - dir * 10.0, 0.75, Color(primary.r, primary.g, primary.b, 0.38))
 
 	# 走位只给少量方向性动势线；一远一近长度/重量不同，不做模板换色。
 	if _move_alpha > 0.01:
