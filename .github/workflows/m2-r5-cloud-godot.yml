@@ -1,0 +1,111 @@
+name: M2-R5 Cloud Godot Validation
+
+on:
+  push:
+    branches:
+      - task/m2-r5-visual-choreography-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  godot-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GODOT_SILENCE_ROOT_WARNING: "1"
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install runtime tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip xvfb ffmpeg
+
+      - name: Download Godot 4.7.2 Linux x86_64
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip \
+            -o /tmp/godot.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --version
+
+      - name: Download old complete game plus V6.1 art release pack
+        run: |
+          curl -L --fail --retry 3 \
+            https://github.com/shuai-heng/wukong-81-godot/releases/download/pack-20260914/wukong-81-game-plus-v6.1-art-assets-20260914.zip \
+            -o /tmp/release-pack.zip
+          echo "f63d69db0b352757ef39f25fb3e892a33b786c1604addbe20e61b9346d47f8ff  /tmp/release-pack.zip" | sha256sum -c -
+          mkdir -p /tmp/release-pack
+          unzip -q /tmp/release-pack.zip -d /tmp/release-pack
+          mkdir -p evidence/current/m2-r5-cloud
+          {
+            echo "release_pack_sha256=f63d69db0b352757ef39f25fb3e892a33b786c1604addbe20e61b9346d47f8ff"
+            echo "release_pack_top_level:"
+            find /tmp/release-pack -maxdepth 3 -type f | sed 's#^/tmp/release-pack/##' | sort | head -n 300
+          } > evidence/current/m2-r5-cloud/release-pack-manifest.txt
+
+      - name: Godot import and parse
+        run: |
+          set -o pipefail
+          timeout 180s xvfb-run -a /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --editor --path . --quit-after 120 \
+            2>&1 | tee evidence/current/m2-r5-cloud/import-parse.log
+
+      - name: M2-R5 choreography contract
+        run: |
+          set -o pipefail
+          timeout 120s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path . --script res://tests/m2_r5_visual_choreography_contract.gd \
+            2>&1 | tee evidence/current/m2-r5-cloud/contract.log
+
+      - name: Existing project smoke
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          timeout 150s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path . -- --smoke \
+            2>&1 | tee evidence/current/m2-r5-cloud/smoke.log
+
+      - name: Record real-game visual slice
+        run: |
+          set -o pipefail
+          mkdir -p evidence/current/m2-r5-cloud
+          timeout 90s xvfb-run -a /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --path . \
+            --write-movie evidence/current/m2-r5-cloud/m2-r5-visual.avi \
+            --script res://tests/m2_r5_visual_movie.gd \
+            2>&1 | tee evidence/current/m2-r5-cloud/movie.log
+
+      - name: Convert movie to MP4 and GIF
+        if: always()
+        run: |
+          if [ -f evidence/current/m2-r5-cloud/m2-r5-visual.avi ]; then
+            ffmpeg -y -i evidence/current/m2-r5-cloud/m2-r5-visual.avi \
+              -c:v libx264 -pix_fmt yuv420p -crf 22 \
+              evidence/current/m2-r5-cloud/m2-r5-visual.mp4
+            ffmpeg -y -i evidence/current/m2-r5-cloud/m2-r5-visual.avi \
+              -vf "fps=12,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer" \
+              -loop 0 evidence/current/m2-r5-cloud/m2-r5-visual.gif
+          fi
+
+      - name: Build source ZIP
+        if: always()
+        run: |
+          git archive --format=zip --output=evidence/current/m2-r5-cloud/wukong-81-m2-r5-source.zip HEAD
+          sha256sum evidence/current/m2-r5-cloud/wukong-81-m2-r5-source.zip > evidence/current/m2-r5-cloud/wukong-81-m2-r5-source.zip.sha256.txt
+
+      - name: Upload validation artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-r5-cloud-godot-validation
+          path: evidence/current/m2-r5-cloud/
+          if-no-files-found: error
+          retention-days: 7
