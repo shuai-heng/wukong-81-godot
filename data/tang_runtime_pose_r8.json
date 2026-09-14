@@ -1,0 +1,27 @@
+{
+  "version": "tang-runtime-pose-r8",
+  "character": "tang_sanzang",
+  "scope": "complete_game_runtime_visual_only",
+  "balance_changes": false,
+  "inherits": ["R7_clean_release_pose", "R6_clean_form", "R5_contact_only_feedback", "R3_world_projectile"],
+  "release_window": {
+    "principle": "POSE24 only appears around real KeyframeLib release time",
+    "pre_release_pose": 3,
+    "release_pose": 24,
+    "recovery_pose": 2,
+    "rest_pose": 13,
+    "normal_release_window_s": 0.13,
+    "q_release_window_s": 0.16,
+    "g_r_release_hold": "only while actual multi-projectile release cadence is active"
+  },
+  "hard_gates": {
+    "same_clock": "KeyframeLib.kf_t/kf_release_t",
+    "release_anchor": "current_visible_pose.palm",
+    "full_character_crossfade_forbidden": true,
+    "baked_crescent_forbidden": true,
+    "world_space_after_release": true,
+    "contact_before_impact": true,
+    "precontact_hitstop_forbidden": true,
+    "balance_change_forbidden": true
+  }
+}
