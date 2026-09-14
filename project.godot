@@ -9,6 +9,10 @@ config/name="大圣火线：八十一难 · 像素西行录"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
+[autoload]
+
+TangV6Bootstrap="*res://scripts/tang_v6_bootstrap.gd"
+
 [display]
 
 window/size/viewport_width=960
