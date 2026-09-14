@@ -3,9 +3,9 @@
   "combat_role": "ranged_caster_support",
   "primary_color": "#F6C85F",
   "secondary_color": "#FFF7DC",
-  "runtime": "TangFighterV6R2",
+  "runtime": "TangFighterV6R3",
   "rules": {
-    "single_clock": "V6.1 KeyframeLib kf_t",
+    "single_clock": "KeyframeLib.kf_t decides release; post-release cadence uses TangFighterV6R3 player-tick absolute schedule, never SceneTreeTimer",
     "source_anchor": "palm",
     "world_space_after_release": true,
     "world_collision": true,
@@ -39,7 +39,7 @@
         "Travel：可被世界障碍截断；不允许敌人位置提前爆炸",
         "Contact：抵达落点或真正接触目标后才展开镇压",
         "Impact：亮核心八角印 + 低亮度真实作用范围轮廓，保留旧 Q 1.9×伤害、185+22×t_nova 范围、净化和关卡机制推进",
-        "余印：t_ring 存在时 240ms 后追加一枚余印弹，仍需飞行/接触"
+        "余印：t_ring 存在时，以同一 player-tick 时间轴在 240ms 后从当时真实 palm 再发一枚余印弹，仍需 Travel/Contact"
       ]
     },
     "e": {
@@ -60,11 +60,20 @@
       "type": "multi_projectile_control",
       "script": [
         "起手：六枚念珠围绕实时 palm 锚点蓄势",
-        "释放：390 范围内目标按 42ms 节奏分批发射念珠，而非同一帧全屏出现",
-        "飞行：每枚念珠 world-space 轻制导并参与地图碰撞",
+        "释放：390 范围内目标按 42ms 节奏由 R3 player-tick 时间轴分批释放，不建立独立 timer",
+        "飞行：每枚念珠 world-space 轻制导并参与地图碰撞；每枚真正生成时重新读取 palm",
         "接触：命中后才结算旧 G 2.2×伤害；整批只记一次 on_hit/法相充能",
         "系统效果：保留旧 G 18% 治疗、420 净化、6 秒揭示以及 seal/cleanse/rain 机制推进",
         "视觉：只用小念珠和经文碎片，不再使用旧大莲花"
+      ]
+    },
+    "reflect": {
+      "name": "经文反照",
+      "type": "defensive_counter_projectile",
+      "script": [
+        "受击与旧版本相同条件触发 thorns/t_reflect",
+        "不再 queue 旧 ring circle；70 范围内目标各接一枚从实时 palm 发出的短程经文珠",
+        "弹体先 Travel/Contact 再结算原反伤数值，不额外提供 combo/法相充能"
       ]
     },
     "form": {
@@ -85,11 +94,11 @@
       "type": "ultimate_multi_projectile",
       "script": [
         "起手：法相收势，掌前形成扇形经文刻度，第一帧禁止满屏爆炸",
-        "释放：630 范围内目标按 40ms 节奏分批发出梵音矢",
+        "释放：630 范围内目标按 40ms 节奏由 R3 player-tick 时间轴分批发出梵音矢，不建立 SceneTreeTimer",
         "飞行：弹体全部 world-space，可被地图阻挡；保留旧 R 8×伤害、Boss ultimate cap、crit/frost/burn",
         "Contact：各目标真正接触后才结算；整批只记一次 on_hit",
         "Impact：单目标中型八角梵印；R 才允许约 50ms hitstop 和中等震屏",
-        "收束：最后一批弹体生成约 200ms 后法相退出，而不是发射瞬间消失"
+        "收束：最后一批弹体 release 约 200ms 后法相退出，而不是发射瞬间消失"
       ]
     }
   }
