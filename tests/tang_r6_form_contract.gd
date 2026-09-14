@@ -37,10 +37,13 @@ func _init() -> void:
 			errors.append("R6 denylist must include POSE_%02d" % id)
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r8 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r8.gd")
 	var r7 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r7.gd")
 	var r6 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r6.gd")
-	if game_v6.find("TangFighterV6R7") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R7")
+	if game_v6.find("TangFighterV6R8") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R8")
+	if r8.find("extends TangFighterV6R7") < 0:
+		errors.append("R8 must preserve R7 clean-release layer")
 	if r7.find("extends TangFighterV6R6") < 0:
 		errors.append("R7 must preserve R6 clean-form layer")
 	if r6.find("extends TangFighterV6R5") < 0:
