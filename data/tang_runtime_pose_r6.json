@@ -1,0 +1,42 @@
+{
+  "version": "tang-runtime-pose-r6",
+  "character": "tang_sanzang",
+  "runtime": "TangFighterV6R6",
+  "scope": "complete_game_runtime_visual_only",
+  "balance_changes": false,
+  "inherits": ["tang-runtime-feedback-r5", "tang-runtime-pose-r4"],
+  "principles": {
+    "normal_attack_role": "ranged_caster",
+    "form_subject": "clean_character_pose_only",
+    "form_subject_pose": 13,
+    "form_echo_pose": 13,
+    "form_baked_skill_art_allowed": false,
+    "finisher_baked_skill_art_allowed": false,
+    "source_anchor": "current_visual_pose.palm",
+    "world_space_after_release": true,
+    "contact_before_impact": true,
+    "collision_scale_follows_form_visual": false
+  },
+  "form_and_finisher_allowlist": [2, 3, 13],
+  "form_and_finisher_denylist": [19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36],
+  "timelines": {
+    "form": {
+      "body_pose": 13,
+      "echo_pose": 13,
+      "formation_s": 0.64,
+      "echo_max_scale": 0.62,
+      "script": "干净持杖人形本体保持可读；同一人物低透明投影从后方逐渐升起和放大；经文刻度由程序层单独形成；碰撞体不放大。"
+    },
+    "r": {
+      "poses": [2,3,2,13],
+      "script": "合掌聚势→袖手前送→梵音矢按世界空间分拍脱手→合掌→持杖收势；人物层禁止使用POSE30–36烘焙技能图。"
+    }
+  },
+  "acceptance": [
+    "hide_program_vfx: 关闭程序VFX后仍只能看到干净唐僧人物和低透明同人物法身，不得出现烘焙莲花/佛像/光柱",
+    "form_formation: 法身必须从小/淡到大/清楚形成，禁止第一帧整张巨大图",
+    "r_release: R弹体必须从当前可见人物palm脱手，脱手后进入world-space",
+    "contact_feedback: R hitstop/shake只能在真实Contact后发生",
+    "collision: 法身视觉放大不得改变人物碰撞体"
+  ]
+}
