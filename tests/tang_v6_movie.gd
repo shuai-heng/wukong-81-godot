@@ -1,8 +1,8 @@
 extends SceneTree
 
-# 唐僧 R7 正式运行录像：直接加载完整游戏 scenes/main.tscn。
+# 唐僧 R8 正式运行录像：直接加载完整游戏 scenes/main.tscn。
 # 顺序：移动 → 三拍远程平A → Q → E → G多目标 → 纯人物法相形成 → R多目标 → 收束。
-# 这是实机录像入口，不允许再用 PIL/手工拼图代替。
+# 重点观察：POSE24 只在真实 Release 短窗口出现；这是实机录像入口，不允许用 PIL/手工拼图代替。
 
 func _initialize() -> void:
 	_run()
@@ -27,7 +27,7 @@ func _durable_foe(game, at: Vector2, kind := "wolf"):
 func _run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	if packed == null:
-		push_error("TANG_R7_MOVIE missing main scene")
+		push_error("TANG_R8_MOVIE missing main scene")
 		quit(1)
 		return
 	var game = packed.instantiate()
@@ -35,8 +35,8 @@ func _run() -> void:
 	current_scene = game
 	for i in 5:
 		await process_frame
-	if not (game.player is TangFighterV6R7):
-		push_error("TANG_R7_MOVIE TangFighterV6R7 was not installed")
+	if not (game.player is TangFighterV6R8):
+		push_error("TANG_R8_MOVIE TangFighterV6R8 was not installed")
 		quit(2)
 		return
 
@@ -48,20 +48,21 @@ func _run() -> void:
 	game.spawn_cd = 999.0
 	game.env_cd = 999.0
 	game.preview_cd = 999.0
-	game.toast("唐三藏 R7 · 右掌前推Release + world-space技能 + Contact-only命中")
+	game.toast("唐三藏 R8 · Release短窗口 + world-space技能 + Contact-only命中")
 	await _wait(.55)
 
+	# 走位：地面步态，不允许 POSE06 横飞。
 	Input.action_press("move_right")
 	await _wait(.62)
 	Input.action_release("move_right")
 	await _wait(.20)
 
 	var anchor_target = _durable_foe(game, p.position + Vector2(205, -8), "wolf")
-	game.toast("平A · 持杖→合掌→右掌前推 → 单枚咒弹 → Contact后碎经文")
+	game.toast("平A · 持杖→合掌→袖手前引→短暂右掌Release→收势；单枚咒弹独立飞行")
 	await _wait(1.70)
 
 	p.cool.q = 0.0
-	game.toast("Q 掌印镇压 · 合掌聚印→右掌推出八角法印→Contact后展开")
+	game.toast("Q 掌印镇压 · Release瞬间右掌推出八角法印；Contact后才展开")
 	await _tap("skill_q")
 	await _wait(1.35)
 
@@ -75,7 +76,7 @@ func _run() -> void:
 		_durable_foe(game, p.position + off, "soldier")
 	game.save["abilities"][p.g_ability()] = true
 	p.cool.g = 0.0
-	game.toast("G 诵经·定妖 · 右掌保持前推，念珠按近→远有限节拍脱手")
+	game.toast("G 诵经·定妖 · 仅实际分拍释放期间保持前推掌；结束立即Recovery")
 	await _tap("gong")
 	await _wait(1.60)
 
@@ -88,11 +89,11 @@ func _run() -> void:
 	for off in [Vector2(250,-120), Vector2(320,-10), Vector2(260,115), Vector2(-210,-80)]:
 		_durable_foe(game, p.position + off, "monk")
 	p.cool.r = 0.0
-	game.toast("R 大乘梵音 · 合掌→右掌前推；左→右梵音矢；Contact后才hitstop/shake")
+	game.toast("R 大乘梵音 · 实际梵音矢分拍期间持前推掌；Contact后才hitstop/shake")
 	await _tap("ult")
 	await _wait(2.10)
 
 	if is_instance_valid(anchor_target):
-		print("TANG_R7_MOVIE_TARGET_HP=", anchor_target.hp)
-	print("TANG_R7_MOVIE_DONE")
+		print("TANG_R8_MOVIE_TARGET_HP=", anchor_target.hp)
+	print("TANG_R8_MOVIE_DONE")
 	quit(0)
