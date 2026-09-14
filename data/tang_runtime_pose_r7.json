@@ -1,0 +1,54 @@
+{
+  "version": "tang-runtime-pose-r7",
+  "character": "tang_sanzang",
+  "scope": "complete_game_runtime_visual_only",
+  "balance_changes": false,
+  "inherits": ["R6_clean_form", "R5_contact_only_feedback", "R4_pose_clock", "R3_world_projectile"],
+  "release_pose": {
+    "source_pose": 24,
+    "source_file": "art/v6_pose/tang_sanzang/tang_sanzang__POSE_24__R4C6.png",
+    "cleanup_method": "runtime_alpha_mask_only",
+    "mask_file": "data/tang_pose24_r7_mask_png.b64",
+    "rgb_repainted": false,
+    "baked_crescent_removed": true,
+    "baked_smoke_removed": true,
+    "palm_uv": [0.735, 0.535]
+  },
+  "timelines": {
+    "normal": {
+      "poses": [13, 2, 24, 2, 13],
+      "script": "持杖定身→合掌聚咒→右掌前推Release→合掌→回位；伤害主体只有独立world-space咒弹。"
+    },
+    "q": {
+      "poses": [2, 24, 2, 13],
+      "script": "合掌聚印→右掌将八角法印推出→法印脱手→Contact后展开镇压→收掌。"
+    },
+    "e": {
+      "inherits_r4": true,
+      "script": "合掌护持→袈裟双肩布势；不使用POSE24，不画巨大圆盾。"
+    },
+    "g": {
+      "poses": [2, 24, 2, 13],
+      "script": "合掌诵经→右掌保持前推→念珠按节拍从真实掌心脱手→收势。"
+    },
+    "form": {
+      "poses": [13],
+      "echo_pose": 13,
+      "script": "完全干净的人物本体+同人物低透明巨化投影；POSE30–36继续禁用。"
+    },
+    "r": {
+      "poses": [2, 24, 2, 13],
+      "script": "法相中合掌聚势→右掌前推铺开梵音矢→最后一拍后收掌/收法相。"
+    }
+  },
+  "hard_gates": {
+    "single_damage_projectile_per_normal": true,
+    "release_anchor_follows_visible_pose": true,
+    "world_space_after_release": true,
+    "contact_before_impact": true,
+    "precontact_hitstop_forbidden": true,
+    "full_character_crossfade_forbidden": true,
+    "baked_large_skill_art_for_form_forbidden": true,
+    "old_lotus_ring_rune_runtime_forbidden": true
+  }
+}
