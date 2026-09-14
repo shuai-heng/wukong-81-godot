@@ -1,18 +1,18 @@
 extends "res://scripts/game.gd"
 
-# 旧完整游戏的章节/敌人/数值系统保持不动；只把 player 实例替换为 TangFighterV6R6。
-# R6 = R5 Contact-only feedback + R4 低污染人物 Pose + R3 world-space projectile/contact
-#      + 法相/终结技彻底退出 POSE30–36 烘焙技能板，改用干净 POSE13 人物形成法身。
+# 旧完整游戏的章节/敌人/数值系统保持不动；只把 player 实例替换为 TangFighterV6R7。
+# R7 = R6 干净法相 + R5 Contact-only feedback + R4 低污染人物 Pose + R3 world-space projectile/contact
+#      + 现有 POSE24 运行时清理后作为真正“右掌前推”的 Release 关键帧。
 # 切换其他英雄时仍逐级回退 JourneyFighter，不影响其他人物当前逻辑。
 func _ready() -> void:
 	super()
 	call_deferred("_install_v6_player")
 
 func _install_v6_player() -> void:
-	if player is TangFighterV6R6:
+	if player is TangFighterV6R7:
 		return
 	var old := player
-	var p := TangFighterV6R6.new()
+	var p := TangFighterV6R7.new()
 	p.game = self
 	add_child(p)
 	p.position = old.position
