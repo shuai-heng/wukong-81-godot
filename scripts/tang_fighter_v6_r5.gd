@@ -10,6 +10,17 @@ extends TangFighterV6R4
 
 var _r5_release_hold_left := 0.0
 
+func set_hero(h: String) -> void:
+	super(h)
+	if h != "tang":
+		# 未真正生成到世界里的后续节拍属于当前施法动作，切人即取消；
+		# 已经脱手的 TangSpellProjectileV6 是独立 world-space 节点，不受这里影响。
+		_r5_release_hold_left = 0.0
+		kf_freeze_left = 0.0
+		_chant_left = 0.0
+		_chant_mode = ""
+		_r3_jobs.clear()
+
 func _hold_release_pose(seconds: float) -> void:
 	# 覆盖 R3 的同名实现：不把“持势”混进 KeyframeLib 的旧 metadata freeze。
 	# R5 自己持有这一段视觉时间；技能已经 release 的 projectile 仍是 world-space。
