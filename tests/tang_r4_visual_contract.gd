@@ -17,8 +17,8 @@ func _init() -> void:
 	var errors: Array[String] = []
 	if not FileAccess.file_exists(CONTRACT):
 		errors.append("missing pose contract")
-	_finish(errors)
-	return
+		_finish(errors)
+		return
 
 	var data = JSON.parse_string(FileAccess.get_file_as_string(CONTRACT))
 	if not (data is Dictionary):
