@@ -63,8 +63,11 @@ func _init() -> void:
 		errors.append("giant lotus POSE_35 leaked into form")
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
-	if game_v6.find("TangFighterV6R4") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R4")
+	var r5 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r5.gd")
+	if game_v6.find("TangFighterV6R5") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R5")
+	if r5.find("extends TangFighterV6R4") < 0:
+		errors.append("R5 must preserve R4 visual pose layer")
 	var r4 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r4.gd")
 	for token in ["func _r4_palm_world", "func _spawn_spell", "func _sync_form_echo", "POSE_06", "POSE_35"]:
 		if r4.find(token) < 0:
