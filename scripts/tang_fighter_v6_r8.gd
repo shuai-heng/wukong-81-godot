@@ -12,6 +12,7 @@ extends TangFighterV6R7
 ## - normal/Q：POSE_24 只覆盖 release 前后约百毫秒；
 ## - G/R：只有实际多弹 release cadence 持续期间才允许保持 POSE_24；
 ## - release 前后用 POSE_02 / POSE_03 / POSE_13 接动作，形成聚势→前推→回收；
+## - 真正 release 的执行顺序固定为：锁定 release 时刻 → 切到可见 POSE24 → 取 palm → 生成 projectile；
 ## - projectile 仍由 R4/R3 从当前可见 Pose 的 palm 脱手并进入 world-space；
 ## - 不改伤害、CD、护盾、净化、法相、终结数值。
 
@@ -21,20 +22,35 @@ var _r8_last_release_action := ""
 var _r8_last_release_mode := ""
 var _r8_last_release_kf_t := -999.0
 
-# TangFighterV6.tick() 会动态调用本方法；这里在真正 release 回调执行的同一 tick
-# 记录 release 在统一 kf_t 上的位置，供人物 Pose 在释放后的 recovery 阶段继续对齐。
+# 不调用父级实现：父级会先 kf_cancel_release() 再 cb.call()，那样回调中的 _r4_palm_world()
+# 可能看到 release 信息已经被清空。R8 必须先锁定 release，再强制视觉同步到 POSE24，最后才发弹。
 func _kf_release_tick() -> void:
-	var armed := kf_release_t >= 0.0
-	var release_at := kf_release_t
-	var cast_action := String(kf_cast_action)
-	var action_before := String(kf_action)
-	var mode_before := _r4_mode
-	var t_before := kf_t
-	super()
-	if armed and release_at >= 0.0 and action_before == cast_action and t_before + .0001 >= release_at:
+	if kf_release_t < 0.0:
+		return
+	if String(kf_action) != String(kf_cast_action):
+		kf_cancel_release()
+		return
+	if kf_t >= kf_release_t:
+		var cb := kf_release_cb
+		var release_at := kf_release_t
+		var action_before := String(kf_action)
+		var mode_before := _r4_mode
+		# 先写入统一时钟上的 release 位置。
 		_r8_last_release_action = action_before
 		_r8_last_release_mode = mode_before
 		_r8_last_release_kf_t = release_at
+		# 再清理 armed callback，避免重复触发。
+		kf_cancel_release()
+		# 此刻 _r8_release_delta()==0，因此 normal/Q/G/R 都会得到清理后的 POSE24。
+		# 先把人物同步到真实 Release Pose，随后 cb 里的 _spawn_spell() 再读取 palm。
+		if hero == "tang" and kf_sprite != null:
+			_apply_r4_visual(0.0)
+		if cb.is_valid():
+			cb.call()
+	else:
+		KeyframeLib.update_charge(self, kf_t / maxf(kf_release_t, .001))
+		if kf_orb != null and kf_orb.visible:
+			kf_orb.global_position = _r4_palm_world()
 
 func kf_cancel_release() -> void:
 	# 取消/切人时不能把上一次技能的 Release 窗口带进下一动作。
