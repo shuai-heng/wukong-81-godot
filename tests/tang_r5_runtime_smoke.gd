@@ -1,9 +1,8 @@
 extends SceneTree
 
-# 唐僧 R6 完整游戏运行时 smoke。
-# 目的：用 Godot 真正实例化 scenes/main.tscn，验证 R6→R5→R4→R3 继承链、平A/Q/E/G/R 的释放链，
-# 并逐帧验证 Contact 前不能出现旧 V6.1 预埋 hitstop。
-# 不替代视觉录像；也不修改正式平衡数值。
+# 唐僧 R7 完整游戏运行时 smoke。
+# 目的：用 Godot 真正实例化 scenes/main.tscn，验证 R7→R6→R5→R4→R3 继承链、
+# 清理后的 POSE24 Release 关键帧、平A/Q/E/G/R 释放链，以及 Contact 前无旧预埋 hitstop。
 
 var failed := false
 
@@ -15,7 +14,7 @@ func _wait(sec: float) -> void:
 
 func _fail(msg: String) -> void:
 	failed = true
-	push_error("TANG_R6_SMOKE " + msg)
+	push_error("TANG_R7_SMOKE " + msg)
 
 func _durable_foe(game, at: Vector2):
 	var e = game.spawn_enemy(at, "wolf", true)
@@ -57,8 +56,8 @@ func _run() -> void:
 	current_scene = game
 	for i in 5:
 		await process_frame
-	if not (game.player is TangFighterV6R6):
-		_fail("TangFighterV6R6 not installed")
+	if not (game.player is TangFighterV6R7):
+		_fail("TangFighterV6R7 not installed")
 		quit(2)
 		return
 
@@ -70,6 +69,13 @@ func _run() -> void:
 	game.spawn_cd = 999.0
 	game.env_cd = 999.0
 	game.preview_cd = 999.0
+
+	# R7 新门禁：遮罩必须能成功解码为真正可用的 Release Texture；失败时不能偷用原始大月牙 POSE24。
+	var cast_tex = p._r7_cast_texture()
+	if cast_tex == null:
+		_fail("clean POSE24 release texture failed to materialize")
+	if p._r4_pose_for("normal", .50) != 24 or p._r4_pose_for("q", .50) != 24 or p._r4_pose_for("g", .50) != 24 or p._r4_pose_for("r", .50) != 24:
+		_fail("clean POSE24 is not the release keyframe for normal/Q/G/R")
 
 	var target = _durable_foe(game, p.position + Vector2(120, 0))
 	if target == null:
@@ -122,5 +128,5 @@ func _run() -> void:
 	if p.form_left > 0.0:
 		_fail("R did not close dharma form after release")
 
-	print("TANG_R6_RUNTIME_SMOKE_", "FAIL" if failed else "PASS")
+	print("TANG_R7_RUNTIME_SMOKE_", "FAIL" if failed else "PASS")
 	quit(1 if failed else 0)
