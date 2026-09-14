@@ -14,6 +14,7 @@ extends TangFighterV6R7
 ## - release 前后用 POSE_02 / POSE_03 / POSE_13 接动作，形成聚势→前推→回收；
 ## - 真正 release 的执行顺序固定为：锁定 release 时刻 → 切到可见 POSE24 → 取 palm → 生成 projectile；
 ## - projectile 仍由 R4/R3 从当前可见 Pose 的 palm 脱手并进入 world-space；
+## - E 初次展开与持续 tick 的视觉反馈都只在真实受伤目标位置出现；
 ## - 不改伤害、CD、护盾、净化、法相、终结数值。
 
 const R8_NO_RELEASE := 999.0
@@ -143,3 +144,33 @@ func _apply_r4_visual(dt: float) -> void:
 		kf_sprite.position.x += 2.4 * sign_x
 		kf_sprite.position.y -= .8
 		kf_sprite.rotation += deg_to_rad(-.8) * sign_x
+
+func _r8_target_contact(at: Vector2, dir: Vector2) -> void:
+	if game == null or not is_instance_valid(game):
+		return
+	var fx := TangImpactV6.new()
+	game.add_child(fx)
+	fx.configure(at, "ward_tick", 12.0, HeroIdentity.primary("tang"), HeroIdentity.secondary("tang"), dir)
+
+# E 保留原数值，但初次展开的每个真实受伤目标也得到一个小型 Contact 反馈。
+# 持续 0.5s tick 的后续 Contact 由 TangWardV6 自己在目标位置生成。
+func _release_e() -> void:
+	shield = 3.0
+	var ward := TangWardV6.new()
+	game.add_child(ward)
+	ward.configure(game, self, 3.0, 105.0, 4.0)
+	_spawn_tang_impact(global_position, "robe", 170.0)
+	var hits := 0
+	for e in game.foes.duplicate():
+		if not is_instance_valid(e) or e.dead or e.tame_ready:
+			continue
+		var off := e.global_position - global_position
+		if off.length() > 190.0:
+			continue
+		var dir := off.normalized() if off.length_squared() > .01 else facing
+		var force := dir * 200.0
+		if tang_spell_hit(e, damage() * .4, force, false):
+			hits += 1
+			_r8_target_contact(e.global_position, dir)
+	if hits > 0:
+		on_hit()
