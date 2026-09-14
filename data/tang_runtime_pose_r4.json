@@ -1,0 +1,75 @@
+{
+  "version": "tang-runtime-pose-r4",
+  "character": "tang_sanzang",
+  "scope": "complete_game_runtime_visual_only",
+  "balance_changes": false,
+  "source_art": "existing V6/V6.1 36-pose library only",
+  "shared_clock": "KeyframeLib.kf_t",
+  "principles": {
+    "normal_attack_role": "ranged_caster",
+    "source_anchor": "current_visual_pose.palm",
+    "world_space_after_release": true,
+    "contact_before_impact": true,
+    "movement_locked_by_cast": false,
+    "generic_v6_pose_mapping_modified": false,
+    "baked_vfx_allowed_for_normal_q_e_g": false
+  },
+  "pose_allowlist": [1, 2, 3, 4, 5, 13, 31, 36],
+  "pose_denylist": {
+    "run": [6],
+    "normal": [6, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+    "q_e_g": [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35],
+    "form_finisher": [35]
+  },
+  "timelines": {
+    "idle": {
+      "duration_s": 0.9,
+      "poses": [1, 2],
+      "script": "持杖静立为主，循环末端短暂合掌。"
+    },
+    "run": {
+      "duration_s": 0.82,
+      "poses": [3, 4, 5, 4, 3],
+      "script": "地面跑步循环；POSE_06 横飞永久禁止进入普通走位。"
+    },
+    "normal": {
+      "duration_s": 0.9,
+      "poses": [13, 2, 3, 2, 13],
+      "script": "持杖定身→合掌→袖手前送→释放掌心咒弹→合掌→回位。人物本身不挥杖攻击。"
+    },
+    "q": {
+      "duration_s": 1.4,
+      "poses": [2, 3, 2, 13],
+      "script": "合掌聚印→袖手推出→world-space八角法印→接触后展开镇压→收掌。"
+    },
+    "e": {
+      "duration_s": 1.5,
+      "poses": [2, 13, 2, 1],
+      "script": "合掌护持→挺身展开袈裟→贴身护持持续→回位；人物不举巨大圆盾。"
+    },
+    "g": {
+      "duration_s": 1.8,
+      "poses": [2, 3, 2, 13],
+      "script": "合掌念咒→袖手前引→念珠分拍脱手→持势→回位。"
+    },
+    "form": {
+      "duration_s": 1.9,
+      "poses": [31],
+      "echo_pose": 36,
+      "script": "本体维持清晰人形，POSE_36在后方从小到大形成低透明法身；不使用POSE_35巨大莲花。"
+    },
+    "r": {
+      "duration_s": 2.8,
+      "poses": [31, 36, 31, 36],
+      "script": "法身收势→悬空诵经→梵音矢从掌心分拍脱手→最后一拍后收法相；不贴巨大佛像或莲花板。"
+    }
+  },
+  "visual_tests": [
+    "no_vfx: 关闭程序VFX后，人物动作仍能看出远程施法而非挥杖近战",
+    "no_character: 隐藏人物后，projectile来源/方向/flight/contact/impact仍清楚",
+    "pause_frame: 起手/释放/飞行/命中/收招任意暂停都能解释",
+    "swap_character: 当前动作不应像悟空/八戒技能换色",
+    "run_pose: 普通移动绝不出现横向飞行POSE_06",
+    "single_projectile: 普攻每次只有一枚真实伤害弹体，人物PNG内不烘焙第二枚"
+  ]
+}
