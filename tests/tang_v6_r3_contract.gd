@@ -1,6 +1,6 @@
 extends SceneTree
 
-# 唐僧完整运行链结构门禁：R3 新 Q/E/G/R；R4 普通人物 Pose；R5 Contact-only feedback；R6 纯人物法相。
+# 唐僧完整运行链结构门禁：R3 新 Q/E/G/R；R4 普通人物 Pose；R5 Contact-only；R6 纯人物法相；R7 清理后的前推掌 Release 帧。
 # 防止旧 Bootstrap、旧 Tang 技能或旧 generic VFX 回流。
 var failed := false
 
@@ -23,13 +23,15 @@ func _initialize() -> void:
 	var r4 := _read("res://scripts/tang_fighter_v6_r4.gd")
 	var r5 := _read("res://scripts/tang_fighter_v6_r5.gd")
 	var r6 := _read("res://scripts/tang_fighter_v6_r6.gd")
+	var r7 := _read("res://scripts/tang_fighter_v6_r7.gd")
 	var proj := _read("res://scripts/tang_spell_projectile_v6.gd")
 	var impact := _read("res://scripts/tang_impact_v6.gd")
 	var ward := _read("res://scripts/tang_ward_v6.gd")
 	var spec := _read("res://data/tang_v6_skill_scripts.json")
 
 	_assert_true(game_scene.contains("res://scripts/game_v6.gd"), "正式 main 场景进入 V6 完整游戏")
-	_assert_true(game_v6.contains("TangFighterV6R6.new()"), "正式 player 使用 TangFighterV6R6")
+	_assert_true(game_v6.contains("TangFighterV6R7.new()"), "正式 player 使用 TangFighterV6R7")
+	_assert_true(r7.contains("extends TangFighterV6R6"), "R7 继承 R6 干净法相层")
 	_assert_true(r6.contains("extends TangFighterV6R5"), "R6 继承 R5 Contact-only 层")
 	_assert_true(r5.contains("extends TangFighterV6R4"), "R5 继承 R4 人物视觉层")
 	_assert_true(r4.contains("extends TangFighterV6R3"), "R4 继承 R3 新技能执行层")
@@ -55,6 +57,8 @@ func _initialize() -> void:
 	_assert_true(r4.contains("func _spawn_spell"), "R4 在实际 release 同帧覆盖 projectile 起点")
 	_assert_true(r6.contains("_r4_pose_tex(13)"), "法相使用干净人物 Pose13 形成投影")
 	_assert_true(not r6.contains("POSE_31__") and not r6.contains("POSE_36__"), "R6 不直接加载烘焙法相/终结 Pose")
+	_assert_true(r7.contains("R7_POSE24_FILE") and r7.contains("R7_MASK_PATH"), "R7 用遮罩清理现有 POSE24 作为前推掌 Release 帧")
+	_assert_true(r7.contains("R7_PALM_UV"), "R7 Release projectile 绑定 POSE24 真实前推掌")
 	_assert_true(proj.contains("_find_world_contact"), "projectile 参与世界障碍 Contact")
 	_assert_true(proj.contains("Geometry2D.get_closest_point_to_segment"), "高速 projectile 使用连续线段 Contact")
 	_assert_true(proj.contains("TangImpactV6.new()"), "Contact 后使用 Tang 专属 Impact")
