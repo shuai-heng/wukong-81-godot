@@ -29,6 +29,14 @@ func _init() -> void:
 	for token in ["extends TangFighterV6R7", "func _kf_release_tick", "func _r8_release_delta", "kf_release_t", "_r5_release_hold_left", "return 24", "func _apply_r4_visual"]:
 		if r8.find(token) < 0:
 			errors.append("R8 missing release-window token: " + token)
+
+	# 真正 Release 的顺序必须是：先锁定 release → 切可见 POSE24 → 再执行 callback 发弹。
+	var latch_i := r8.find("_r8_last_release_kf_t = release_at")
+	var sync_i := r8.find("_apply_r4_visual(0.0)")
+	var callback_i := r8.find("cb.call()")
+	if latch_i < 0 or sync_i < 0 or callback_i < 0 or not (latch_i < sync_i and sync_i < callback_i):
+		errors.append("release ordering must be latch -> visible POSE sync -> projectile callback")
+
 	# 禁止重新引入第二套 timer/coroutine 或固定假锚点。
 	for forbidden in ["create_timer(", "await ", "player.position + Vector2", "position + Vector2(30", "queue_attack(", "fx.emit(\"lotus\"", "fx.emit(\"ring\"", "fx.emit(\"rune\""]:
 		if r8.find(forbidden) >= 0:
