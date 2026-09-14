@@ -11,14 +11,19 @@ func _process(_delta: float) -> void:
 	var main := get_tree().get_first_node_in_group("main_ctl")
 	if main == null:
 		return
-	var player = main.get("player")
-	if player == null or not is_instance_valid(player):
+	var player_v = main.get("player")
+	if not (player_v is CharacterBody2D):
+		return
+	var player := player_v as CharacterBody2D
+	if not is_instance_valid(player):
 		return
 	var pid := int(player.get_instance_id())
 	if _attached_player_id == pid and player.get_node_or_null("VisualChoreoRig") != null:
 		return
 	if player.get_node_or_null("VisualChoreoRig") == null:
-		var rig = RIG_SCRIPT.new()
+		var rig := RIG_SCRIPT.new() as Node2D
+		if rig == null:
+			return
 		rig.name = "VisualChoreoRig"
 		player.add_child(rig)
 	_attached_player_id = pid
