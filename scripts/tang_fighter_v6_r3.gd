@@ -3,10 +3,11 @@ extends TangFighterV6R2
 
 ## R3：唐僧正式新技能执行层。
 ## - cast() 动态分派只走新 Q/E/G/R；旧 Tang 模板仅保留继承历史，不再运行。
-## - 所有起手/释放仍由 KeyframeLib.kf_t 决定。
-## - 释放后的余印/念珠/梵音矢不再 create_timer() 各自计时，统一挂到本角色 player-tick 时钟。
+## - 起手/主释放由 KeyframeLib.kf_t 决定。
+## - 释放后的余印/念珠/梵音矢统一挂本角色 player-tick 时钟，不使用 SceneTreeTimer。
+## - G/R 在大群怪场景使用“有限节拍”：少量目标一拍一枚，大量目标同拍分组，避免动作收完后仍吐弹数秒。
 ## - world-space projectile 自己负责 Travel -> Contact -> Impact。
-## - 不改旧伤害/CD/护盾/净化/终结技上限等平衡口径。
+## - 只延长视觉施法姿势，不锁移动/碰撞；不改伤害/CD/护盾/净化/终结技上限。
 
 var _r3_clock := 0.0
 var _r3_jobs: Array = []
@@ -21,7 +22,7 @@ func _schedule_r3(delay: float, cb: Callable) -> void:
 	_r3_jobs.append({"at": _r3_clock + maxf(0.0, delay), "cb": cb})
 
 func _drain_r3_jobs() -> void:
-	# 倒序删除，允许不同技能的后续释放共存；不会因为新动作开始而把已进入释放段的弹幕抹掉。
+	# 倒序删除，允许不同技能的后续释放共存；不会因新动作开始抹掉已进入 release 的 world-space 弹幕。
 	for i in range(_r3_jobs.size() - 1, -1, -1):
 		var job: Dictionary = _r3_jobs[i]
 		if _r3_clock + .0001 < float(job.get("at", 0.0)):
@@ -30,6 +31,63 @@ func _drain_r3_jobs() -> void:
 		_r3_jobs.remove_at(i)
 		if cb.is_valid():
 			cb.call()
+
+func _hold_release_pose(seconds: float) -> void:
+	# 只冻结 V6 人物关键帧时间，不冻结角色 world position / 输入 / 碰撞。
+	# 因而唐僧可边移动边维持结印姿势，弹体脱手后也不会粘着人物。
+	var hold := maxf(0.0, seconds)
+	kf_freeze_left = maxf(kf_freeze_left, hold)
+	_chant_left = maxf(_chant_left, hold)
+
+func _cadence_delay(index: int, total: int, step: float, max_beats: int) -> float:
+	if total <= 1:
+		return 0.0
+	if total <= max_beats:
+		return float(index) * step
+	# 大群怪时把目标均匀映射到有限拍数；同拍可发多枚，但拍序永远单调，不会时间回绕。
+	var beat := mini(max_beats - 1, int(floor(float(index) * float(max_beats) / float(total))))
+	return float(beat) * step
+
+func _targets_near_to_far(radius: float) -> Array[int]:
+	var pool: Array = []
+	for e in game.foes.duplicate():
+		if is_instance_valid(e) and not e.dead and not e.tame_ready and position.distance_to(e.position) <= radius:
+			pool.append(e)
+	var ids: Array[int] = []
+	while not pool.is_empty():
+		var best_idx := 0
+		var best_dist := INF
+		for i in pool.size():
+			var e = pool[i]
+			var d := position.distance_squared_to(e.position)
+			if d < best_dist:
+				best_dist = d
+				best_idx = i
+		var chosen = pool[best_idx]
+		ids.append(chosen.get_instance_id())
+		pool.remove_at(best_idx)
+	return ids
+
+func _targets_left_to_right(radius: float) -> Array[int]:
+	var pool: Array = []
+	for e in game.foes.duplicate():
+		if is_instance_valid(e) and not e.dead and not e.tame_ready and position.distance_to(e.position) <= radius:
+			pool.append(e)
+	var ids: Array[int] = []
+	var face_angle := facing.angle()
+	while not pool.is_empty():
+		var best_idx := 0
+		var best_angle := INF
+		for i in pool.size():
+			var e = pool[i]
+			var rel := wrapf((e.global_position - global_position).angle() - face_angle, -PI, PI)
+			if rel < best_angle:
+				best_angle = rel
+				best_idx = i
+		var chosen = pool[best_idx]
+		ids.append(chosen.get_instance_id())
+		pool.remove_at(best_idx)
+	return ids
 
 # ====================== Q：掌印镇压 ======================
 func _tang_q(target) -> void:
@@ -57,13 +115,13 @@ func _release_q_r3(target_pos: Vector2, dmg: float, radius: float, group: int) -
 	var echo_lv := upgrade("t_ring")
 	if echo_lv > 0:
 		var echo_damage := dmg * .5 * echo_lv
-		# 余印仍是同一次 Q 动作的 release continuation；不用独立 SceneTreeTimer。
+		# 余印仍是同一次 Q 动作 continuation；不用独立 SceneTreeTimer。
 		_schedule_r3(.24, Callable(self, "_release_q_echo_r3").bind(target_pos, echo_damage, radius * 1.30, group))
 
 func _release_q_echo_r3(target_pos: Vector2, dmg: float, radius: float, group: int) -> void:
 	if is_dead or game == null:
 		return
-	# 余印必须重新从此刻真实 palm 脱手，不能在目标点凭空爆第二圈。
+	# 余印重新从此刻真实 palm 脱手，不能在目标点凭空爆第二圈。
 	_spawn_spell(target_pos, dmg, "seal", {
 		"speed": 610.0,
 		"life": 1.0,
@@ -98,17 +156,15 @@ func _release_g(dmg: float) -> void:
 	if position.distance_to(game.objective_at) < 490.0 and game.chapter.mechanic in ["seal", "cleanse", "rain"]:
 		game.mechanic_solved = true
 
-	var ids: Array[int] = []
-	for e in game.foes.duplicate():
-		if not is_instance_valid(e) or e.dead or e.tame_ready:
-			continue
-		if position.distance_to(e.position) <= 390.0:
-			ids.append(e.get_instance_id())
+	var ids := _targets_near_to_far(390.0)
 	var group := _next_spell_group()
-	# 严格线性 42ms 节奏：禁止第 8 枚之后时间回绕，玩家能读出连续念珠节拍。
+	var last_delay := 0.0
+	# ≤14 个目标：严格 42ms 一枚；>14：仍按近→远，但压到 14 拍内，避免视觉动作拖尾数秒。
 	for i in ids.size():
-		var delay := float(i) * .042
+		var delay := _cadence_delay(i, ids.size(), .042, 14)
+		last_delay = maxf(last_delay, delay)
 		_schedule_r3(delay, Callable(self, "_release_g_bead").bind(ids[i], dmg, group))
+	_hold_release_pose(last_delay + .10)
 
 # ====================== R：大乘梵音·万字诛邪 ======================
 func _ultimate() -> bool:
@@ -128,25 +184,20 @@ func _ultimate() -> bool:
 	var windup := _kf_cast(action, cb)
 	_chant_left = maxf(_chant_left, windup)
 	_chant_mode = "r"
-	# 不在这里 end_form()：最后一批梵音矢释放后才收法相。
 	return true
 
 func _release_r(dmg: float) -> void:
-	var ids: Array[int] = []
-	for e in game.foes.duplicate():
-		if not is_instance_valid(e) or e.dead or e.tame_ready:
-			continue
-		if position.distance_to(e.position) <= 630.0:
-			ids.append(e.get_instance_id())
+	# R 按面向的左→右扇形扫读，玩家无需看文字也能看出“梵音铺开”的方向。
+	var ids := _targets_left_to_right(630.0)
 	var group := _next_spell_group()
 	var last_delay := 0.0
-	# 严格线性 40ms 梵音节拍；强度来自持续释放与多次真实 Contact，而不是同帧满屏爆炸。
+	# ≤16 个目标：40ms 一枚；>16：压到 16 拍内，同拍多箭但顺序仍左→右。
 	for i in ids.size():
-		var delay := float(i) * .040
-		last_delay = delay
+		var delay := _cadence_delay(i, ids.size(), .040, 16)
+		last_delay = maxf(last_delay, delay)
 		_schedule_r3(delay, Callable(self, "_release_r_arrow").bind(ids[i], dmg, group))
-	# 起手视觉由 _draw() 的扇形经文 + V6 法相承担，不在掌心伪造一个“Impact”。
-	# 空场也要自然收法相；有目标则等最后一批真正 release 后再收束。
+	_hold_release_pose(last_delay + .16)
+	# 最后一拍 release 后留 200ms 看清飞行，再收法相；不在按钮按下时瞬间 end_form。
 	_schedule_r3(last_delay + .20, Callable(self, "_finish_r_form"))
 
 # ====================== 受击反射：清除最后一个旧 ring 模板 ======================
@@ -175,7 +226,7 @@ func take_hit(amount: float, from: Vector2) -> bool:
 	var reflect_damage := 8.0 + 5.0 * upgrade("thorns") + 8.0 * upgrade("t_reflect")
 	var reflect_enabled := upgrade("thorns") > 0 or (shield > 0 and upgrade("t_reflect") > 0)
 	if reflect_enabled:
-		# 旧逻辑是 70 半径 circle/ring；新逻辑保持同一近身筛选范围和伤害，
+		# 旧逻辑 70 半径 circle/ring；新逻辑保持同一近身筛选范围和伤害，
 		# 但每个目标必须接到一枚从实时 palm 发出的短程经文珠，Contact 后才受伤。
 		_schedule_r3(.02, Callable(self, "_release_reflect_r3").bind(reflect_damage))
 	if hp <= 0:
