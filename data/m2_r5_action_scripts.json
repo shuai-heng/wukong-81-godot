@@ -1,0 +1,80 @@
+{
+  "schema_version": "m2-r5-v1",
+  "balance_policy": "visual_only_no_damage_cd_invulnerability_change",
+  "shared_clock": "player.kf_action + player.kf_t + KeyframeLib.release_time",
+  "characters": {
+    "tang": {
+      "combat_role": "远程法术/弹幕（施法念咒型）",
+      "primary_color": "#F6C85F",
+      "secondary_color": "#FFF7DC",
+      "normal_attack": {
+        "action_id": "atk_combo",
+        "motion_type": "projectile",
+        "source_anchor": "palm",
+        "trajectory_type": "world_space_ring_projectile",
+        "script": [
+          {"phase": "windup", "time": "0 -> release_time*0.55", "body": "进入V6.1 atk_combo起手；人物姿势本身必须可读为抬手施法", "vfx": "none_or_very_weak"},
+          {"phase": "charge", "time": "release_time*0.55 -> release_time", "body": "palm随V6.1关键帧插值移动", "vfx": "掌前4-10px佛光金/象牙白小法印渐成"},
+          {"phase": "release", "time": "release_time", "body": "保持当前释放关键帧", "vfx": "ring projectile从真实palm世界坐标生成"},
+          {"phase": "travel", "time": "release_time -> contact", "body": "人物可继续进入recovery/移动", "vfx": "projectile脱手后由main.fx_shots独立world-space飞行，不再跟随人物"},
+          {"phase": "contact", "time": "shot.t >= shot.dur/目标接触", "body": "无额外冻结", "vfx": "在真实目标接触点结算"},
+          {"phase": "impact", "time": "contact之后", "body": "平A不使用夸张hitstop/shake", "vfx": "小型金色命中反馈；不得提前爆炸"},
+          {"phase": "recovery", "time": "action_end", "body": "回落到run/idle", "vfx": "掌前法印快速衰减，projectile按自身生命周期清理"}
+        ],
+        "forbidden": [
+          "挥杖贴脸平A",
+          "人物中心固定偏移发弹",
+          "敌人处提前爆炸",
+          "巨大佛像贴图",
+          "巨大莲花覆盖人物",
+          "脱手后projectile继续粘着唐僧"
+        ]
+      },
+      "form": {
+        "action_id": "form",
+        "motion_type": "manifestation",
+        "source_anchor": "body_center/current_v6_pose",
+        "script": [
+          {"phase": "form_build", "time": "0-550ms", "body": "切入现有V6.1 form姿势", "vfx": "当前姿势的低透明法相投影由1.08x渐成到1.72x；双佛光环与少量刻度形成"},
+          {"phase": "form_active", "time": "form_left>0", "body": "碰撞体与战斗数值保持旧逻辑", "vfx": "佛光金/象牙白投影持续；不得贴完整巨佛PNG"},
+          {"phase": "form_exit", "time": "0-240ms after form_left<=0", "body": "自然回到run/idle", "vfx": "投影和环形几何淡出"}
+        ]
+      }
+    },
+    "wukong": {
+      "combat_role": "近中距离高机动武器战士",
+      "primary_color": "#FF8A00",
+      "secondary_color": "#FFD75E",
+      "normal_attack": {
+        "action_id": "atk_combo",
+        "motion_type": "melee_weapon_arc",
+        "source_anchor": "staff_tip",
+        "trajectory_type": "sampled_staff_tip_history",
+        "script": [
+          {"phase": "windup", "time": "0 -> swing_window.x", "body": "V6.1 atk_combo蓄势，身体/金箍棒关键帧推进", "vfx": "无最终攻击弧"},
+          {"phase": "active", "time": "swing_window.x -> swing_window.y", "body": "staff_tip沿关键帧真实位置运动", "vfx": "只沿staff_tip历史位置生成赤金棍势弧"},
+          {"phase": "contact", "time": "近战命中判定", "body": "命中发生在真实攻击窗口", "vfx": "接触后才有命中火花/hitstop"},
+          {"phase": "recovery", "time": "action_end", "body": "回到run/idle", "vfx": "棍势尾迹衰减"}
+        ]
+      },
+      "heavy": {
+        "action_id": "heavy",
+        "motion_type": "ground_slam",
+        "source_anchor": "staff_tip -> ground intersection",
+        "trajectory_type": "downward_weapon_tip",
+        "environment_response": "真实落点地裂+碎石+尘土",
+        "forbidden": ["人物中心假冲击圈", "未触地先爆裂", "所有角色共用同一地裂模板"]
+      },
+      "form": {
+        "action_id": "form",
+        "motion_type": "manifestation",
+        "source_anchor": "body_center/current_v6_pose",
+        "script": [
+          {"phase": "form_build", "time": "0-550ms", "body": "切入现有V6.1 form姿势", "vfx": "当前姿势的赤金法相投影由1.08x渐成到2.10x；断续棍势环与外冲火星形成"},
+          {"phase": "form_active", "time": "form_left>0", "body": "不扩大碰撞体，不改变旧战斗数值", "vfx": "赤金/金黄武器战士语义，不复用唐僧佛光几何"},
+          {"phase": "form_exit", "time": "0-240ms after form_left<=0", "body": "回到run/idle", "vfx": "法相投影淡出"}
+        ]
+      }
+    }
+  }
+}
