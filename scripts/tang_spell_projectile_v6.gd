@@ -19,6 +19,7 @@ var kind := "bolt"
 var target_id := 0
 var homing := false
 var grant_combo := false
+var hit_group_id := 0
 var cleanse := false
 var is_ultimate := false
 var style_index := 0
@@ -42,6 +43,7 @@ func configure(g, owner, start: Vector2, target: Vector2, dmg: float, p_kind := 
 	target_id = int(opts.get("target_id", 0))
 	homing = bool(opts.get("homing", false))
 	grant_combo = bool(opts.get("grant_combo", false))
+	hit_group_id = int(opts.get("hit_group_id", 0))
 	cleanse = bool(opts.get("cleanse", false))
 	is_ultimate = bool(opts.get("is_ultimate", false))
 	style_index = int(opts.get("style_index", 0)) % 3
@@ -56,13 +58,11 @@ func _physics_process(delta: float) -> void:
 	if game == null or not is_instance_valid(game):
 		queue_free()
 		return
-
 	var target = instance_from_id(target_id) if target_id != 0 else null
 	if homing and target is Node2D and is_instance_valid(target):
 		destination = target.global_position
 		var want := (destination - global_position).normalized() * speed
 		velocity = velocity.lerp(want, minf(1.0, delta * 6.0))
-
 	var prev := global_position
 	global_position += velocity * delta
 	life -= delta
@@ -71,7 +71,7 @@ func _physics_process(delta: float) -> void:
 	while _trail.size() > 7:
 		_trail.pop_back()
 
-	# 地图先于敌人做 Contact：撞石块/世界边界时，技能在真实 wall contact 点结束。
+	# 地图 Contact 优先：撞障碍/边界就在真实接触点消散。
 	var world_contact = _find_world_contact(prev, global_position)
 	if world_contact != null:
 		global_position = world_contact
@@ -80,7 +80,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 
-	# 敌人 Contact：用本帧运动线段做扫掠检测，避免高速弹体穿透。
+	# 高速线段扫掠，避免穿模。
 	for e in game.foes.duplicate():
 		if not is_instance_valid(e) or e.dead or e.tame_ready:
 			continue
@@ -90,13 +90,11 @@ func _physics_process(delta: float) -> void:
 			_impact(e)
 			return
 
-	# Q 掌印是指定世界落点技能，即使没有敌人也必须在落点 Contact 后展开。
 	if kind == "seal" and global_position.distance_to(destination) <= maxf(12.0, speed * delta * 1.1):
 		global_position = destination
 		_impact(null)
 		return
 	if life <= 0.0:
-		# 普通咒弹寿命耗尽只做很小的消散，不伪造敌人命中。
 		_spawn_impact("wall", 12.0)
 		_done = true
 		queue_free()
@@ -117,6 +115,13 @@ func _find_world_contact(a: Vector2, b: Vector2):
 			return closest
 	return null
 
+func _deal(e, force: Vector2) -> bool:
+	if caster != null and is_instance_valid(caster) and caster.has_method("tang_spell_hit"):
+		return bool(caster.tang_spell_hit(e, damage, force, is_ultimate))
+	if e == null or not is_instance_valid(e) or e.dead or e.tame_ready:
+		return false
+	return e.hit(damage, force, false, true, is_ultimate)
+
 func _impact(direct_target) -> void:
 	if _done:
 		return
@@ -132,36 +137,37 @@ func _impact(direct_target) -> void:
 			var off := e.global_position - global_position
 			if off.length() <= impact_radius + 20.0:
 				var force := off.normalized() * knock if off.length_squared() > .01 else dir * knock
-				if e.hit(damage, force, false, true, is_ultimate):
+				if _deal(e, force):
 					hit_any = true
 					hit_count += 1
-					if is_instance_valid(e):
-						game.fx.number(e.global_position, str(int(damage)), secondary, is_ultimate)
 	else:
 		var victim = direct_target
 		if victim == null and target_id != 0:
 			victim = instance_from_id(target_id)
 		if victim is Node2D and is_instance_valid(victim) and not victim.dead and not victim.tame_ready:
-			hit_any = victim.hit(damage, dir * knock, false, true, is_ultimate)
+			hit_any = _deal(victim, dir * knock)
 			if hit_any:
 				hit_count = 1
-				if is_instance_valid(victim):
-					game.fx.number(victim.global_position, str(int(damage)), secondary, is_ultimate)
 
 	if cleanse:
-		game.clear_hazards(global_position, impact_radius if impact_radius > 0.0 else 44.0)
+		var clean_r := impact_radius if impact_radius > 0.0 else 44.0
+		game.clear_hazards(global_position, clean_r)
+		# 旧 resolve_attack(cleanse) 同时能推进 seal/cleanse/rain 机制，继续保留。
+		if global_position.distance_to(game.objective_at) < clean_r + 100.0 and game.chapter.mechanic in ["seal", "cleanse", "rain"]:
+			game.mechanic_solved = true
 	if hit_any and grant_combo and caster != null and is_instance_valid(caster):
-		caster.on_hit()
+		if caster.has_method("register_spell_hit"):
+			caster.register_spell_hit(hit_group_id)
+		else:
+			caster.on_hit()
 
-	# 唐僧命中反馈完全走专属层，不再调用旧 fx.emit("ring/lotus/rune/impact")。
-	var vfx_kind := kind
 	var vfx_radius := 16.0
 	match kind:
 		"seal": vfx_radius = impact_radius
 		"bead": vfx_radius = 20.0
 		"ultimate": vfx_radius = 42.0
 		_: vfx_radius = 16.0
-	_spawn_impact(vfx_kind, vfx_radius)
+	_spawn_impact(kind, vfx_radius)
 	_apply_feedback(hit_any, hit_count)
 	queue_free()
 
@@ -169,7 +175,7 @@ func _apply_feedback(hit_any: bool, hit_count: int) -> void:
 	if not hit_any or game == null:
 		return
 	game.sound.play("heavy" if is_ultimate else "hit", .82)
-	# 平A/念珠不做夸张停顿；Q 只轻停；R 才有明显重击反馈。
+	# 平A不夸张停顿；Q轻停；R才有明显重量。
 	if game.feedback_gap <= 0.0:
 		if is_ultimate:
 			game.hitstop = maxf(game.hitstop, .050)
@@ -191,17 +197,15 @@ func _spawn_impact(p_kind: String, p_radius: float) -> void:
 	fx.configure(global_position, p_kind, p_radius, primary, secondary, velocity.normalized())
 
 func _update_depth() -> void:
-	# 不再永远压在所有角色最上层；按世界 y 做空间遮挡。
 	z_index = clampi(int(global_position.y / 10.0) + 2, 0, 220)
 
 func _draw() -> void:
-	# 2-4px 级短拖尾，轨迹来自弹体真实历史位置。
+	# 2-4px 级短拖尾，完全来自弹体真实历史位置。
 	for i in range(_trail.size() - 1):
 		var a: Vector2 = _trail[i] - global_position
 		var b: Vector2 = _trail[i + 1] - global_position
 		var alpha := 0.26 * (1.0 - float(i) / maxf(1.0, _trail.size()))
 		draw_line(a, b, Color(primary.r, primary.g, primary.b, alpha), maxf(1.0, 2.8 - i * .28))
-
 	var ang := velocity.angle()
 	if kind == "bead":
 		draw_circle(Vector2.ZERO, 4.8, primary)
@@ -220,7 +224,7 @@ func _draw() -> void:
 		draw_colored_polygon(p, Color(primary.r, primary.g, primary.b, .84))
 		draw_line(-direction * 13.0, direction * 16.0, secondary, 2.0)
 	else:
-		# 平A 三拍只改变几何节奏，不增加额外伤害弹体。
+		# 平A三拍只换几何节奏，不多造伤害弹。
 		if style_index == 0:
 			var p0 := PackedVector2Array([Vector2(10,0).rotated(ang), Vector2(0,-5).rotated(ang), Vector2(-7,0).rotated(ang), Vector2(0,5).rotated(ang)])
 			draw_colored_polygon(p0, primary)
