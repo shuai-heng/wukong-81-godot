@@ -1,16 +1,17 @@
 extends "res://scripts/game.gd"
 
-# 旧完整游戏的章节/敌人/数值系统保持不动；只把 player 实例替换为 TangFighterV6R3。
-# R3 正式接通新 Q/E/G/R；切换其他英雄时仍逐级回退 JourneyFighter。
+# 旧完整游戏的章节/敌人/数值系统保持不动；只把 player 实例替换为 TangFighterV6R4。
+# R4 = R3 正确 projectile/contact 执行层 + 唐僧专属低污染人物 Pose 重映射。
+# 切换其他英雄时仍逐级回退 JourneyFighter，不影响其他人物当前逻辑。
 func _ready() -> void:
 	super()
 	call_deferred("_install_v6_player")
 
 func _install_v6_player() -> void:
-	if player is TangFighterV6R3:
+	if player is TangFighterV6R4:
 		return
 	var old := player
-	var p := TangFighterV6R3.new()
+	var p := TangFighterV6R4.new()
 	p.game = self
 	add_child(p)
 	p.position = old.position
