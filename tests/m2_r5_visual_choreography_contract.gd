@@ -14,6 +14,7 @@ func _has(src: String, token: String, msg: String) -> void:
 func _init() -> void:
 	_need(FileAccess.file_exists("res://scripts/visual_choreography.gd"), "missing visual_choreography.gd")
 	_need(FileAccess.file_exists("res://scripts/visual_choreography_rig.gd"), "missing visual_choreography_rig.gd")
+	_need(FileAccess.file_exists("res://data/m2_r5_action_scripts.json"), "missing action scripts")
 	_need(load("res://scripts/visual_choreography.gd") != null, "bootstrap script failed to load")
 	_need(load("res://scripts/visual_choreography_rig.gd") != null, "rig script failed to load")
 	_need(String(ProjectSettings.get_setting("autoload/VisualChoreography", "")).contains("visual_choreography.gd"), "autoload not enabled")
@@ -29,12 +30,25 @@ func _init() -> void:
 	_need(not rig.contains("player.position + Vector2("), "fixed-offset fake anchor detected")
 	_need(not rig.contains("global_position + Vector2(30"), "fixed-offset fake anchor detected")
 
+	var action_raw := FileAccess.get_file_as_string("res://data/m2_r5_action_scripts.json")
+	var actions = JSON.parse_string(action_raw)
+	_need(actions is Dictionary, "m2_r5_action_scripts.json parse failed")
+	if actions is Dictionary:
+		_need(String(actions.get("balance_policy", "")) == "visual_only_no_damage_cd_invulnerability_change", "visual-only balance policy drift")
+		var chars: Dictionary = actions.get("characters", {})
+		var tang: Dictionary = chars.get("tang", {})
+		var wk: Dictionary = chars.get("wukong", {})
+		_need(String(tang.get("normal_attack", {}).get("source_anchor", "")) == "palm", "Tang normal attack source_anchor must be palm")
+		_need(String(tang.get("normal_attack", {}).get("motion_type", "")) == "projectile", "Tang normal attack must stay ranged projectile")
+		_need(String(wk.get("normal_attack", {}).get("source_anchor", "")) == "staff_tip", "Wukong normal attack source_anchor must be staff_tip")
+		_need(String(wk.get("heavy", {}).get("environment_response", "")).contains("地裂"), "Wukong heavy must retain map feedback")
+
 	var anchors_raw := FileAccess.get_file_as_string("res://data/v6_body_anchors.json")
 	var anchors = JSON.parse_string(anchors_raw)
 	_need(anchors is Dictionary, "v6_body_anchors.json parse failed")
 	if anchors is Dictionary:
-		var tang: Dictionary = anchors.get("tang_sanzang", {})
-		var atk: Dictionary = tang.get("atk_combo", {})
+		var tang_anchor: Dictionary = anchors.get("tang_sanzang", {})
+		var atk: Dictionary = tang_anchor.get("atk_combo", {})
 		_need(not atk.is_empty(), "Tang atk_combo body-anchor track missing")
 		var palm_count := 0
 		for k in atk.keys():
