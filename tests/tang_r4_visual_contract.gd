@@ -1,5 +1,7 @@
 extends SceneTree
 
+# R4 门禁只负责普通人物动作与 palm 锚点基础层；
+# 最终法相/终结的纯人物限制由 tang_r6_form_contract.gd 继续收紧。
 const CONTRACT := "res://data/tang_runtime_pose_r4.json"
 const REQUIRED_POSES := [1, 2, 3, 4, 5, 13, 31, 36]
 const FILES := {
@@ -58,18 +60,16 @@ func _init() -> void:
 		for bad in [19,20,21,22,23,24,25,26,27,28,29,35]:
 			if bad in poses:
 				errors.append("baked VFX pose %d leaked into %s" % [bad, action])
-	var form_poses: Array = timelines.get("form", {}).get("poses", [])
-	if 35 in form_poses or int(timelines.get("form", {}).get("echo_pose", -1)) == 35:
-		errors.append("giant lotus POSE_35 leaked into form")
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r6 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r6.gd")
 	var r5 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r5.gd")
-	if game_v6.find("TangFighterV6R5") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R5")
-	if r5.find("extends TangFighterV6R4") < 0:
-		errors.append("R5 must preserve R4 visual pose layer")
 	var r4 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r4.gd")
-	for token in ["func _r4_palm_world", "func _spawn_spell", "func _sync_form_echo", "POSE_06", "POSE_35"]:
+	if game_v6.find("TangFighterV6R6") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R6")
+	if r6.find("extends TangFighterV6R5") < 0 or r5.find("extends TangFighterV6R4") < 0:
+		errors.append("R6 -> R5 -> R4 inheritance chain is broken")
+	for token in ["func _r4_palm_world", "func _spawn_spell", "POSE_06", "POSE_35"]:
 		if r4.find(token) < 0:
 			errors.append("missing R4 guard/token: " + token)
 
