@@ -3,40 +3,47 @@
   "combat_role": "ranged_caster_support",
   "primary_color": "#F6C85F",
   "secondary_color": "#FFF7DC",
-  "runtime": "TangFighterV6R3",
+  "runtime": "TangFighterV6R4",
+  "pose_contract": "res://data/tang_runtime_pose_r4.json",
   "rules": {
-    "single_clock": "KeyframeLib.kf_t decides primary release; post-release cadence uses TangFighterV6R3 player-tick schedule and pauses with game hitstop, never SceneTreeTimer",
-    "source_anchor": "palm",
+    "single_clock": "KeyframeLib.kf_t controls body pose and primary release; bounded post-release cadence uses TangFighterV6R3/R4 player-tick scheduling and pauses with game hitstop, never SceneTreeTimer",
+    "source_anchor": "current R4 visual pose palm",
     "world_space_after_release": true,
     "world_collision": true,
     "contact_before_impact": true,
     "old_tang_runtime_skills_disabled": true,
     "old_generic_tang_vfx_disabled": ["lotus", "ring", "rune", "generic impact"],
-    "visual_hold_policy": "multi-projectile release may freeze only the V6 pose clock during the bounded cadence; it must not freeze world movement, collision or input",
+    "old_melee_pose_for_normal_disabled": [14, 15, 16, 17, 18],
+    "run_flying_pose_disabled": [6],
+    "large_baked_skill_pose_disabled_for_normal_q_e_g": [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+    "form_large_lotus_pose_disabled": [35],
+    "visual_hold_policy": "multi-projectile release may freeze only the V6 pose clock during bounded cadence; it must not freeze world movement, collision or input",
     "balance_policy": "reuse legacy damage/cooldown/crit/frost/burn/objective-cleanse values during visual rebuild"
   },
   "skills": {
     "normal": {
       "name": "咒语弹幕",
       "action": "atk_combo",
+      "visual_poses": [13, 2, 3, 2, 13],
       "type": "projectile",
       "script": [
-        "0ms 起手：唐僧抬手，掌心只出现四点小型金白法印",
-        "释放帧：从实时 palm 锚点生成一枚咒弹，三拍只更换弹体几何节奏，不额外复制伤害",
-        "飞行：弹体进入 world-space，唐僧移动不会拖着弹体走",
+        "起手：持杖定身后合掌，掌心只出现四点小型金白法印；人物绝不挥杖贴脸",
+        "释放帧：人物进入袖手前送 Pose，从当前可见 Pose 的 palm 锚点生成一枚咒弹",
+        "飞行：弹体进入 world-space，唐僧继续移动不会拖着弹体走",
         "地图接触：撞石块/边界就在真实 contact 点消散",
-        "敌人接触：保留旧平A 40×range 的小范围命中口径、crit/frost/burn 构筑效果",
-        "命中：仅小型经文碎片，不使用 hitstop/震屏",
-        "恢复：回落 idle/run，可连续远程平A"
+        "敌人接触：保留旧平A 40×range 小范围命中、crit/frost/burn 构筑效果",
+        "命中：仅小型经文碎片，不使用夸张 hitstop/震屏",
+        "恢复：合掌后回持杖姿势，再回 idle/run"
       ]
     },
     "q": {
       "name": "掌印镇压",
       "action": "core_1",
+      "visual_poses": [2, 3, 2, 13],
       "type": "ranged_ground_impact",
       "script": [
-        "起手：掌前八角小法印逐渐成形",
-        "释放：从 palm 发出法印弹，飞向目标世界落点",
+        "起手：合掌聚印，掌前八角小法印逐渐成形；不显示原 V6 大型经文墙/莲花板",
+        "释放：袖手前送，从当前 Pose palm 发出法印弹，飞向目标世界落点",
         "Travel：可被世界障碍截断；不允许敌人位置提前爆炸",
         "Contact：抵达落点或真正接触目标后才展开镇压",
         "Impact：亮核心八角印 + 低亮度真实作用范围轮廓，保留旧 Q 1.9×伤害、185+22×t_nova 范围、净化和关卡机制推进",
@@ -46,27 +53,29 @@
     "e": {
       "name": "锦襕袈裟",
       "action": "core_2",
+      "visual_poses": [2, 13, 2, 1],
       "type": "defense_close_pulse",
       "script": [
-        "起手：金线沿双肩向袈裟边缘收拢，不画圆盾",
-        "释放：袈裟展开产生一次 170 半径近身布势，保留旧 E 0.4×初始伤害与 200 击退",
+        "起手：合掌，金线沿双肩向袈裟边缘收拢，不举巨大圆盾",
+        "释放：挺身展开袈裟，产生一次 170 半径近身布势，保留旧 E 0.4×初始伤害与 200 击退",
         "持续：3 秒护盾 + 105 半径贴身护持，每 0.5 秒 4 点静默伤害，保留旧 ward 数值",
         "空间：护持跟随人物，因为它是穿戴型防御，不是地面持续区",
-        "结束：袈裟线条淡出，清理节点，不保留错误 scale/rotation"
+        "结束：袈裟线条淡出，人物自然回持杖/移动"
       ]
     },
     "g": {
       "name": "诵经·定妖",
       "action": "unlock_1",
+      "visual_poses": [2, 3, 2, 13],
       "type": "multi_projectile_control",
       "script": [
-        "起手：六枚念珠围绕实时 palm 锚点蓄势",
-        "释放顺序：目标按近→远排序；14 个以内严格 42ms 一拍一枚，超过 14 个时均匀压入最多 14 拍，同拍允许多枚",
-        "动作同步：释放段最长约 0.55 秒，只冻结 V6 施法姿势时间，玩家移动/碰撞/输入仍正常",
-        "飞行：每枚念珠 world-space 轻制导并参与地图碰撞；每枚真正生成时重新读取 palm",
+        "起手：合掌念咒，六枚小念珠围绕当前 Pose palm 蓄势",
+        "释放顺序：目标按近→远排序；14 个以内严格 42ms 一拍一枚，超过 14 个均匀压入最多 14 拍，同拍允许多枚",
+        "动作同步：释放段最长约 0.55 秒，只冻结人物施法姿势时间，玩家移动/碰撞/输入正常",
+        "飞行：每枚念珠 world-space 轻制导并参与地图碰撞；每枚真正生成时重新读取当前可见 Pose palm",
         "接触：命中后才结算旧 G 2.2×伤害；整批只记一次 on_hit/法相充能",
         "系统效果：保留旧 G 18% 治疗、420 净化、6 秒揭示以及 seal/cleanse/rain 机制推进",
-        "视觉：只用小念珠和经文碎片，不再使用旧大莲花"
+        "视觉：只用小念珠和经文碎片，不使用 V6 大莲花/经文墙 Pose"
       ]
     },
     "reflect": {
@@ -74,34 +83,37 @@
       "type": "defensive_counter_projectile",
       "script": [
         "受击与旧版本相同条件触发 thorns/t_reflect",
-        "不再 queue 旧 ring circle；70 范围内目标各接一枚从实时 palm 发出的短程经文珠",
+        "不再 queue 旧 ring circle；70 范围内目标各接一枚从当前可见 Pose palm 发出的短程经文珠",
         "弹体先 Travel/Contact 再结算原反伤数值，不额外提供 combo/法相充能"
       ]
     },
     "form": {
       "name": "佛光金身法相",
       "action": "form",
+      "visual_poses": [31],
+      "echo_pose": 36,
       "type": "transformation",
       "script": [
-        "形成：约 620ms，从 V6.1 当前 form 姿势向后长成低透明法身投影",
-        "持续：法身约 1.72 倍本体，佛光金/象牙白；碰撞体、伤害范围不随视觉放大",
-        "细节：十二段经文刻度绕身，主体仍是人物，不贴巨大佛像 PNG",
-        "层级：法身在人物后方；普通弹体按世界 y 排序，不永远覆盖人物",
+        "形成：约 580ms，本体保持清晰 POSE_31，后方 POSE_36 从小到大形成低透明法身投影",
+        "持续：法身只放大视觉，不放大碰撞体或伤害范围；佛光金/象牙白保持唯一主色",
+        "细节：九段小型经文刻度绕身；禁用 POSE_35 巨大莲花，禁贴整张佛像 PNG",
+        "层级：法身在人物后方；world-space 弹体按世界 y 排序",
         "退出：投影、刻度、发光层一起收束"
       ]
     },
     "r": {
       "name": "大乘梵音·万字诛邪",
       "action": "finisher",
+      "visual_poses": [31, 36, 31, 36],
       "type": "ultimate_multi_projectile",
       "script": [
-        "起手：法相收势，掌前形成扇形经文刻度，第一帧禁止满屏爆炸",
-        "释放顺序：目标按相对面向左→右排序；16 个以内严格 40ms 一拍一枚，超过 16 个时均匀压入最多 16 拍",
-        "动作同步：释放段最长约 0.60 秒，只冻结 V6 finisher 姿势时间，不冻结玩家世界移动",
+        "起手：法相收势，人物从 POSE_31 过渡到悬空 POSE_36，掌前形成扇形经文刻度；第一帧禁止满屏爆炸",
+        "释放顺序：目标按相对面向左→右排序；16 个以内严格 40ms 一拍一枚，超过 16 个均匀压入最多 16 拍",
+        "动作同步：释放段最长约 0.60 秒，只冻结施法姿势时间，不冻结玩家世界移动",
         "飞行：弹体全部 world-space，可被地图阻挡；保留旧 R 8×伤害、Boss ultimate cap、crit/frost/burn",
         "Contact：各目标真正接触后才结算；整批只记一次 on_hit",
         "Impact：单目标中型八角梵印；R 才允许约 50ms hitstop 和中等震屏",
-        "收束：最后一拍 release 约 200ms 后法相退出，而不是发射瞬间消失"
+        "收束：最后一拍 release 约 200ms 后法相退出；不使用 POSE_35 大莲花贴图"
       ]
     }
   }
