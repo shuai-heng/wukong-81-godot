@@ -7,11 +7,12 @@
   "release_pose": {
     "source_pose": 24,
     "source_file": "art/v6_pose/tang_sanzang/tang_sanzang__POSE_24__R4C6.png",
-    "cleanup_method": "runtime_alpha_mask_only",
-    "mask_file": "data/tang_pose24_r7_mask_png.b64",
+    "clean_asset": "art/v7_clean/tang_sanzang/tang_sanzang__POSE_24__CAST_CLEAN.png",
+    "cleanup_method": "alpha_cleanup_from_existing_pose",
     "rgb_repainted": false,
     "baked_crescent_removed": true,
     "baked_smoke_removed": true,
+    "large_baked_skill_plate_removed": true,
     "palm_uv": [0.735, 0.535]
   },
   "timelines": {
