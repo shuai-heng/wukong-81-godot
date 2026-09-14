@@ -1,7 +1,7 @@
 extends SceneTree
 
-# 唐僧 R5 正式运行录像：直接加载完整游戏 scenes/main.tscn。
-# 顺序：移动 → 三拍远程平A → Q → E → G多目标 → 法相形成 → R多目标 → 收束。
+# 唐僧 R6 正式运行录像：直接加载完整游戏 scenes/main.tscn。
+# 顺序：移动 → 三拍远程平A → Q → E → G多目标 → 纯人物法相形成 → R多目标 → 收束。
 # 这是实机录像入口，不允许再用 PIL/手工拼图代替。
 
 func _initialize() -> void:
@@ -27,7 +27,7 @@ func _durable_foe(game, at: Vector2, kind := "wolf"):
 func _run() -> void:
 	var packed: PackedScene = load("res://scenes/main.tscn")
 	if packed == null:
-		push_error("TANG_R5_MOVIE missing main scene")
+		push_error("TANG_R6_MOVIE missing main scene")
 		quit(1)
 		return
 	var game = packed.instantiate()
@@ -35,8 +35,8 @@ func _run() -> void:
 	current_scene = game
 	for i in 5:
 		await process_frame
-	if not (game.player is TangFighterV6R5):
-		push_error("TANG_R5_MOVIE TangFighterV6R5 was not installed")
+	if not (game.player is TangFighterV6R6):
+		push_error("TANG_R6_MOVIE TangFighterV6R6 was not installed")
 		quit(2)
 		return
 
@@ -48,7 +48,7 @@ func _run() -> void:
 	game.spawn_cd = 999.0
 	game.env_cd = 999.0
 	game.preview_cd = 999.0
-	game.toast("唐三藏 R5 · 低污染人物动作 + Contact-only 命中反馈")
+	game.toast("唐三藏 R6 · 纯人物动作 + world-space技能 + Contact-only命中反馈")
 	await _wait(.55)
 
 	# 走位：必须保持地面跑步，禁止旧 POSE_06 横飞。
@@ -83,17 +83,17 @@ func _run() -> void:
 	p.form_left = 4.2
 	p.form_age = 1.0
 	p.ultimate = 100.0
-	game.toast("法相 · Pose31 本体 + Pose36 低透明法身逐渐形成；碰撞不放大")
+	game.toast("法相 · 干净Pose13本体 + 同人物低透明法身逐渐升起放大；无烘焙佛像/莲花板")
 	await _wait(1.05)
 
 	for off in [Vector2(250,-120), Vector2(320,-10), Vector2(260,115), Vector2(-210,-80)]:
 		_durable_foe(game, p.position + off, "monk")
 	p.cool.r = 0.0
-	game.toast("R 大乘梵音 · 左→右梵音矢；只有真正 Contact 才允许 hitstop/shake")
+	game.toast("R 大乘梵音 · 合掌→袖手前送；左→右梵音矢；Contact后才允许hitstop/shake")
 	await _tap("ult")
 	await _wait(2.10)
 
 	if is_instance_valid(anchor_target):
-		print("TANG_R5_MOVIE_TARGET_HP=", anchor_target.hp)
-	print("TANG_R5_MOVIE_DONE")
+		print("TANG_R6_MOVIE_TARGET_HP=", anchor_target.hp)
+	print("TANG_R6_MOVIE_DONE")
 	quit(0)
