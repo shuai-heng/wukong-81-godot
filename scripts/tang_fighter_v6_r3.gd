@@ -105,9 +105,9 @@ func _release_g(dmg: float) -> void:
 		if position.distance_to(e.position) <= 390.0:
 			ids.append(e.get_instance_id())
 	var group := _next_spell_group()
-	# 42ms 节奏分批释放。每枚真正生成时重新读取 palm，因此人物姿势变化会反映到来源点。
+	# 严格线性 42ms 节奏：禁止第 8 枚之后时间回绕，玩家能读出连续念珠节拍。
 	for i in ids.size():
-		var delay := float(i % 7) * .042 + floori(float(i) / 7.0) * .018
+		var delay := float(i) * .042
 		_schedule_r3(delay, Callable(self, "_release_g_bead").bind(ids[i], dmg, group))
 
 # ====================== R：大乘梵音·万字诛邪 ======================
@@ -140,9 +140,10 @@ func _release_r(dmg: float) -> void:
 			ids.append(e.get_instance_id())
 	var group := _next_spell_group()
 	var last_delay := 0.0
+	# 严格线性 40ms 梵音节拍；强度来自持续释放与多次真实 Contact，而不是同帧满屏爆炸。
 	for i in ids.size():
-		var delay := float(i % 8) * .040 + floori(float(i) / 8.0) * .080
-		last_delay = maxf(last_delay, delay)
+		var delay := float(i) * .040
+		last_delay = delay
 		_schedule_r3(delay, Callable(self, "_release_r_arrow").bind(ids[i], dmg, group))
 	# 起手视觉由 _draw() 的扇形经文 + V6 法相承担，不在掌心伪造一个“Impact”。
 	# 空场也要自然收法相；有目标则等最后一批真正 release 后再收束。
