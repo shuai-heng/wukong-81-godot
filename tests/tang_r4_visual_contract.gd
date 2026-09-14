@@ -1,7 +1,7 @@
 extends SceneTree
 
 # R4 门禁只负责普通人物动作与 palm 锚点基础层；
-# R6 负责纯人物法相；R7 允许“清理后的 POSE24”作为 Release 帧，但不修改本 R4 基线合同。
+# R6 负责纯人物法相；R7 提供清理后的 POSE24；R8 只把该 Pose 收紧到真实 Release 短窗口。
 const CONTRACT := "res://data/tang_runtime_pose_r4.json"
 const REQUIRED_POSES := [1, 2, 3, 4, 5, 13, 31, 36]
 const FILES := {
@@ -55,7 +55,7 @@ func _init() -> void:
 	for bad in [14, 15, 16, 17, 18]:
 		if bad in normal_poses:
 			errors.append("melee staff pose leaked into ranged normal: %d" % bad)
-	# R4 自己仍禁止原始 19–29 大技能板；R7 对 POSE24 的例外必须经过独立 alpha-mask 门禁。
+	# R4 自己仍禁止原始 19–29 大技能板；R7/R8 的 POSE24 例外必须走独立 clean asset。
 	for action in ["normal", "q", "e", "g"]:
 		var poses: Array = timelines.get(action, {}).get("poses", [])
 		for bad in [19,20,21,22,23,24,25,26,27,28,29,35]:
@@ -63,14 +63,15 @@ func _init() -> void:
 				errors.append("raw baked VFX pose %d leaked into R4 %s" % [bad, action])
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r8 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r8.gd")
 	var r7 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r7.gd")
 	var r6 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r6.gd")
 	var r5 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r5.gd")
 	var r4 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r4.gd")
-	if game_v6.find("TangFighterV6R7") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R7")
-	if r7.find("extends TangFighterV6R6") < 0 or r6.find("extends TangFighterV6R5") < 0 or r5.find("extends TangFighterV6R4") < 0:
-		errors.append("R7 -> R6 -> R5 -> R4 inheritance chain is broken")
+	if game_v6.find("TangFighterV6R8") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R8")
+	if r8.find("extends TangFighterV6R7") < 0 or r7.find("extends TangFighterV6R6") < 0 or r6.find("extends TangFighterV6R5") < 0 or r5.find("extends TangFighterV6R4") < 0:
+		errors.append("R8 -> R7 -> R6 -> R5 -> R4 inheritance chain is broken")
 	for token in ["func _r4_palm_world", "func _spawn_spell", "POSE_06", "POSE_35"]:
 		if r4.find(token) < 0:
 			errors.append("missing R4 guard/token: " + token)
