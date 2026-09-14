@@ -1,0 +1,48 @@
+name: Bootstrap Pixel Complete With V6.1 Assets
+
+on:
+  push:
+    branches:
+      - task/pixel-complete-v6-r5
+    paths:
+      - .github/workflows/bootstrap-pixel-v6-r5.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout old complete game branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: task/pixel-complete-v6-r5
+
+      - name: Copy only V6.1 runtime art system from main
+        run: |
+          set -euxo pipefail
+          git fetch origin main
+          git checkout origin/main -- \
+            art/v6_pose \
+            art/v6_pose_clean \
+            data/v6_1_full_keyframes_exact_pose.json \
+            data/v6_body_anchors.json \
+            data/v6_pose_anchors.json \
+            scripts/keyframe_lib.gd \
+            scripts/hero_identity.gd
+          git status --short
+
+      - name: Commit imported V6.1 assets
+        run: |
+          set -euxo pipefail
+          git config user.name "M2-R5 Cloud Integrator"
+          git config user.email "actions@users.noreply.github.com"
+          git add art/v6_pose art/v6_pose_clean data scripts/keyframe_lib.gd scripts/hero_identity.gd
+          if git diff --cached --quiet; then
+            echo "No V6.1 import changes to commit"
+          else
+            git commit -m "art: import V6.1 pose/keyframe runtime into complete pixel game"
+            git push origin HEAD:task/pixel-complete-v6-r5
+          fi
