@@ -219,10 +219,11 @@ func _draw() -> void:
 		draw_line(Vector2(-5, 0).rotated(ang), Vector2(5, 0).rotated(ang), secondary, 2.0)
 		draw_line(Vector2(0, -5).rotated(ang), Vector2(0, 5).rotated(ang), secondary, 2.0)
 	elif kind == "ultimate":
-		var up := direction.rotated(-PI * .5)
-		var p := PackedVector2Array([direction * 13.0, up * 7.0, -direction * 10.0, -up * 7.0])
+		var dir_vec := velocity.normalized()
+		var up := dir_vec.rotated(-PI * .5)
+		var p := PackedVector2Array([dir_vec * 13.0, up * 7.0, -dir_vec * 10.0, -up * 7.0])
 		draw_colored_polygon(p, Color(primary.r, primary.g, primary.b, .84))
-		draw_line(-direction * 13.0, direction * 16.0, secondary, 2.0)
+		draw_line(-dir_vec * 13.0, dir_vec * 16.0, secondary, 2.0)
 	else:
 		# 平A三拍只换几何节奏，不多造伤害弹。
 		if style_index == 0:
