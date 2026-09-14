@@ -1,0 +1,86 @@
+{
+  "character": "tang",
+  "combat_role": "ranged_caster_support",
+  "primary_color": "#F4C75B",
+  "secondary_color": "#FFF4D7",
+  "rules": {
+    "single_clock": "V6.1 KeyframeLib kf_t",
+    "source_anchor": "palm",
+    "world_space_after_release": true,
+    "old_tang_runtime_skills_disabled": true,
+    "balance_policy": "reuse legacy damage/cooldown values during visual rebuild"
+  },
+  "skills": {
+    "normal": {
+      "name": "咒语弹幕",
+      "action": "atk_combo",
+      "type": "projectile",
+      "script": [
+        "起手：唐僧抬手，掌心出现小型金白法印",
+        "释放：V6.1 动作释放帧从 palm 锚点生成单枚咒弹",
+        "飞行：咒弹脱手后成为 world-space object，不再跟随唐僧",
+        "接触：真正碰到敌人才结算伤害",
+        "命中：2-4 个金白碎片 + 小型经文闪，不震屏",
+        "收招：回落 idle/run，可边走边连续远程平A"
+      ]
+    },
+    "q": {
+      "name": "掌印镇压",
+      "action": "core_1",
+      "type": "ranged_ground_impact",
+      "script": [
+        "起手：合掌/抬手，掌前法印逐渐成形",
+        "释放：从 palm 发出中型法印弹，飞向目标世界落点",
+        "接触：法印抵达落点后才展开镇压范围",
+        "命中：沿用旧 Q 的伤害与范围口径，并执行净化",
+        "余音：t_ring 升级存在时追加一次延迟余印，不在起手阶段提前爆炸"
+      ]
+    },
+    "e": {
+      "name": "锦襕袈裟",
+      "action": "core_2",
+      "type": "defense",
+      "script": [
+        "起手：袈裟展开姿势，金线从肩侧收拢",
+        "释放：释放帧形成贴身护持，不生成巨大圆环",
+        "持续：护持跟随人物局部坐标；沿用旧 E 护盾时长与近身微量伤害口径",
+        "结束：护持淡出并完整清理，不残留 scale/rotation"
+      ]
+    },
+    "g": {
+      "name": "诵经·定妖",
+      "action": "unlock_1",
+      "type": "multi_projectile_control",
+      "script": [
+        "起手：诵经，掌心和身侧少量金白经文粒子聚集",
+        "释放：从 palm 向范围内目标逐一发出念珠/经文弹",
+        "飞行：每枚弹体进入 world-space，可轻度制导但不黏在人物身上",
+        "接触：命中目标后才结算旧 G 伤害；同时保留旧 G 治疗、净化、揭示效果",
+        "视觉：不再使用旧的大莲花覆盖人物"
+      ]
+    },
+    "form": {
+      "name": "佛光金身法相",
+      "action": "form",
+      "type": "transformation",
+      "script": [
+        "形成：V6.1 form 姿势从人物本体向后形成低透明法身投影",
+        "持续：法身约为本体 1.55 倍，使用佛光金/象牙白；碰撞体与数值不跟着放大",
+        "细节：九点经文刻度缓慢绕身，禁止直接贴巨大佛像 PNG",
+        "退出：投影、经文刻度、发光层全部回收"
+      ]
+    },
+    "r": {
+      "name": "大乘梵音·万字诛邪",
+      "action": "finisher",
+      "type": "ultimate_multi_projectile",
+      "script": [
+        "起手：法相收势、掌印集中，禁止第一帧满屏爆炸",
+        "释放：从 palm 向旧终结技范围内的敌人发出金白梵音矢",
+        "飞行：弹体全部是 world-space object",
+        "接触：各目标真正接触后才结算旧 R 伤害",
+        "命中：重击目标才有短 hitstop/轻震屏；法相随后收束退出"
+      ]
+    }
+  }
+}
