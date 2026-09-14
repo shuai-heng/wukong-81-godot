@@ -1,7 +1,7 @@
 class_name TangFighterV6R6
 extends TangFighterV6R5
 
-## R6：法相 / 终结技彻底去除烘焙大技能板。
+## R6：法相 / 终结技彻底去除烘焙大技能板，并消除整个人物 crossfade 重影。
 ##
 ## R4 已经把普通走位、平A、Q/E/G 限制到低污染人物 Pose；
 ## 视觉复核后确认 POSE_30 仍带少量莲瓣/底部佛光，因此也不作为最终法相人物。
@@ -10,6 +10,7 @@ extends TangFighterV6R5
 ## - 法相投影仍是同一个 POSE_13 人物，只做透明度 / 尺寸 / 高度形成；
 ## - R 人物动作只用 POSE_02 合掌、POSE_03 袖手前送、POSE_13 持杖收势；
 ## - POSE_30–36 全部退出 Tang 最终 form / R 人物层，不再把莲花、佛像、光柱、大法阵烘焙进人物；
+## - 普通人物 Pose 切换不再叠一张旧人物做 crossfade，避免双人/半身重影；
 ## - 佛光刻度 / 梵音矢仍由程序视觉与 world-space projectile 单独构成；
 ## - 不改伤害、CD、碰撞体、护盾、净化、法相时长与终结规则。
 
@@ -29,6 +30,13 @@ func _r4_pose_for(mode: String, p: float) -> int:
 			return 2
 		return 13
 	return super(mode, p)
+
+# 像素角色使用明确关键帧切换；不把上一张完整人物叠在新人物上做 55ms ghost fade。
+# 身体 root 的 offset/rotation/scale 仍由 R4 连续计算，因此只是去掉整图重影，不是冻结动作。
+func _snapshot_r4_fade() -> void:
+	if _r4_fade != null:
+		_r4_fade.visible = false
+	_r4_fade_left = 0.0
 
 # 法相主体 = 完全干净的 POSE_13 人物低透明放大投影。
 # 变化感由形成过程和程序 VFX 提供，而不是换一张带巨大莲花/佛像的技能插画。
