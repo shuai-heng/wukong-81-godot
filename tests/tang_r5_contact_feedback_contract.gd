@@ -3,6 +3,7 @@ extends SceneTree
 func _init() -> void:
 	var errors: Array[String] = []
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r9 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r9.gd")
 	var r8 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r8.gd")
 	var r7 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r7.gd")
 	var r6 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r6.gd")
@@ -10,8 +11,10 @@ func _init() -> void:
 	var projectile := FileAccess.get_file_as_string("res://scripts/tang_spell_projectile_v6.gd")
 	var r4 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r4.gd")
 
-	if game_v6.find("TangFighterV6R8") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R8")
+	if game_v6.find("TangFighterV6R9") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R9")
+	if r9.find("extends TangFighterV6R8") < 0:
+		errors.append("R9 must preserve R8 release-order layer")
 	if r8.find("extends TangFighterV6R7") < 0:
 		errors.append("R8 must preserve R7 clean release-pose layer")
 	if r7.find("extends TangFighterV6R6") < 0:
@@ -33,9 +36,9 @@ func _init() -> void:
 	for token in ["func _r4_palm_world", "func _spawn_spell", "PALM_UV", "POSE_06", "POSE_35"]:
 		if r4.find(token) < 0:
 			errors.append("R4 pose/anchor guard missing token: " + token)
-	for layer in [r5, r6, r7, r8]:
+	for layer in [r5, r6, r7, r8, r9]:
 		if layer.find("player.position + Vector2") >= 0 or layer.find("position + Vector2(30") >= 0:
-			errors.append("R5-R8 introduced a fixed fake anchor")
+			errors.append("R5-R9 introduced a fixed fake anchor")
 
 	_finish(errors)
 
