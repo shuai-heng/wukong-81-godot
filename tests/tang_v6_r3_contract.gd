@@ -2,7 +2,8 @@ extends SceneTree
 
 # 唐僧完整运行链结构门禁：
 # R3 新 Q/E/G/R → R4 普通人物 Pose/palm → R5 Contact-only → R6 纯人物法相
-# → R7 正式清理 POSE24 → R8 Release 短窗口与先切 Pose 再发弹。
+# → R7 正式清理 POSE24 → R8 Release 短窗口与先切 Pose 再发弹
+# → R9 人物读形与法相方向对齐。
 # 防止旧 Bootstrap、旧 Tang 技能或旧 generic VFX 回流。
 var failed := false
 
@@ -27,13 +28,15 @@ func _initialize() -> void:
 	var r6 := _read("res://scripts/tang_fighter_v6_r6.gd")
 	var r7 := _read("res://scripts/tang_fighter_v6_r7.gd")
 	var r8 := _read("res://scripts/tang_fighter_v6_r8.gd")
+	var r9 := _read("res://scripts/tang_fighter_v6_r9.gd")
 	var proj := _read("res://scripts/tang_spell_projectile_v6.gd")
 	var impact := _read("res://scripts/tang_impact_v6.gd")
 	var ward := _read("res://scripts/tang_ward_v6.gd")
 	var spec := _read("res://data/tang_v6_skill_scripts.json")
 
 	_assert_true(game_scene.contains("res://scripts/game_v6.gd"), "正式 main 场景进入 V6 完整游戏")
-	_assert_true(game_v6.contains("TangFighterV6R8.new()"), "正式 player 使用 TangFighterV6R8")
+	_assert_true(game_v6.contains("TangFighterV6R9.new()"), "正式 player 使用 TangFighterV6R9")
+	_assert_true(r9.contains("extends TangFighterV6R8"), "R9 继承 R8 真实 Release 顺序层")
 	_assert_true(r8.contains("extends TangFighterV6R7"), "R8 继承 R7 干净 Release Pose 层")
 	_assert_true(r7.contains("extends TangFighterV6R6"), "R7 继承 R6 干净法相层")
 	_assert_true(r6.contains("extends TangFighterV6R5"), "R6 继承 R5 Contact-only 层")
@@ -63,6 +66,9 @@ func _initialize() -> void:
 	_assert_true(r7.contains("R7_CAST_PATH") and r7.contains("R7_PALM_UV"), "R7 加载正式清理 POSE24 并定义真实前推掌")
 	_assert_true(not r7.contains("Marshalls.base64_to_raw") and not r7.contains("R7_MASK_PATH"), "R7 不依赖临时运行时遮罩/base64")
 	_assert_true(r8.contains("func _r8_release_delta") and r8.contains("_apply_r4_visual(0.0)"), "R8 用真实 release 时钟并在 callback 前同步人物 Pose")
+	_assert_true(r9.contains("R9_CHARACTER_SCALE") and r9.contains("R9_NORMAL_RELEASE_POST"), "R9 仅做读形和 Release 可读窗口优化")
+	_assert_true(r9.contains("kf_sprite.flip_h"), "R9 法相方向跟随当前可见人物")
+	_assert_true(not r9.contains("queue_attack(") and not r9.contains("fx.emit(\"lotus\"") and not r9.contains("fx.emit(\"ring\"") and not r9.contains("fx.emit(\"rune\""), "R9 不回流旧 Tang 模板")
 
 	_assert_true(proj.contains("_find_world_contact"), "projectile 参与世界障碍 Contact")
 	_assert_true(proj.contains("Geometry2D.get_closest_point_to_segment"), "高速 projectile 使用连续线段 Contact")
