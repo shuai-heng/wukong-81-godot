@@ -1,5 +1,5 @@
 class_name TangFighterV6R5
-extends TangFighterV6R4
+extends "res://scripts/tang_fighter_v6_r4.gd"
 
 ## R5：Contact-only feedback。
 ## R4 已经解决人物 Pose 污染与真实 palm 锚点；R5 只处理最后一层旧动作元数据泄漏：
