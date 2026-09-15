@@ -45,10 +45,13 @@ func _init() -> void:
 			errors.append("R7 hard gate disabled: " + key)
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r9 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r9.gd")
 	var r8 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r8.gd")
 	var r7 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r7.gd")
-	if game_v6.find("TangFighterV6R8") < 0:
-		errors.append("complete-game entry is not wired to TangFighterV6R8")
+	if game_v6.find("TangFighterV6R9") < 0:
+		errors.append("complete-game entry is not wired to TangFighterV6R9")
+	if r9.find("extends TangFighterV6R8") < 0:
+		errors.append("R9 must preserve R8 release-order layer")
 	if r8.find("extends TangFighterV6R7") < 0:
 		errors.append("R8 must preserve R7 clean cast-pose layer")
 	for token in ["extends TangFighterV6R6", "R7_CAST_PATH", "return 24", "R7_PALM_UV", "func _r4_palm_local"]:
