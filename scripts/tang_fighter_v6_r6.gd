@@ -1,5 +1,5 @@
 class_name TangFighterV6R6
-extends TangFighterV6R5
+extends "res://scripts/tang_fighter_v6_r5.gd"
 
 ## R6：法相 / 终结技彻底去除烘焙大技能板，并消除整个人物 crossfade 重影。
 ##
