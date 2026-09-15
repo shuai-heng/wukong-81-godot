@@ -23,9 +23,12 @@ func _init() -> void:
 			errors.append("R8 hard gate disabled: " + key)
 
 	var game_v6 := FileAccess.get_file_as_string("res://scripts/game_v6.gd")
+	var r9 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r9.gd")
 	var r8 := FileAccess.get_file_as_string("res://scripts/tang_fighter_v6_r8.gd")
-	if game_v6.find("TangFighterV6R8") < 0:
-		errors.append("complete game is not wired to R8")
+	if game_v6.find("TangFighterV6R9") < 0:
+		errors.append("complete game is not wired through TangFighterV6R9")
+	if r9.find("extends TangFighterV6R8") < 0:
+		errors.append("R9 must extend R8 instead of bypassing the release-order layer")
 	for token in ["extends TangFighterV6R7", "func _kf_release_tick", "func _r8_release_delta", "kf_release_t", "_r5_release_hold_left", "return 24", "func _apply_r4_visual"]:
 		if r8.find(token) < 0:
 			errors.append("R8 missing release-window token: " + token)
@@ -37,10 +40,13 @@ func _init() -> void:
 	if latch_i < 0 or sync_i < 0 or callback_i < 0 or not (latch_i < sync_i and sync_i < callback_i):
 		errors.append("release ordering must be latch -> visible POSE sync -> projectile callback")
 
-	# 禁止重新引入第二套 timer/coroutine 或固定假锚点。
+	# R9 可以扩大读形窗口，但不能改写 R8 的真实 release 顺序或引入第二套 timer。
+	for token in ["func _r4_pose_for", "_r8_release_delta", "R9_NORMAL_RELEASE_POST"]:
+		if r9.find(token) < 0:
+			errors.append("R9 readability layer missing shared-release token: " + token)
 	for forbidden in ["create_timer(", "await ", "player.position + Vector2", "position + Vector2(30", "queue_attack(", "fx.emit(\"lotus\"", "fx.emit(\"ring\"", "fx.emit(\"rune\""]:
-		if r8.find(forbidden) >= 0:
-			errors.append("R8 forbidden token: " + forbidden)
+		if r8.find(forbidden) >= 0 or r9.find(forbidden) >= 0:
+			errors.append("R8/R9 forbidden token: " + forbidden)
 
 	_finish(errors)
 
