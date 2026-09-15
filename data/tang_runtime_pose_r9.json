@@ -1,0 +1,47 @@
+{
+  "version": "tang-runtime-pose-r9",
+  "character": "tang_sanzang",
+  "scope": "complete_game_runtime_visual_only",
+  "balance_changes": false,
+  "inherits": ["R8_release_window", "R7_clean_cast_pose", "R6_clean_form", "R5_contact_only_feedback", "R4_pose_clock", "R3_world_projectile"],
+  "readability": {
+    "character_visual_scale_multiplier": 1.10,
+    "collision_scale_changed": false,
+    "normal_attack_action_speed": 2.0,
+    "normal_release_pre_action_seconds": 0.035,
+    "normal_release_post_action_seconds": 0.180,
+    "normal_release_wall_time_target_ms": "about 100",
+    "release_pose": 24,
+    "pre_release_pose": 3,
+    "recovery_poses": [3, 2, 13]
+  },
+  "form": {
+    "subject_pose": 13,
+    "echo_pose": 13,
+    "echo_start_scale": 0.27,
+    "echo_end_scale": 0.72,
+    "echo_flip_source": "current_visible_kf_sprite.flip_h",
+    "baked_pose_30_36_allowed": false,
+    "full_character_crossfade_allowed": false
+  },
+  "release_chain": [
+    "shared_kf_release_t",
+    "visible_clean_pose24",
+    "current_pose_palm",
+    "world_space_projectile",
+    "contact",
+    "impact",
+    "recovery"
+  ],
+  "hard_gates": {
+    "world_space_after_release": true,
+    "contact_before_impact": true,
+    "precontact_hitstop_forbidden": true,
+    "fixed_fake_anchor_forbidden": true,
+    "collision_change_forbidden": true,
+    "baked_large_skill_art_forbidden": true,
+    "old_lotus_ring_rune_runtime_forbidden": true,
+    "normal_release_flash_frame_forbidden": true,
+    "form_flip_must_follow_visible_character": true
+  }
+}
