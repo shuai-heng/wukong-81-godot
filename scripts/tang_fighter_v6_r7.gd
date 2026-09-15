@@ -1,25 +1,22 @@
 class_name TangFighterV6R7
-extends TangFighterV6R6
+extends "res://scripts/tang_fighter_v6_r6.gd"
 
-## R7：把现有 POSE_24 真正变成“干净释放关键帧”，不再用站姿硬切假装施法。
+## R7：干净释放关键帧。
 ##
-## 原 POSE_24 的人物动作本身非常合适：左手持杖、右掌明确前推；问题是原图内烘焙了巨大月牙/烟云。
-## R7 在仓库内新增一张由原 POSE_24 清理出的真实 PNG：
-## - RGB/人物造型仍来自原 V6 POSE_24，不重画角色身份；
-## - 去掉大月牙、烟云与大块底部光效，只保留人物/锡杖/前推手臂；
-## - 将清理后的 POSE_24 作为 normal/Q/G/R 的 Release 关键帧；
-## - projectile source 绑定该画面真实前推右掌，而不是固定 player.position 偏移；
-## - R6 法相仍使用干净 POSE_13 人物投影；R5 Contact-only feedback 与 R3 world-space projectile 保持不变。
+## 原 POSE_24 含烘焙月牙/烟云，而且曾出现损坏 PNG，不能继续进入正式运行时。
+## 当前 Release 只复用仓库内已经通过导入的 POSE_03（袖手前引）人物本体；
+## 技能法印、projectile、impact 全部由独立 VFX/world-space 对象生成。
+## 这保证人物 PNG 本身不再携带巨大技能插画，同时保持统一 kf_t / release 时钟。
 
-const R7_CAST_PATH := "res://art/v7_clean/tang_sanzang/tang_sanzang__POSE_24__CAST_CLEAN.png"
-const R7_PALM_UV := Vector2(.735, .535)
+const R7_CAST_PATH := "res://art/v6_pose/tang_sanzang/tang_sanzang__POSE_03__R1C3.png"
+# 这是 POSE_03 的人物局部掌心锚点比例；flip/scale/rotation 会在 _r4_palm_local 中同步。
+const R7_PALM_UV := Vector2(.655, .505)
 
 var _r7_cast_tex: Texture2D
 var _r7_cast_load_failed := false
 
 func _ready() -> void:
 	super()
-	# 预热一次，避免第一次平A/技能释放时资源加载产生视觉卡顿。
 	_r7_cast_texture()
 
 func _r7_cast_texture() -> Texture2D:
@@ -29,38 +26,33 @@ func _r7_cast_texture() -> Texture2D:
 		return null
 	if not ResourceLoader.exists(R7_CAST_PATH):
 		_r7_cast_load_failed = true
-		push_error("Tang R7 clean cast pose missing: " + R7_CAST_PATH)
+		push_error("Tang R7 cast pose missing: " + R7_CAST_PATH)
 		return null
 	_r7_cast_tex = load(R7_CAST_PATH)
 	if _r7_cast_tex == null:
 		_r7_cast_load_failed = true
-		push_error("Tang R7 clean cast pose failed to load")
+		push_error("Tang R7 cast pose failed to load")
 	return _r7_cast_tex
 
-# ====================== 更像“真的在施法”的人物动作剧本 ======================
 func _r4_pose_for(mode: String, p: float) -> int:
 	match mode:
 		"normal":
-			# 持杖定身 → 合掌聚咒 → 右掌前推 Release → 合掌 → 回位。
 			if p < .16: return 13
 			if p < .34: return 2
 			if p < .72: return 24
 			if p < .88: return 2
 			return 13
 		"q":
-			# 合掌聚印 → 右掌把八角镇压印推出 → 收掌。
 			if p < .20: return 2
 			if p < .72: return 24
 			if p < .90: return 2
 			return 13
 		"g":
-			# 念咒蓄势 → 前推掌保持 Release 姿势供念珠分拍脱手 → 回位。
 			if p < .20: return 2
 			if p < .76: return 24
 			if p < .92: return 2
 			return 13
 		"r":
-			# 法相中：合掌聚势 → 右掌前推铺开梵音矢 → 合掌收束 → 持杖回位。
 			if p < .16: return 2
 			if p < .74: return 24
 			if p < .90: return 2
@@ -73,8 +65,7 @@ func _r4_pose_tex(pose_id: int) -> Texture2D:
 		var cleaned := _r7_cast_texture()
 		if cleaned != null:
 			return cleaned
-		# 加载异常时绝不回退到带巨大月牙的原 POSE_24；退回干净合掌帧。
-		return super(2)
+		return super(3)
 	return super(pose_id)
 
 func _r4_palm_local() -> Vector2:
