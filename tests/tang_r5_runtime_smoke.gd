@@ -1,8 +1,9 @@
 extends SceneTree
 
-# 唐僧 R8 完整游戏运行时 smoke。
-# 目的：用 Godot 真正实例化 scenes/main.tscn，验证 R8→R7→R6→R5→R4→R3 继承链、
-# 清理后的 POSE24 只在真实 Release 窗口出现、平A/Q/E/G/R 释放链，以及 Contact 前无旧预埋 hitstop。
+# 唐僧 R9 完整游戏运行时 smoke。
+# 目的：真正实例化 scenes/main.tscn，验证 R9→R8→R7→R6→R5→R4→R3 链、
+# 清理后的 POSE24 只在真实 Release 窗口出现、平A/Q/E/G/R 的 Contact 顺序、
+# 以及 R9 的人物读形/法相朝向没有破坏战斗数值与控制。
 
 var failed := false
 
@@ -14,7 +15,7 @@ func _wait(sec: float) -> void:
 
 func _fail(msg: String) -> void:
 	failed = true
-	push_error("TANG_R8_SMOKE " + msg)
+	push_error("TANG_R9_SMOKE " + msg)
 
 func _durable_foe(game, at: Vector2):
 	var e = game.spawn_enemy(at, "wolf", true)
@@ -62,8 +63,8 @@ func _run() -> void:
 	current_scene = game
 	for i in 5:
 		await process_frame
-	if not (game.player is TangFighterV6R8):
-		_fail("TangFighterV6R8 not installed")
+	if not (game.player is TangFighterV6R9):
+		_fail("TangFighterV6R9 not installed")
 		quit(2)
 		return
 
@@ -80,6 +81,9 @@ func _run() -> void:
 	var cast_tex = p._r7_cast_texture()
 	if cast_tex == null:
 		_fail("clean POSE24 release texture failed to load")
+	# R9 只改可视 scale，不允许碰撞/玩家 Node2D scale 跟着放大。
+	if p.scale != Vector2.ONE:
+		_fail("R9 changed player Node2D/collision scale")
 
 	var target = _durable_foe(game, p.position + Vector2(120, 0))
 	if target == null:
@@ -87,7 +91,7 @@ func _run() -> void:
 		quit(3)
 		return
 
-	# 平A：必须经历干净 POSE24 Release 短窗口，然后 world-space projectile 才能扣血。
+	# 平A：必须经历可读的干净 POSE24 Release 窗口，然后 world-space projectile 才能扣血。
 	var hp0 := float(target.hp)
 	p.cool.auto = 999.0
 	p._auto(target)
@@ -116,17 +120,27 @@ func _run() -> void:
 	if not ward_found:
 		_fail("E TangWardV6 node missing")
 
-	# G：多弹 cadence 期间允许持 POSE24，但动作结束必须继续 recovery。
+	# G：多弹 cadence 期间允许持 POSE24，但结束必须 Recovery，不能永久僵住。
 	hp0 = float(target.hp)
 	p.cool.g = 0.0
 	p._tang_g()
 	await _wait_for_damage_without_precontact_hitstop(game, p, target, hp0, 2.20, "G", true)
 	await _wait(.35)
+	if int(p._r4_pose_id) == 24 and p._r5_release_hold_left <= .001:
+		_fail("G stayed frozen on POSE24 after cadence ended")
 
-	# R：法相成立后，前推 Release + Contact-only feedback + 最终收法相。
+	# 法相：先向左，验证投影严格跟当前真正可见 KFSprite 朝向。
+	p.facing = Vector2.LEFT
 	p.form_left = 4.0
 	p.form_age = 1.0
 	p.ultimate = 100.0
+	await _wait(.22)
+	if p._form_echo == null or not p._form_echo.visible:
+		_fail("R9 dharma form echo did not become visible")
+	elif p.kf_sprite != null and p._form_echo.flip_h != p.kf_sprite.flip_h:
+		_fail("R9 dharma form echo flip does not match visible Tang pose")
+
+	# R：前推 Release + Contact-only feedback + 最终收法相。
 	p.cool.r = 0.0
 	hp0 = float(target.hp)
 	var r_ok := p._ultimate()
@@ -137,6 +151,8 @@ func _run() -> void:
 	await _wait(.65)
 	if p.form_left > 0.0:
 		_fail("R did not close dharma form after release")
+	if int(p._r4_pose_id) == 24 and p._r5_release_hold_left <= .001:
+		_fail("R stayed frozen on POSE24 after finisher cadence ended")
 
-	print("TANG_R8_RUNTIME_SMOKE_", "FAIL" if failed else "PASS")
+	print("TANG_R9_RUNTIME_SMOKE_", "FAIL" if failed else "PASS")
 	quit(1 if failed else 0)
